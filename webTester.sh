@@ -627,10 +627,32 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 								
         echo -e "\t\t[+] Revisando vulnerabilidades de citrix ($host)"        
-        $proxychains CVE-2019-19781.sh $host $port "cat /etc/passwd" > logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt &        
-        
+        $proxychains CVE-2019-19781.sh $host $port "cat /etc/passwd" > logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt &         
     fi
     ###################################	
+
+	#######  hadoop  ######
+    grep -qi 'Hadoop Administration' .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 								
+        echo -e "\t\t[+] Revisando vulnerabilidades de Hadoop ($host)"        
+        echo "$proxychains  nmap -n -Pn --script hadoop-namenode-info -p $port $host" > logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt
+		$proxychains nmap -n -Pn --script hadoop-namenode-info -p $port $host >> logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt &		
+		#http://182.176.151.83:50070/dfshealth.html
+		#http://182.176.151.83:50070/conf
+		#docker run  -v "$PWD":/tmp -it exploit-legacy hdfsbrowser 182.176.151.83 
+    fi
+    ###################################	
+
+	#######  Hadoop YARN ResourceManager  ######
+    grep -qi 'YARN' .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 								
+        echo -e "\t\t[+] Revisando vulnerabilidades de Hadoop YARN ResourceManager ($host)"        
+        nuclei -u $host -t /root/.local/nuclei-templates/misconfiguration/hadoop-unauth-rce.yaml  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_hadoop-rce.txt
+    fi
+    ###################################	
+
 
     #######  Pulse secure  ######
     grep -qi pulse .enumeracion/"$host"_"$port"_webData.txt
@@ -1412,6 +1434,8 @@ for line in $(cat $TARGETS); do
 		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
 		egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
 
+		grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
+
 		#nuclei
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apache-nuclei.txt > .vulnerabilidades/"$host"_"$port"_apache-nuclei.txt 2>/dev/null
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt 2>/dev/null
@@ -1421,6 +1445,7 @@ for line in $(cat $TARGETS); do
 
 		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null
 
+		#heartbleed
 		egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt 2>/dev/null 
 		greprc=$?
 		if [[ $greprc -eq 0 ]] ; then						
