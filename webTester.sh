@@ -1151,6 +1151,21 @@ for line in $(cat $TARGETS); do
 							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
 							echo ""
 							old_ifs=$IFS
+
+							# Obtener mas URLS de google y wayback							
+							if [[  "$INTERNET" == "s" && ! -z $DOMINIO ]]; then
+								echo "[+] Obtener mas URLS de google y wayback de $DOMINIO "
+								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL cacheados en wayback #########$RESET"
+								# waybackurls $DOMINIO | sort | uniq | httpx -status-code  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > logs/enumeracion/"$DOMINIO"_web_wayback.txt
+								# egrep "\[200\]|,200" logs/enumeracion/"$DOMINIO"_web_wayback.txt  > .enumeracion/"$DOMINIO"_web_wayback.txt
+
+								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL con parametros #########$RESET" 
+								# IFS=$'\n'  
+								# grep --color=never "\?" .enumeracion/*_web_wayback.txt | awk {'print $1'} | sort | uniq > logs/enumeracion/parametrosGET2.txt
+								# grep --color=never "\?" .enumeracion/*_indexado.txt | sed 's/txt:/;/g' | cut -d ";" -f2 | sort | uniq >> logs/enumeracion/parametrosGET2.txt
+								# IFS=$old_ifs
+							fi
+							
 							
 							IFS=$'\n'  
 							grep --color=never "\?" .enumeracion/*_webCrawled.txt | sort | uniq >> logs/enumeracion/parametrosGET2.txt
