@@ -581,12 +581,15 @@ function enumeracionCMS () {
         wpscan  --update  >/dev/null   
         echo -e "\t\t[+] Wordpress user enumeration ("$proto"://"$host":"$port")"
 		#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json"
-        $proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 
+        $proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
+		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto"://"$host":"$port")"
+		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt &
 
 		if [[ "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
-        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
+        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 			#$proxychains msfconsole -x "use auxiliary/scanner/http/wordpress_content_injection;set RHOSTS $host;run;exit" > logs/vulnerabilidades/"$host"_3389_BlueKeep.txt        
+			sleep 5
 			grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
 			greprc=$?
 			if [[ $greprc -eq 0 ]];then 		            
@@ -594,12 +597,11 @@ function enumeracionCMS () {
 				echo -e "\t\t[+] url $url ($host: $port)"
 				if [[ ${url} == *"$host"*  ]];then 
 					echo -e "\t\t[+] Redireccion en wordpress $url ($host: $port)"
-					$proxychains wpscan --disable-tls-checks --enumerate u  --random-user-agent --format json --url $url > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json
-					$proxychains wpscan --disable-tls-checks --random-user-agent --url $url --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
+					$proxychains wpscan --disable-tls-checks --enumerate u  --random-user-agent --format json --url $url > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
+					$proxychains wpscan --disable-tls-checks --random-user-agent --url $url --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 				else
 					echo -e "\t\t[+] Ya lo escaneamos por dominio" 
 				fi  
-
 			fi
 			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt | grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
@@ -610,10 +612,7 @@ function enumeracionCMS () {
 			
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt | grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
 		fi
-        
-		echo "test"
-        cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt
-        grep -i users logs/vulnerabilidades/"$host"_"$port"_wpUsers.json -m1 -b1 -A20 > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt
+        	       
     fi
 	# curl -k https://$DOMINIO/wp-json/wp/v2/users
 	# curl -k https://$DOMINIO/wp-json/akismet/v1
@@ -799,13 +798,13 @@ function cloneSite ()
 
         echo ""
         echo -e "\t\t[+] Extrayendo URL de los sitios clonados"	
-        grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" | sort | uniq > http.txt
+        grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > http.txt
         lines=`wc -l http.txt  | cut -d " " -f1`
         perl -E "say \"http://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
         paste -d '' prefijo.txt http.txt >> ../logs/enumeracion/"$DOMINIO"_web_wget2.txt # adicionar http:// a cada linea
         rm http.txt 2>/dev/null
 
-        grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" | sort | uniq > https.txt 
+        grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > https.txt 
         lines=`wc -l https.txt  | cut -d " " -f1`
         perl -E "say \"https://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
         paste -d '' prefijo.txt https.txt >> ../logs/enumeracion/"$DOMINIO"_web_wget2.txt  # adicionar https:// a cada linea
@@ -1145,7 +1144,7 @@ for line in $(cat $TARGETS); do
 
 						# allow http
 						echo -e "\t[+] allow http check ($proto_http://$host:$port)  " 
-						allow-http -addr=$host > logs/vulnerabilidades/"$host"_"$port"_allow-http.txt 
+						allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_allow-http.txt 
 						egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_allow-http.txt
 						greprc=$?
 						if [[ $greprc -eq 0 ]] ; then	
@@ -1155,7 +1154,7 @@ for line in $(cat $TARGETS); do
 						# _blank targets with no "rel nofollow no referrer"
 						echo -e "\t[+] _blank targets check ($proto_http://$host:$port)  " 
 						check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt 
-						cp logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt  .vulnerabilidades/"$host"_"$port"_check-blank-target.txt 
+						grep -iv error logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port"_check-blank-target.txt 
 
 						echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
 						multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
@@ -1427,12 +1426,14 @@ for line in $(cat $TARGETS); do
 		egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
 		egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
 		egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
-		egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt 		              
+		egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
 		egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
 		egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
 		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
 		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
 		egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
+
+		egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt
 
 		grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 
@@ -1443,8 +1444,12 @@ for line in $(cat $TARGETS); do
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt 2>/dev/null
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
 
-		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+ 		grep -i users logs/vulnerabilidades/"$host"_"$port"_wpUsers.json -m1 -b1 -A20 > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt
 
+		
 		#heartbleed
 		egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt 2>/dev/null 
 		greprc=$?
@@ -1513,7 +1518,7 @@ if [[  "$MODE" == "total" ]]; then
 	egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webClone/* 2>/dev/null| sed 's/webClone\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
 
 	# correos presentes en los sitios web
-	grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webClone/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
+	grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webClone/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
 	cat  logs/enumeracion/"$DOMINIO"_web_correos.txt .enumeracion2/*_recon_correos.txt 2>/dev/null | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
 
 	egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webClone/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
@@ -1577,7 +1582,7 @@ insert_data
 echo " ##### Identificar paneles administrativos ##### "
 touch .enumeracion2/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 fingerprint=''
-list_admin=`egrep -ira "inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese"  .enumeracion2/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese"  .enumeracion2/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 	for line in $(echo $list_admin); do 			
 		if [ "$VERBOSE" == '1' ]; then  echo "line $line" ; fi
 		host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
