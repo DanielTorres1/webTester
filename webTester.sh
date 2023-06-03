@@ -1444,10 +1444,10 @@ for line in $(cat $TARGETS); do
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt 2>/dev/null
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
 
-		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
  		grep -i users logs/vulnerabilidades/"$host"_"$port"_wpUsers.json -m1 -b1 -A20 > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 
 
 		
 		#heartbleed
