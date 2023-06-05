@@ -585,6 +585,8 @@ function enumeracionCMS () {
 		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto"://"$host":"$port")"
 		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt &
 
+		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt &
+
 		if [[ "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
         	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
@@ -1434,6 +1436,7 @@ for line in $(cat $TARGETS); do
 		egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
 
 		egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt
+		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt > .vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt 
 
 		grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 

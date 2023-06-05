@@ -17,6 +17,9 @@ BLUE="\033[01;34m"     # Heading
 BOLD="\033[01;01m"     # Highlight
 RESET="\033[00m"       # Normal
 
+echo -e "${GREEN} [+] Copiando archivos ${RESET}"
+cp webTester.sh /usr/bin
+
 echo -e "${RED}[+]${BLUE} Copiando ejecutables GO ${RESET}"
 cp GO/getStatus/getStatus /usr/bin/pentest
 cp GO/sri-check/sri-check /usr/bin/pentest
@@ -28,7 +31,6 @@ cp GO/multiviews/multiviews /usr/bin/pentest
 cp GO/certAltName/certAltName /usr/bin/pentest
 cp GO/check_blank_target/check_blank_target /usr/bin/pentest
 
+echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
+pip install sri-check --break-system-package
 
-
-echo -e "${GREEN} [+] Copiando archivos ${RESET}"
-cp webTester.sh /usr/bin
