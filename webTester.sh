@@ -78,6 +78,7 @@ hilos_web=15;
 if [[ -z $TARGETS && -z $URL ]] ; then
 
 cat << "EOF"
+WebTester.sh v2
 Options:
 --mode: hacking/total
 --proxychains: s/n
@@ -588,6 +589,9 @@ function enumeracionCMS () {
 		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt &
 
 		wordpress-scan -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt &
+		xml-rpc-test -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt &
+		xml-rpc-login -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt &
+		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 		if [[ "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
@@ -984,7 +988,7 @@ for line in $(cat $TARGETS); do
 	echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
 	#Certificado SSL + nmap + webdata
 	cp logs/enumeracion/"$ip"_"$port"_cert.txt  .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
-	DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' | uniq` #Lista un dominio por linea
+	DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
 	DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
 	DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
 	DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
@@ -1437,9 +1441,11 @@ for line in $(cat $TARGETS); do
 		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
 		egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
 
-		egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt
-		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt > .vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt 
-		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt > .vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt
+		egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
+		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt > .vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt 2>/dev/null
+		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt > .vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt 2>/dev/null
+		grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
+		grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
 
 		grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 
@@ -1451,9 +1457,9 @@ for line in $(cat $TARGETS); do
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
 
 		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt
  		grep -i users logs/vulnerabilidades/"$host"_"$port"_wpUsers.json -m1 -b1 -A20 > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 
 
 		
 		#heartbleed

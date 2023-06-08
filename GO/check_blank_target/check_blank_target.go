@@ -1,78 +1,79 @@
 package main
 
 import (
-	"bytes"
 	"crypto/tls"
+	"flag"
 	"fmt"
 	"net/http"
-	"os"
-	"strings"
 	"time"
 
-	"github.com/PuerkitoBio/goquery"
 	"golang.org/x/net/html"
 )
 
-func usage() {
-	fmt.Println("Uso: ./script <URL>")
-}
-
-func getHTML(url string) (*goquery.Document, error) {
+func getHtml(url string) (*html.Node, error) {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
 		},
 	}
-
 	client := &http.Client{
-		Timeout:   time.Second * 10,
 		Transport: tr,
+		Timeout:   10 * time.Second,
 	}
-
-	res, err := client.Get(url)
+	resp, err := client.Get(url)
 	if err != nil {
 		return nil, err
 	}
-	defer res.Body.Close()
-
-	if res.StatusCode != 200 {
-		return nil, fmt.Errorf("estado de respuesta: %d %s", res.StatusCode, res.Status)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(res.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return doc, nil
+	defer resp.Body.Close()
+	return html.Parse(resp.Body)
 }
 
-func outerHTML(n *html.Node) string {
-	var buf bytes.Buffer
-	w := strings.NewReplacer("\n", "", "\t", "", "\r", "")
-	html.Render(&buf, n)
-	return w.Replace(buf.String())
+func checkAttr(t html.Token, key string, value string) (ok bool) {
+	for _, a := range t.Attr {
+		if a.Key == key {
+			if a.Val == value {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func printNode(n *html.Node) {
+	fmt.Print("<a ")
+	for _, a := range n.Attr {
+		fmt.Print(a.Key, "=\"", a.Val, "\" ")
+	}
+	fmt.Print(">")
+	if n.FirstChild != nil {
+		fmt.Print(n.FirstChild.Data)
+	}
+	fmt.Println("</a>")
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-		os.Exit(1)
+	flag.Parse()
+	arg := flag.Arg(0)
+	if arg == "" {
+		fmt.Println("Usage: go run script.go <url>")
+		return
 	}
-
-	doc, err := getHTML(os.Args[1])
+	doc, err := getHtml(arg)
 	if err != nil {
-		fmt.Println("Error al obtener el HTML:", err)
-		os.Exit(1)
+		fmt.Println(err)
+		return
 	}
-
-	doc.Find("a").Each(func(i int, s *goquery.Selection) {
-		target, exists := s.Attr("target")
-		if exists && target == "_blank" {
-			rel, exists := s.Attr("rel")
-			if !exists || rel != "noopener noreferrer" {
-				fmt.Println(outerHTML(s.Nodes[0]))
+	var f func(*html.Node)
+	f = func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "a" {
+			t := html.Token{Type: html.StartTagToken, Data: n.Data, Attr: n.Attr}
+			if checkAttr(t, "target", "_blank") && !(checkAttr(t, "rel", "noopener noreferrer") || checkAttr(t, "rel", "noreferrer noopener")) {
+				printNode(n)
 			}
 		}
-	})
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			f(c)
+		}
+	}
+	f(doc)
 }
