@@ -1457,8 +1457,29 @@ for line in $(cat $TARGETS); do
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
 
 		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py > .vulnerabilidades/"$host"_"$port"_wpUsers.txt
- 		grep -i users logs/vulnerabilidades/"$host"_"$port"_wpUsers.json -m1 -b1 -A20 > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+
+		
+		for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
+		do			
+			
+			if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
+			respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`			
+			sleep 3
+			if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
+				username="${username//-/.}" # reemplazar - con .
+				username="$username@$DOMINIO"
+				if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
+				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
+				sleep 3
+			fi
+#			echo "respuesta $respuesta"
+			if [[ ${respuesta} == *"usuario valido"*  ]] ; then
+				echo $username >> .vulnerabilidades/"$host"_"$port"_wpUsers.txt
+			fi
+
+		done
+ 		
 		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 
 
 		
