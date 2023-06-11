@@ -586,7 +586,7 @@ function enumeracionCMS () {
 		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto"://"$host":"$port")"
 		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt &
 
-		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt &
+		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt
 
 		wordpress-scan -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt &
 		xml-rpc-test -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt &
@@ -1382,13 +1382,18 @@ for line in $(cat $TARGETS); do
 	ip=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`		
 	proto_http=`echo $line | cut -f3 -d":"`							
-	lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
-		
-	if [ -z "$lista_hosts" ] ; then 
-			lista_hosts=$ip
+	if [ -z $DOMINIO ] ; then 
+		lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+		if [ -z "$lista_hosts" ] ; then 
+				lista_hosts=$ip
+		else
+				lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+		fi
 	else
-			lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+		lista_hosts=$ip
 	fi
+
+	
 
 	for host in $lista_hosts; do
 		echo -e "Parse $host:$port"
@@ -1457,27 +1462,26 @@ for line in $(cat $TARGETS); do
 		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
 
 		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
-		
+		echo "Empezando a revisar usuarios validos de wordpress"
 		for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
-		do			
-			
+		do						
 			if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
 			respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`			
-			sleep 3
+			sleep 4
 			if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
 				username="${username//-/.}" # reemplazar - con .
 				username="$username@$DOMINIO"
+				username="${username//www./}"
 				if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
 				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
-				sleep 3
+				sleep 4
 			fi
 #			echo "respuesta $respuesta"
 			if [[ ${respuesta} == *"usuario valido"*  ]] ; then
 				echo $username >> .vulnerabilidades/"$host"_"$port"_wpUsers.txt
 			fi
-
 		done
  		
 		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 

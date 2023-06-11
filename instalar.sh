@@ -22,7 +22,6 @@ cp webTester.sh /usr/bin
 
 echo -e "${RED}[+]${BLUE} Copiando ejecutables GO ${RESET}"
 cp GO/getStatus/getStatus /usr/bin/pentest
-cp GO/sri-check/sri-check /usr/bin/pentest
 cp GO/listDir/listDir /usr/bin/pentest
 cp GO/SAP-scan/SAP-scan /usr/bin/pentest
 cp GO/getCert/get_ssl_cert /usr/bin/pentest
