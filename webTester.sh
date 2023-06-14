@@ -1001,8 +1001,12 @@ for line in $(cat $TARGETS); do
 			echo "$DOMINIO_INTERNO" >> .enumeracion/"$ip"_"$port"_azureAD.txt 
 		else	
 			echo -e "[+] DOMINIO_INTERNO $DOMINIO_INTERNO"
-			if [[ "$DOMINIO_INTERNO" != NULL  && "$DOMINIO_INTERNO" != "localhost"  && "$DOMINIO_INTERNO" != "" && ${DOMINIO_INTERNO} != *"*"* ]]; then					
-				
+			
+			grep -q "$DOMINIO_INTERNO" servicios/webApp.txt 2>/dev/null # Verficar si ya identificamos esa app
+			greprc=$? # greprc=1 dominio no en lista, greprc=2 servicios/webApp.txt no existe
+			
+			if [ "$DOMINIO_INTERNO" != NULL ] && [ "$DOMINIO_INTERNO" != "localhost" ] && [ "$DOMINIO_INTERNO" != "" ] && [ "$DOMINIO_INTERNO" != *"*"* ] && ([ "$greprc" -eq 1 ] || [ "$greprc" -eq 2 ]); then
+    				
 				#Agregar a la lista de targets
 				grep -q "$ip,$DOMINIO_INTERNO" $IP_LIST_FILE
 				greprc=$?
