@@ -19,6 +19,7 @@ RESET="\033[00m"       # Normal
 
 echo -e "${GREEN} [+] Copiando archivos ${RESET}"
 cp webTester.sh /usr/bin
+cp pentest/* /usr/bin/pentest
 
 echo -e "${RED}[+]${BLUE} Copiando ejecutables GO ${RESET}"
 cp GO/getStatus/getStatus /usr/bin/pentest
