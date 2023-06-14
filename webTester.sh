@@ -1463,8 +1463,7 @@ for line in $(cat $TARGETS); do
 
 		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
-
-		echo "Empezando a revisar usuarios validos de wordpress"
+		
 		for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
 		do						
 			if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
