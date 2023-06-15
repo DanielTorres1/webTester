@@ -99,6 +99,21 @@ EOF
 exit
 fi
 
+if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades es un nuevo escaneo
+	mkdir .enumeracion
+	mkdir .enumeracion2 
+	mkdir .banners
+	mkdir .banners2
+	mkdir .vulnerabilidades	
+	mkdir .vulnerabilidades2 	
+	mkdir reportes	
+	mkdir -p logs/enumeracion
+	mkdir -p logs/vulnerabilidades	
+    mkdir responder
+	mkdir servicios
+	cp /usr/share/lanscanner/.resultados.db .
+fi	
+
 # si escaneamos una sola app https://prueba.com.bo | http://192.168.1.2:8080
 if [ -z $TARGETS ] ; then
 	#cat $TARGETS | cut -d ":" -f1 | sort | uniq > hosts-lives.txt
@@ -114,10 +129,12 @@ if [ -z $TARGETS ] ; then
 		fi
 	fi
 
+	echo "" > servicios/web-app.txt #clear last scan
+
 	# --url http://192.168.1.2:8080
 	if [[ $host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 		ip=$host
-		echo "$ip:$port:$http_proto" >> web.txt		
+		echo "$ip:$port:$http_proto" >> servicios/web-app.txt
 	else # --url https://prueba.com.bo
 		DOMINIO=$host
 		echo "DOMINIO $DOMINIO"
@@ -135,16 +152,16 @@ if [ -z $TARGETS ] ; then
 
 			# Comprobar si la diferencia absoluta es menor que el 2% son el mismo sitio
 			if (( $(echo "${abs_diff} < ${two_percent}" | bc -l) )); then				
-				echo "$ip:$port:$http_proto" >> web.txt	
+				echo "$ip:$port:$http_proto" >> servicios/web-app.txt
 			else
 				echo "El sitio no es accesible por IP"
-				echo "$DOMINIO:$port:$http_proto" >> web.txt			
+				echo "$DOMINIO:$port:$http_proto" >> servicios/web-app.txt		
 			fi			
 		done
 	fi
-	TARGETS=web.txt
-	cat $TARGETS | cut -d ":" -f 1 > hosts.txt
-	IP_LIST_FILE="hosts.txt"
+	TARGETS=servicios/web-app.txt
+	cat $TARGETS | cut -d ":" -f 1 > servicios/hosts.txt
+	IP_LIST_FILE="servicios/hosts.txt"
 fi
 
 echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE"
@@ -900,20 +917,6 @@ function cloneSite ()
     cd ../
 }
 
-if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades es un nuevo escaneo
-	mkdir .enumeracion
-	mkdir .enumeracion2 
-	mkdir .banners
-	mkdir .banners2
-	mkdir .vulnerabilidades	
-	mkdir .vulnerabilidades2 	
-	mkdir reportes	
-	mkdir -p logs/enumeracion
-	mkdir -p logs/vulnerabilidades	
-    mkdir responder
-	mkdir servicios
-	cp /usr/share/lanscanner/.resultados.db .
-fi	 
 
 
 mkdir webClone 2>/dev/null
@@ -992,7 +995,7 @@ for line in $(cat $TARGETS); do
 	DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
 	DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
 
-	if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"*]] ; then #si solo contiene numeros o el caracter _
+	if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* ]] ; then #si contiene solo numeros o el caracter _
 		DOMINIOS_INTERNOS_TODOS="$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
 	else
 		DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
@@ -1029,8 +1032,7 @@ for line in $(cat $TARGETS); do
 					echo "Adicionando $DOMINIO_INTERNO a /etc/hosts"
 					echo "$ip $DOMINIO_INTERNO" >> /etc/hosts							
 				else
-					echo "Ya agregue mas antes $DOMINIO_INTERNO a /etc/hosts "
-					
+					echo "Ya agregue mas antes $DOMINIO_INTERNO a /etc/hosts "					
 				fi
 			fi
 		fi		
