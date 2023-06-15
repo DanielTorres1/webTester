@@ -111,6 +111,8 @@ if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades 
 	mkdir -p logs/vulnerabilidades	
     mkdir responder
 	mkdir servicios
+	mkdir -p archivos/$DOMINIO 2>/dev/null
+	mkdir -p webClone/$DOMINIO 2>/dev/null
 	cp /usr/share/lanscanner/.resultados.db .
 fi	
 
@@ -128,9 +130,7 @@ if [ -z $TARGETS ] ; then
 			port="80"
 		fi
 	fi
-
-	echo "last servicios/web-app.txt"
-	cat servicios/web-app.txt
+	
 	echo "" > servicios/web-app.txt #clear last scan
 
 	# --url http://192.168.1.2:8080
@@ -817,9 +817,7 @@ function cloneSite ()
    port=$3  
    echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
 
-    #######  clone site  ####### 	
-	mkdir archivos/$DOMINIO 2>/dev/null
-	mkdir -p webClone/$DOMINIO 2>/dev/null
+    #######  clone site  ####### 		
     cd webClone/$DOMINIO/
         echo -e "\t\t[+] Clonando sitio ($host) tardara un rato"	
         wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto://$host 2>/dev/null
