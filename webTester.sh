@@ -817,8 +817,10 @@ function cloneSite ()
    port=$3  
    echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
 
-    #######  clone site  ####### 									
-    cd webClone
+    #######  clone site  ####### 	
+	mkdir archivos/$DOMINIO 2>/dev/null
+	mkdir -p webClone/$DOMINIO 2>/dev/null
+    cd webClone/$DOMINIO/
         echo -e "\t\t[+] Clonando sitio ($host) tardara un rato"	
         wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto://$host 2>/dev/null
         rm index.html.orig 2>/dev/null
@@ -882,14 +884,14 @@ function cloneSite ()
         
         #### mover archivos con metadata para extraerlos ########
         echo -e "\t\t[+] Extraer metadatos con exiftool"										
-        find . -name "*.pdf" -exec mv {} "../archivos" \;
-        find . -name "*.xls" -exec mv {} "../archivos" \;
-        find . -name "*.doc" -exec mv {} "../archivos" \;
-        find . -name "*.ppt" -exec mv {} "../archivos" \;
-        find . -name "*.pps" -exec mv {} "../archivos" \;
-        find . -name "*.docx" -exec mv {} "../archivos" \;
-        find . -name "*.pptx" -exec mv {} "../archivos" \;
-        find . -name "*.xlsx" -exec mv {} "../archivos" \;
+        find . -name "*.pdf" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.xls" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.doc" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.ppt" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.pps" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.docx" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.pptx" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.xlsx" -exec mv {} "../../archivos/$DOMINIO/" \;
         
 		if [ "$INTERNET" == "s" ]; then 	#escluir CDN 
 			######### buscar IPs privadas
@@ -912,17 +914,14 @@ function cloneSite ()
         
         ######### buscar comentarios 
         echo -e "\t\t[+] Revisando si hay comentarios html, JS"	
-        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class" >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class" >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class" >> ../.enumeracion/"$DOMINIO"_web_comentario.txt        
+        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
+        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
+        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt        
         ###############################	
-    cd ../
+    cd ../../
 }
 
-
-
-mkdir webClone 2>/dev/null
-touch webClone/checksumsEscaneados.txt	
+touch webClone/$DOMINIO/checksumsEscaneados.txt	
 
 ############## Extraer informacion web y SSL
 # web.txt
@@ -1112,15 +1111,15 @@ for line in $(cat $TARGETS); do
 			############									
 									
 			#Borrar lineas que cambian en cada peticion
-			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/"$proto_http"-"$host"-"$port".html
+			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
 						
-			if [[ ! -f webClone/"$proto_http"-"$host"-"$port".html ]];then
-				echo "no disponible" > webClone/"$proto_http"-"$host"-"$port".html 
+			if [[ ! -f webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html ]];then
+				echo "no disponible" > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html 
 			fi
 
-			checksumline=`md5sum webClone/"$proto_http"-"$host"-"$port".html` 							
+			checksumline=`md5sum webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html` 							
 			md5=`echo $checksumline | awk {'print $1'}` 													
-			egrep -iq $md5 webClone/checksumsEscaneados.txt
+			egrep -iq $md5 webClone/$DOMINIO/checksumsEscaneados.txt
 			noEscaneado=$?
 
 			if [[ $noEscaneado -eq 0 ]];then 
@@ -1128,7 +1127,7 @@ for line in $(cat $TARGETS); do
 				sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 			fi
 
-			egrep -iq "no Route matched with those values" webClone/"$proto_http"-"$host"-"$port".html
+			egrep -iq "no Route matched with those values" webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then 
 				noEscaneado=1
@@ -1141,7 +1140,7 @@ for line in $(cat $TARGETS); do
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK "; fi
 			
 			if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
-				echo $checksumline >> webClone/checksumsEscaneados.txt	
+				echo $checksumline >> webClone/$DOMINIO/checksumsEscaneados.txt	
 
 				#######  If not firewall/IoT ######
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" .enumeracion/"$host"_"$port"_webData.txt
@@ -1545,19 +1544,19 @@ done # for web.txt
 if [[  "$MODE" == "total" ]]; then
 	echo -e "[+] Extraer metadatos de sitios clonados"										
 	exiftool archivos > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
-	egrep -i "Author|creator" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | awk '{print $3}' | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
+	egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
 
 	##### Reporte metadatos (sitio web) ##
-	sed 's/ /-/g' -i .enumeracion/"$DOMINIO"_metadata_exiftool.txt # cambiar espacios por "-"
-	echo "Nombre;Apellido;Correo;Cargo" > reportes/correos_metadata.csv
-	for nombretotal in `more .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null`; do	
-	#echo "nombretotal $nombretotal"
-		if [[ ${nombretotal} == *"-"*  ]];then 			
-			nombre=`echo $nombretotal | cut -f1 -d "-"`
-			apellido=`echo $nombretotal | cut -f2 -d "-"`
-			echo "$nombre;$apellido;$apellido@$DOMINIO;n/a" > reportes/correos_metadata.csv 
-		fi
-	done
+	# sed 's/ /-/g' -i .enumeracion/"$DOMINIO"_metadata_exiftool.txt # cambiar espacios por "-"
+	# echo "Nombre;Apellido;Correo;Cargo" > reportes/correos_metadata.csv
+	# for nombretotal in `more .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null`; do	
+	# #echo "nombretotal $nombretotal"
+	# 	if [[ ${nombretotal} == *"-"*  ]];then 			
+	# 		nombre=`echo $nombretotal | cut -f1 -d "-"`
+	# 		apellido=`echo $nombretotal | cut -f2 -d "-"`
+	# 		echo "$nombre;$apellido;$apellido@$DOMINIO;n/a" > reportes/correos_metadata.csv 
+	# 	fi
+	# done
 	################
 
 	#  Eliminar URLs repetidas (clonacion)
@@ -1566,55 +1565,55 @@ if [[  "$MODE" == "total" ]]; then
 	
 
 	# filtrar error de conexion a base de datos y otros errores
-	egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webClone/* 2>/dev/null| sed 's/webClone\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
+	egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webClone/$DOMINIO/* 2>/dev/null| sed 's/webClone\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
 
 	# correos presentes en los sitios web
-	grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webClone/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
-	cat  logs/enumeracion/"$DOMINIO"_web_correos.txt .enumeracion2/*_recon_correos.txt 2>/dev/null | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
+	grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webClone/$DOMINIO/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
+	cat  logs/enumeracion/"$DOMINIO"_web_correos.txt .enumeracion2/*_recon_correos.txt 2>/dev/null | grep "$DOMINIO" | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
 
-	egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webClone/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
+	egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webClone/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
 
 	echo -e "[+] Buscar datos sensible en archivos clonados"	
-	cd webClone
-	rm checksumsEscaneados.txt # tiene hashes md5 
-	# Creando repositorio temporal para que pueda ser escaneado por las herramientas
+	cd webClone/$DOMINIO
+		rm checksumsEscaneados.txt # tiene hashes md5 
+		# Creando repositorio temporal para que pueda ser escaneado por las herramientas
 
-	# cat scripts.js | js-beautify  | tee scripts.js
+		# cat scripts.js | js-beautify  | tee scripts.js
 
-	rm -rf .git 2>/dev/null
-	git init >/dev/null 2>/dev/null
-	git add . >/dev/null 2>/dev/null
-	git commit -m "test" >/dev/null 2>/dev/null
+		rm -rf .git 2>/dev/null
+		git init >/dev/null 2>/dev/null
+		git add . >/dev/null 2>/dev/null
+		git commit -m "test" >/dev/null 2>/dev/null
 
-	# llaves SSH
-	echo -e "\nllaves SSH" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 70 --max-key 72 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# llaves SSH
+		echo -e "\nllaves SSH" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 70 --max-key 72 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
-	# AWS Secret Access Key
-	echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# AWS Secret Access Key
+		echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
-	# Azure Shared Key
-	echo -e "\nAzure Shared Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 66 --max-key 66 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# Azure Shared Key
+		echo -e "\nAzure Shared Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 66 --max-key 66 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
-	# RSA private key 
-	echo -e "\n RSA private key " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 76 --max-key 76 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# RSA private key 
+		echo -e "\n RSA private key " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 76 --max-key 76 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
-	# passwords 
-	echo -e "\n passwords " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-pass 9 --max-pass 15 --pass-complex 8  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# passwords 
+		echo -e "\n passwords " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-pass 9 --max-pass 15 --pass-complex 8  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
 
-	# generic token - dumpster-diver
-	echo -e "\n generic token (dumpster-diver)" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-	docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-key 25 --max-key 40 --entropy 4.6  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		# generic token - dumpster-diver
+		echo -e "\n generic token (dumpster-diver)" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+		docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-key 25 --max-key 40 --entropy 4.6  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
-	# generic token - truffle
-	#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
+		# generic token - truffle
+		#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
 
-	cd ..
+	cd ../../
 
 	grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
 	#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
