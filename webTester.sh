@@ -129,6 +129,8 @@ if [ -z $TARGETS ] ; then
 		fi
 	fi
 
+	echo "last servicios/web-app.txt"
+	cat servicios/web-app.txt
 	echo "" > servicios/web-app.txt #clear last scan
 
 	# --url http://192.168.1.2:8080
