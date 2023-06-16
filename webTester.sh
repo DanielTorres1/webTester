@@ -1113,6 +1113,7 @@ for line in $(cat $TARGETS); do
 			############									
 									
 			#Borrar lineas que cambian en cada peticion
+			mkdir webClone/$DOMINIO 2>/dev/null
 			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
 						
 			if [[ ! -f webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html ]];then
