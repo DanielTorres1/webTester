@@ -817,9 +817,13 @@ function cloneSite ()
    port=$3  
    echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
 
-    #######  clone site  ####### 		
+    #######  clone site  ####### 	
+	mkdir -p webClone/$DOMINIO 2>/dev/null
+	mkdir -p archivos/$DOMINIO 2>/dev/null
+	
     cd webClone/$DOMINIO/
-        echo -e "\t\t[+] Clonando sitio ($host) tardara un rato"	
+        echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
+		pwd
         wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto://$host 2>/dev/null
         rm index.html.orig 2>/dev/null
 
@@ -919,8 +923,6 @@ function cloneSite ()
     cd ../../
 }
 
-mkdir -p webClone/$DOMINIO 2>/dev/null
-mkdir -p archivos/$DOMINIO 2>/dev/null
 touch webClone/$DOMINIO/checksumsEscaneados.txt	
 	
 ############## Extraer informacion web y SSL
@@ -1543,7 +1545,7 @@ done # for web.txt
 
 if [[  "$MODE" == "total" ]]; then
 	echo -e "[+] Extraer metadatos de sitios clonados"										
-	exiftool archivos > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
+	exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
 	egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
 
 	##### Reporte metadatos (sitio web) ##
