@@ -131,12 +131,12 @@ if [ -z $TARGETS ] ; then
 		fi
 	fi
 	
-	echo "" > servicios/web-app.txt #clear last scan
+	echo "" > servicios/web-app-tmp.txt #clear last scan
 
 	# --url http://192.168.1.2:8080
 	if [[ $host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 		ip=$host
-		echo "$ip:$port:$http_proto" >> servicios/web-app.txt
+		echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
 	else # --url https://prueba.com.bo
 		DOMINIO=$host
 		echo "DOMINIO $DOMINIO"
@@ -154,14 +154,14 @@ if [ -z $TARGETS ] ; then
 
 			# Comprobar si la diferencia absoluta es menor que el 2% son el mismo sitio
 			if (( $(echo "${abs_diff} < ${two_percent}" | bc -l) )); then				
-				echo "$ip:$port:$http_proto" >> servicios/web-app.txt
+				echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
 			else
 				echo "El sitio no es accesible por IP"
-				echo "$DOMINIO:$port:$http_proto" >> servicios/web-app.txt		
+				echo "$DOMINIO:$port:$http_proto" >> servicios/web-app-tmp.txt		
 			fi			
 		done
 	fi
-	TARGETS=servicios/web-app.txt
+	TARGETS=servicios/web-app-tmp.txt
 	cat $TARGETS | cut -d ":" -f 1 > servicios/hosts.txt
 	IP_LIST_FILE="servicios/hosts.txt"
 fi
@@ -919,8 +919,10 @@ function cloneSite ()
     cd ../../
 }
 
+mkdir -p webClone/$DOMINIO 2>/dev/null
+mkdir -p archivos/$DOMINIO 2>/dev/null
 touch webClone/$DOMINIO/checksumsEscaneados.txt	
-
+	
 ############## Extraer informacion web y SSL
 # web.txt
 # 192.168.0.1:80:http
