@@ -1161,8 +1161,8 @@ for line in $(cat $TARGETS); do
 						
 						#source resource integrity
 						echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
-						sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 
-						grep -i '<script' logs/vulnerabilidades/"$host"_"$port"_sri.txt > .vulnerabilidades/"$host"_"$port"_sri.txt
+						sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
+						grep -i '<script' logs/vulnerabilidades/"$host"_"$port"_sri.txt > .vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
 
 						# allow http
 						echo -e "\t[+] allow http check ($proto_http://$host:$port)  " 
