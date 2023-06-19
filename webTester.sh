@@ -111,8 +111,6 @@ if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades 
 	mkdir -p logs/vulnerabilidades	
     mkdir responder
 	mkdir servicios
-	mkdir -p archivos/$DOMINIO 2>/dev/null
-	mkdir -p webClone/$DOMINIO 2>/dev/null
 	cp /usr/share/lanscanner/.resultados.db .
 fi	
 
@@ -832,13 +830,13 @@ function cloneSite ()
         grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > http.txt
         lines=`wc -l http.txt  | cut -d " " -f1`
         perl -E "say \"http://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt http.txt >> ../logs/enumeracion/"$DOMINIO"_web_wget2.txt # adicionar http:// a cada linea
+        paste -d '' prefijo.txt http.txt >> ../../logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null # adicionar http:// a cada linea
         rm http.txt 2>/dev/null
 
         grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > https.txt 
         lines=`wc -l https.txt  | cut -d " " -f1`
         perl -E "say \"https://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt https.txt >> ../logs/enumeracion/"$DOMINIO"_web_wget2.txt  # adicionar https:// a cada linea
+        paste -d '' prefijo.txt https.txt >> ../../logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null  # adicionar https:// a cada linea
         rm https.txt 2>/dev/null
 
                     
@@ -898,27 +896,27 @@ function cloneSite ()
 		if [ "$INTERNET" == "s" ]; then 	#escluir CDN 
 			######### buscar IPs privadas
 			echo -e "\t\t[+] Revisando si hay divulgación de IPs privadas"	
-			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
 									
-			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
 
-			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
 			###############################	
 		fi
         
         ######### buscar links de amazon EC2
-        grep --color=never -ir 'amazonaws.com' * >> ../.enumeracion/"$DOMINIO"_web_amazon.txt
+        grep --color=never -ir 'amazonaws.com' * >> ../../.enumeracion/"$DOMINIO"_web_amazon.txt
         
         ######### buscar comentarios 
         echo -e "\t\t[+] Revisando si hay comentarios html, JS"	
-        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../.enumeracion/"$DOMINIO"_web_comentario.txt        
+        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt
+        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt
+        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt        
         ###############################	
     cd ../../
 }
@@ -1232,7 +1230,7 @@ for line in $(cat $TARGETS); do
 							IFS=$old_ifs
 							########### XSS / SQLi ####
 							i=1
-							for url in `cat logs/enumeracion/parametrosGET_uniq_final.txt`; do
+							for url in `cat logs/enumeracion/parametrosGET_uniq_final.txt 2>/dev/null`; do
 								echo -e "$OKBLUE+ -- --=############ Revisando $url (SQLi/XSS) #########$RESET" 
 																
 								echo -e "$OKBLUE+ -- --=############ Probando SQL inyection. #########$RESET" 
@@ -1620,7 +1618,7 @@ if [[  "$MODE" == "total" ]]; then
 
 	cd ../../
 
-	grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
+	#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
 	#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
 	###################
 fi
@@ -2066,4 +2064,4 @@ insert_data
 # delete empty files
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
-insert-data-admin.py 
+insert-data-admin.py 2>/dev/null
