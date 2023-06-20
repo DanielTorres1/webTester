@@ -175,6 +175,28 @@ function insert_data () {
 	mv .banners/* .banners2 2>/dev/null
 	}
 
+function formato_ip {
+    local ip=$1
+    local stat=1
+
+    # Verificar si la entrada es una dirección IP utilizando una expresión regular
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        IFS='.' read -ra ip_parts <<< "$ip"
+
+        # Verificar cada octeto
+        for i in "${ip_parts[@]}"; do
+            if [[ $i -le 0 || $i -ge 255 ]]; then
+                stat=1
+                break
+            else
+                stat=0
+            fi
+        done
+    fi
+
+    return $stat
+}
+
 
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
@@ -988,56 +1010,60 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
-	#Certificado SSL + nmap + webdata
-	cp logs/enumeracion/"$ip"_"$port"_cert.txt  .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
-	DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
-	DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
-	DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
+	if formato_ip $ip; then
+		echo "[+] Es una dirección IP"
 
-	if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* ]] ; then #si contiene solo numeros o el caracter _
-		DOMINIOS_INTERNOS_TODOS="$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
-	else
-		DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
-	fi
+		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
+		#Certificado SSL + nmap + webdata
+		cp logs/enumeracion/"$ip"_"$port"_cert.txt  .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
+		DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
+		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
+		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
+
+		if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* ]] ; then #si contiene solo numeros o el caracter _
+			DOMINIOS_INTERNOS_TODOS="$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
+		else
+			DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
+		fi
+		
+		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_SSL $DOMINIOS_SSL"; fi
+		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_NMAP $DOMINIO_INTERNO_NMAP"; fi
+		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_WEBDATA $DOMINIO_INTERNO_WEBDATA"; fi
+		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_INTERNOS_TODOS $DOMINIOS_INTERNOS_TODOS"; fi
+		for DOMINIO_INTERNO in $DOMINIOS_INTERNOS_TODOS; do	
+			if [[ ${DOMINIO_INTERNO} == *"enterpriseregistration.windows.net"*  ]];then 
+				echo "$DOMINIO_INTERNO" >> .enumeracion/"$ip"_"$port"_azureAD.txt 
+			else	
+				echo -e "[+] DOMINIO_INTERNO $DOMINIO_INTERNO"
+				
+				grep -q "$DOMINIO_INTERNO" servicios/webApp.txt 2>/dev/null # Verficar si ya identificamos esa app
+				greprc=$? # greprc=1 dominio no en lista, greprc=2 servicios/webApp.txt no existe
+				
+				if [ "$DOMINIO_INTERNO" != NULL ] && [ "$DOMINIO_INTERNO" != "localhost" ] && [ "$DOMINIO_INTERNO" != "" ] && [ "$DOMINIO_INTERNO" != *"*"* ] && ([ "$greprc" -eq 1 ] || [ "$greprc" -eq 2 ]); then
+						
+					#Agregar a la lista de targets
+					grep -q "$ip,$DOMINIO_INTERNO" $IP_LIST_FILE
+					greprc=$?
+					if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
+						echo "$ip,$DOMINIO_INTERNO,DOMINIO" >> $IP_LIST_FILE						
+					else
+						echo "Ya agregue mas antes $DOMINIO_INTERNO a  $IP_LIST_FILE"
+					fi
+
+					#Agregar a /etc/hosts					
+					grep -q $DOMINIO_INTERNO /etc/hosts
+					greprc=$?
+					if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
+						echo "Adicionando $DOMINIO_INTERNO a /etc/hosts"
+						echo "$ip $DOMINIO_INTERNO" >> /etc/hosts							
+					else
+						echo "Ya agregue mas antes $DOMINIO_INTERNO a /etc/hosts "					
+					fi
+				fi
+			fi		
+		done
+	fi # Fin IP format
 	
-	if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_SSL $DOMINIOS_SSL"; fi
-	if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_NMAP $DOMINIO_INTERNO_NMAP"; fi
-	if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_WEBDATA $DOMINIO_INTERNO_WEBDATA"; fi
-	if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_INTERNOS_TODOS $DOMINIOS_INTERNOS_TODOS"; fi
-	for DOMINIO_INTERNO in $DOMINIOS_INTERNOS_TODOS; do	
-		if [[ ${DOMINIO_INTERNO} == *"enterpriseregistration.windows.net"*  ]];then 
-			echo "$DOMINIO_INTERNO" >> .enumeracion/"$ip"_"$port"_azureAD.txt 
-		else	
-			echo -e "[+] DOMINIO_INTERNO $DOMINIO_INTERNO"
-			
-			grep -q "$DOMINIO_INTERNO" servicios/webApp.txt 2>/dev/null # Verficar si ya identificamos esa app
-			greprc=$? # greprc=1 dominio no en lista, greprc=2 servicios/webApp.txt no existe
-			
-			if [ "$DOMINIO_INTERNO" != NULL ] && [ "$DOMINIO_INTERNO" != "localhost" ] && [ "$DOMINIO_INTERNO" != "" ] && [ "$DOMINIO_INTERNO" != *"*"* ] && ([ "$greprc" -eq 1 ] || [ "$greprc" -eq 2 ]); then
-    				
-				#Agregar a la lista de targets
-				grep -q "$ip,$DOMINIO_INTERNO" $IP_LIST_FILE
-				greprc=$?
-				if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
-					echo "$ip,$DOMINIO_INTERNO,DOMINIO" >> $IP_LIST_FILE						
-				else
-					echo "Ya agregue mas antes $DOMINIO_INTERNO a  $IP_LIST_FILE"
-				fi
-
-				#Agregar a /etc/hosts					
-				grep -q $DOMINIO_INTERNO /etc/hosts
-				greprc=$?
-				if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
-					echo "Adicionando $DOMINIO_INTERNO a /etc/hosts"
-					echo "$ip $DOMINIO_INTERNO" >> /etc/hosts							
-				else
-					echo "Ya agregue mas antes $DOMINIO_INTERNO a /etc/hosts "					
-				fi
-			fi
-		fi		
-	done
-
 	########## Obteniendo información web DOMINIO ###########			
 	while true; do
 		free_ram=`free -m | grep -i mem | awk '{print $7}'`		
