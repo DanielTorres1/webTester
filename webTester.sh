@@ -1218,8 +1218,7 @@ for line in $(cat $TARGETS); do
 							sort logs/enumeracion/"$host"_"$port"_webCrawled2.txt | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
 							grep $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq > .enumeracion/"$host"_"$port"_webCrawled.txt
 							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
-							echo ""
-							old_ifs=$IFS
+							echo ""							
 
 							# Obtener mas URLS de google y wayback							
 							if [[  "$INTERNET" == "s" && ! -z $DOMINIO ]]; then
@@ -1228,21 +1227,20 @@ for line in $(cat $TARGETS); do
 								# waybackurls $DOMINIO | sort | uniq | httpx -status-code  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > logs/enumeracion/"$DOMINIO"_web_wayback.txt
 								# egrep "\[200\]|,200" logs/enumeracion/"$DOMINIO"_web_wayback.txt  > .enumeracion/"$DOMINIO"_web_wayback.txt
 
-								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL con parametros #########$RESET" 
-								# IFS=$'\n'  
+								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL con parametros #########$RESET" 								
 								# grep --color=never "\?" .enumeracion/*_web_wayback.txt | awk {'print $1'} | sort | uniq > logs/enumeracion/parametrosGET2.txt
-								# grep --color=never "\?" .enumeracion/*_indexado.txt | sed 's/txt:/;/g' | cut -d ";" -f2 | sort | uniq >> logs/enumeracion/parametrosGET2.txt
-								# IFS=$old_ifs
+								# grep --color=never "\?" .enumeracion/*_indexado.txt | sed 's/txt:/;/g' | cut -d ";" -f2 | sort | uniq >> logs/enumeracion/parametrosGET2.txt								
 							fi
 							
 							
-							IFS=$'\n'  
+							 
 							grep --color=never "\?" .enumeracion/*_webCrawled.txt | sort | uniq >> logs/enumeracion/parametrosGET2.txt
 							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq  >> logs/enumeracion/parametrosGET_uniq.txt
 							
 							##### Eliminar URL repetidas que solo varian en los parametros
 							current_uri=""
-							for url in `cat logs/enumeracion/parametrosGET_uniq.txt`; do
+							while IFS= read -r url
+							do							
 								uri=`echo $url | cut -f1 -d"?"`
 								param=`echo $line | cut -f2 -d"?"`
 									
@@ -1251,9 +1249,9 @@ for line in $(cat $TARGETS); do
 									echo  "$url" >> logs/enumeracion/parametrosGET_uniq_final.txt
 									current_uri=$uri
 								fi	
-							done
-							################
-							IFS=$old_ifs
+							done < logs/enumeracion/parametrosGET_uniq.txt
+							
+							
 							########### XSS / SQLi ####
 							i=1
 							for url in `cat logs/enumeracion/parametrosGET_uniq_final.txt 2>/dev/null`; do
@@ -1383,6 +1381,7 @@ for line in $(cat $TARGETS); do
 				#######  if the server is IoT ######
 				enumeracionIOT	$proto_http $host $port
 
+				echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
 				######### clone #####
 				if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then 
 					cloneSite $proto_http $host $port	
@@ -1791,11 +1790,11 @@ cd ..
 
 
 #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
-if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 	
-	IFS=$'\n'  # make newlines the only separator
-	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"	    
-	for line in $(cat .enumeracion2/*webdirectorios.txt 2>/dev/null | uniq ); do	
-	IFS=$old_ifs
+if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
+	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
+	cat .enumeracion2/*webdirectorios.txt | uniq > logs/enumeracion/webdirectorios_uniq.txt
+	while IFS= read -r line
+	do		
 		echo -e "\n\t########### $line #######"										
 		#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
 		while true; do
@@ -1840,7 +1839,7 @@ if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then
 				sleep 3									
 			fi	
 		done #while				
-	done #for
+	done < logs/enumeracion/webdirectorios_uniq.txt
 		
 fi  
 
@@ -2014,13 +2013,11 @@ insert_data
 
 	
 if [ -f servicios/admin-web.txt ]
-then
-	IFS=$'\n'
+then	
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
-
-	for url in $(cat servicios/admin-web.txt); do
-		IFS=$old_ifs		
+	while IFS= read -r url
+	do				
 		echo -e "\n\t########### $url  #######"
 		####### Identificar tipo de panel de admin				
 		host_port=`echo $url | cut -d "/" -f 3` # 190.129.69.107:80
@@ -2081,7 +2078,7 @@ then
 
 		fi #404
 												
-	done		
+	done < servicios/admin-web.txt	
 fi		
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
