@@ -138,26 +138,28 @@ if [ -z $TARGETS ] ; then
 	else # --url https://prueba.com.bo
 		DOMINIO=$host
 		echo "DOMINIO $DOMINIO"
-		for ip in $(dig +short $DOMINIO); do
-			#verificar si el sitio es solo accesible mediante dominio
-			peticion_dominio=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$DOMINIO/ | wc -c` #bytes
-			peticion_ip=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$ip/ | wc -c` #bytes
+		echo "$DOMINIO:$port:$http_proto" >> servicios/web-app-tmp.txt
 
-			# Calcular la resta absoluta de peticion_ip y peticion_dominio
-			diff=$(echo ${peticion_dominio}-${peticion_ip} | bc)
-			abs_diff=${diff#-}
+		# for ip in $(dig +short $DOMINIO); do
+		# 	#verificar si el sitio es solo accesible mediante dominio
+		# 	peticion_dominio=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$DOMINIO/ | wc -c` #bytes
+		# 	peticion_ip=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$ip/ | wc -c` #bytes
 
-			# Calcular el 2% de peticion_dominio
-			two_percent=$(echo "scale=2; ${peticion_dominio} * 0.02" | bc)
+		# 	# Calcular la resta absoluta de peticion_ip y peticion_dominio
+		# 	diff=$(echo ${peticion_dominio}-${peticion_ip} | bc)
+		# 	abs_diff=${diff#-}
 
-			# Comprobar si la diferencia absoluta es menor que el 2% son el mismo sitio
-			if (( $(echo "${abs_diff} < ${two_percent}" | bc -l) )); then				
-				echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
-			else
-				echo "El sitio no es accesible por IP"
-				echo "$DOMINIO:$port:$http_proto" >> servicios/web-app-tmp.txt		
-			fi			
-		done
+		# 	# Calcular el 2% de peticion_dominio
+		# 	two_percent=$(echo "scale=2; ${peticion_dominio} * 0.02" | bc)
+
+		# 	# Comprobar si la diferencia absoluta es menor que el 2% son el mismo sitio
+		# 	if (( $(echo "${abs_diff} < ${two_percent}" | bc -l) )); then				
+		# 		echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
+		# 	else
+		# 		echo "El sitio no es accesible por IP"
+				
+		# 	fi			
+		# done
 	fi
 	TARGETS=servicios/web-app-tmp.txt
 	cat $TARGETS | cut -d ":" -f 1 > servicios/hosts.txt
