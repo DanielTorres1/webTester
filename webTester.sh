@@ -842,6 +842,7 @@ function cloneSite ()
     #######  clone site  ####### 	
 	mkdir -p webClone/$DOMINIO 2>/dev/null
 	mkdir -p archivos/$DOMINIO 2>/dev/null
+	touch webClone/$DOMINIO/checksumsEscaneados.txt	
 	
     cd webClone/$DOMINIO/
         echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
@@ -1122,24 +1123,20 @@ for line in $(cat $TARGETS); do
 	if [ "$VERBOSE" == 's' ]; then  echo -e "LISTA HOST: \n $lista_hosts"; fi #lista de todos los dominios + ip			
 	for host in $lista_hosts; do
 		#Verificar que no siempre devuelve 200 OK
-		status_code=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+		status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 		
-		if [ "$status_code" == '200' ]; then 
+		if [ "$status_code_nonexist" == '200' ]; then 
 			echo -n "~Always200-OK" >> .enumeracion/"$host"_"$port"_webData.txt
 			sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 		fi
 		
 
-		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code "; fi
+		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi
 		
-		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code" == *"40"*  ]];then 
-			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"	
-
-			############									
+		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"									
 									
-			#Borrar lineas que cambian en cada peticion
-			mkdir webClone/$DOMINIO 2>/dev/null
-			touch webClone/$DOMINIO/checksumsEscaneados.txt	
+			#Borrar lineas que cambian en cada peticion						
 			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
 						
 			if [[ ! -f webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html ]];then
@@ -1569,10 +1566,8 @@ for line in $(cat $TARGETS); do
 done # for web.txt
 ########
 
-if [[  "$MODE" == "total" ]]; then
-	echo -e "[+] Extraer metadatos de sitios clonados"										
-	pwd
-	ls archivos/$DOMINIO
+if [ "$MODE" == "total" ] && [ -d archivos/$DOMINIO ]; then
+	echo -e "[+] Extraer metadatos de sitios clonados"	
 	exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
 	egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
 
