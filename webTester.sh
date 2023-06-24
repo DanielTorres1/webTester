@@ -1132,7 +1132,7 @@ for line in $(cat $TARGETS); do
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code "; fi
 		
-		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code" == 404  ]];then 
+		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code" == *"40"*  ]];then 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"	
 
 			############									
