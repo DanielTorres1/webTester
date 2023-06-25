@@ -1137,15 +1137,15 @@ for line in $(cat $TARGETS); do
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"									
 									
 			#Borrar lineas que cambian en cada peticion						
-			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
+			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$host/"$proto_http"-"$host"-"$port".html
 						
-			if [[ ! -f webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html ]];then
-				echo "no disponible" > webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html 
+			if [[ ! -f webClone/$host/"$proto_http"-"$host"-"$port".html ]];then
+				echo "no disponible" > webClone/$host/"$proto_http"-"$host"-"$port".html 
 			fi
 
-			checksumline=`md5sum webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html` 							
+			checksumline=`md5sum webClone/$host/"$proto_http"-"$host"-"$port".html` 							
 			md5=`echo $checksumline | awk {'print $1'}` 													
-			egrep -iq $md5 webClone/$DOMINIO/checksumsEscaneados.txt
+			egrep -iq $md5 webClone/$host/checksumsEscaneados.txt
 			noEscaneado=$?
 
 			if [[ $noEscaneado -eq 0 ]];then 
@@ -1153,7 +1153,7 @@ for line in $(cat $TARGETS); do
 				sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 			fi
 
-			egrep -iq "no Route matched with those values" webClone/$DOMINIO/"$proto_http"-"$host"-"$port".html
+			egrep -iq "no Route matched with those values" webClone/$host/"$proto_http"-"$host"-"$port".html
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then 
 				noEscaneado=1
@@ -1166,7 +1166,7 @@ for line in $(cat $TARGETS); do
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK "; fi
 			
 			if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
-				echo $checksumline >> webClone/$DOMINIO/checksumsEscaneados.txt	
+				echo $checksumline >> webClone/$host/checksumsEscaneados.txt	
 
 				#######  If not firewall/IoT ######
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" .enumeracion/"$host"_"$port"_webData.txt
