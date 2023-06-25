@@ -839,11 +839,7 @@ function cloneSite ()
    port=$3  
    echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
 
-    #######  clone site  ####### 	
-	mkdir -p webClone/$DOMINIO 2>/dev/null
-	mkdir -p archivos/$DOMINIO 2>/dev/null
-	touch webClone/$DOMINIO/checksumsEscaneados.txt	
-	
+    #######  clone site  ####### 			
     cd webClone/$DOMINIO/
         echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
 		pwd
@@ -1134,6 +1130,10 @@ for line in $(cat $TARGETS); do
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi
 		
 		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+
+			mkdir -p webClone/$host 2>/dev/null
+			mkdir -p archivos/$host 2>/dev/null
+			touch webClone/$host/checksumsEscaneados.txt	
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"									
 									
 			#Borrar lineas que cambian en cada peticion						
