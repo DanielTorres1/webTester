@@ -177,6 +177,12 @@ function insert_data () {
 	mv .banners/* .banners2 2>/dev/null
 	}
 
+function insert_data_admin () {
+	insert-data-admin.py 2>/dev/null
+	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint2.txt
+	rm servicios/admin-web-fingerprint.txt
+	}
+
 function formato_ip {
     local ip=$1
     local stat=1
@@ -840,7 +846,7 @@ function cloneSite ()
    echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
 
     #######  clone site  ####### 			
-    cd webClone/$DOMINIO/
+    cd webClone/$host/
         echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
 		pwd
         wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto://$host 2>/dev/null
@@ -848,16 +854,16 @@ function cloneSite ()
 
         echo ""
         echo -e "\t\t[+] Extrayendo URL de los sitios clonados"	
-        grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > http.txt
+        grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$host" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > http.txt
         lines=`wc -l http.txt  | cut -d " " -f1`
         perl -E "say \"http://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt http.txt >> ../../logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null # adicionar http:// a cada linea
+        paste -d '' prefijo.txt http.txt >> ../../logs/enumeracion/"$host"_web_wget2.txt 2>/dev/null # adicionar http:// a cada linea
         rm http.txt 2>/dev/null
 
-        grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$DOMINIO" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > https.txt 
+        grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$host" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > https.txt 
         lines=`wc -l https.txt  | cut -d " " -f1`
         perl -E "say \"https://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt https.txt >> ../../logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null  # adicionar https:// a cada linea
+        paste -d '' prefijo.txt https.txt >> ../../logs/enumeracion/"$host"_web_wget2.txt 2>/dev/null  # adicionar https:// a cada linea
         rm https.txt 2>/dev/null
 
                     
@@ -905,39 +911,39 @@ function cloneSite ()
         
         #### mover archivos con metadata para extraerlos ########
         echo -e "\t\t[+] Extraer metadatos con exiftool"										
-        find . -name "*.pdf" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.xls" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.doc" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.ppt" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.pps" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.docx" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.pptx" -exec mv {} "../../archivos/$DOMINIO/" \;
-        find . -name "*.xlsx" -exec mv {} "../../archivos/$DOMINIO/" \;
+        find . -name "*.pdf" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.xls" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.doc" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.ppt" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.pps" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.docx" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.pptx" -exec mv {} "../../archivos/$host/" \;
+        find . -name "*.xlsx" -exec mv {} "../../archivos/$host/" \;
         
 		if [ "$INTERNET" == "s" ]; then 	#escluir CDN 
 			######### buscar IPs privadas
 			echo -e "\t\t[+] Revisando si hay divulgación de IPs privadas"	
-			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
 									
-			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
 
-			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
-			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$DOMINIO"_web_IPinterna.txt
+			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
 			###############################	
 		fi
         
         ######### buscar links de amazon EC2
-        grep --color=never -ir 'amazonaws.com' * >> ../../.enumeracion/"$DOMINIO"_web_amazon.txt
+        grep --color=never -ir 'amazonaws.com' * >> ../../.enumeracion/"$host"_web_amazon.txt
         
         ######### buscar comentarios 
         echo -e "\t\t[+] Revisando si hay comentarios html, JS"	
-        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt
-        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$DOMINIO"_web_comentario.txt        
+        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
+        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
+        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt        
         ###############################	
     cd ../../
 }
@@ -1009,8 +1015,8 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	if formato_ip $ip; then
-		echo "[+] Es una dirección IP"
+	if formato_ip $ip; then		
+		if [ "$VERBOSE" == 's' ]; then  echo "[+] $ip es una dirección IP"; fi
 
 		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
 		#Certificado SSL + nmap + webdata
@@ -1380,7 +1386,7 @@ for line in $(cat $TARGETS); do
 				#######  if the server is IoT ######
 				enumeracionIOT	$proto_http $host $port
 
-				echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
+				#echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
 				######### clone #####
 				if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then 
 					cloneSite $proto_http $host $port	
@@ -2084,4 +2090,4 @@ insert_data
 # delete empty files
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
-insert-data-admin.py 2>/dev/null
+insert_data_admin 2>/dev/null
