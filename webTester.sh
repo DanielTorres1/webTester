@@ -181,6 +181,9 @@ function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
 	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint2.txt 2>/dev/null
 	rm servicios/admin-web-fingerprint.txt 2>/dev/null
+
+	cat servicios/admin-web.txt >> servicios/admin-web2.txt 2>/dev/null	
+	rm servicios/admin-web.txt 2>/dev/null
 	}
 
 function formato_ip {
