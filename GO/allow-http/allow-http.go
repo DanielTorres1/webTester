@@ -12,69 +12,74 @@ import (
 )
 
 var (
-	target = flag.String("target", "", "Target IP or domain to scan")
-	logs   = flag.Bool("logs", false, "Save responses to txt files")
+	target = flag.String("target", "", "Target IP or domain")
+	logs   = flag.Bool("logs", false, "Save the response to a log file")
 )
 
 func main() {
 	flag.Parse()
 
 	if *target == "" {
-		fmt.Println("Usage: go run script.go -target=<ip or domain> [-logs]")
+		fmt.Println("Usage: go run main.go -target=[target] [-logs]")
 		os.Exit(1)
 	}
 
-	fmt.Println("longitud respuesta puerto 443 | longitud respuesta puerto 80 | resultado")
-
-	resp443, err443 := makeRequest(*target, 443)
-	resp80, err80 := makeRequest(*target, 80)
-
-	result := compareResponses(len(resp443), len(resp80), err443, err80)
-
-	fmt.Printf("%d | %d | %s\n", len(resp443), len(resp80), result)
-
-	if *logs {
-		ioutil.WriteFile("resp443.txt", []byte(resp443), 0644)
-		ioutil.WriteFile("resp80.txt", []byte(resp80), 0644)
-	}
-}
-
-func makeRequest(target string, port int) (string, error) {
-	timeout := time.Duration(10 * time.Second)
-	url := fmt.Sprintf("https://%s:%d", target, port)
-	if port == 80 {
-		url = fmt.Sprintf("http://%s", target)
-	}
-
 	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
 		DialContext: (&net.Dialer{
-			Timeout: timeout,
+			Timeout: 10 * time.Second,
 		}).DialContext,
+		DisableKeepAlives:     true,
+		DisableCompression:    true,
+		ExpectContinueTimeout: 10 * time.Second,
+		ResponseHeaderTimeout: 10 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
 	}
 
-	client := &http.Client{Transport: tr}
-	resp, err := client.Get(url)
-	if err != nil {
-		return "", err
+	client := &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		},
 	}
-	defer resp.Body.Close()
 
-	body, _ := ioutil.ReadAll(resp.Body)
+	responses := make(map[int]string)
+	for _, port := range []int{443, 80} {
+		url := fmt.Sprintf("http://%s:%d", *target, port)
+		if port == 443 {
+			url = fmt.Sprintf("https://%s:%d", *target, port)
+		}
 
-	return string(body), nil
-}
+		resp, err := client.Get(url)
+		if err != nil {
+			continue
+		}
 
-func compareResponses(lenResp443, lenResp80 int, err443, err80 error) string {
-	if err443 != nil && err80 != nil {
-		return "OK"
+		body, _ := ioutil.ReadAll(resp.Body)
+		responses[port] = string(body)
+
+		if *logs {
+			ioutil.WriteFile(fmt.Sprintf("%s_%d.txt", *target, port), body, 0644)
+		}
 	}
-	if lenResp80 > 0 && lenResp443 == 0 {
-		return "vulnerable"
+
+	len443 := len(responses[443])
+	len80 := len(responses[80])
+
+	var result string
+	switch {
+	case len443 == 0 && len80 == 0:
+		result = "OK"
+	case len80 > 0 && len443 == 0:
+		result = "vulnerable"
+	case float64(len443)*0.9 <= float64(len80) && float64(len80)*0.9 <= float64(len443):
+		result = "vulnerable"
+	default:
+		result = "OK"
 	}
-	ratio := float64(lenResp443) / float64(lenResp80)
-	if ratio >= 0.9 && ratio <= 1.1 {
-		return "vulnerable"
-	}
-	return "OK"
+
+	fmt.Printf("Longitud respuesta puerto 443 | Longitud respuesta puerto 80 | Resultado\n")
+	fmt.Printf("%d | %d | %s\n", len443, len80, result)
 }

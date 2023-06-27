@@ -179,8 +179,8 @@ function insert_data () {
 
 function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
-	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint2.txt
-	rm servicios/admin-web-fingerprint.txt
+	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint2.txt 2>/dev/null
+	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 	}
 
 function formato_ip {
@@ -631,7 +631,7 @@ function enumeracionCMS () {
 		#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json"
         $proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
 		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto"://"$host":"$port")"
-		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt &
+		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null &
 
 		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt
 
@@ -642,8 +642,7 @@ function enumeracionCMS () {
 
 		if [[ "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
-        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
-			#$proxychains msfconsole -x "use auxiliary/scanner/http/wordpress_content_injection;set RHOSTS $host;run;exit" > logs/vulnerabilidades/"$host"_3389_BlueKeep.txt        
+        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &			
 			sleep 5
 			grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
 			greprc=$?
@@ -959,7 +958,7 @@ for line in $(cat $TARGETS); do
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 	waitWeb 0.5
 	echo -e "[+]Escaneando $ip $port ($proto_http)"
-	echo -e "\t[i] Identificacion de técnologia usada en los servidores web (IP)"	
+	echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
 	$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData.txt -r 4 | grep -vi 'read timeout' > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &			             	
 	if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 		echo -e "\t[+]Obteniendo dominios del certificado SSL"
@@ -976,6 +975,8 @@ for line in $(cat $TARGETS); do
 	ip=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
+
+	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1020,7 +1021,7 @@ for line in $(cat $TARGETS); do
 
 		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
 		#Certificado SSL + nmap + webdata
-		cp logs/enumeracion/"$ip"_"$port"_cert.txt  .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
+		grep -v 'failed' logs/enumeracion/"$ip"_"$port"_cert.txt > .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
 		DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
 		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
 		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
@@ -1219,28 +1220,14 @@ for line in $(cat $TARGETS); do
 							
 							##########################################
 							echo -e "\t[+] Crawling ($proto_http://$host:$port )"							
-							katana -u $proto_http://$host:$port -no-scope -output logs/enumeracion/"$host"_"$port"_webCrawled2.txt
+							katana -u $proto_http://$host:$port -no-scope -output logs/enumeracion/"$host"_"$port"_webCrawled2.txt >/dev/null 2>/dev/null
 							sort logs/enumeracion/"$host"_"$port"_webCrawled2.txt | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
 							grep $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq > .enumeracion/"$host"_"$port"_webCrawled.txt
 							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
-							echo ""							
-
-							# Obtener mas URLS de google y wayback							
-							if [[  "$INTERNET" == "s" && ! -z $DOMINIO ]]; then
-								echo "[+] Obtener mas URLS de google y wayback de $DOMINIO "
-								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL cacheados en wayback #########$RESET"
-								# waybackurls $DOMINIO | sort | uniq | httpx -status-code  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > logs/enumeracion/"$DOMINIO"_web_wayback.txt
-								# egrep "\[200\]|,200" logs/enumeracion/"$DOMINIO"_web_wayback.txt  > .enumeracion/"$DOMINIO"_web_wayback.txt
-
-								# echo -e "$OKBLUE+ -- --=############ Obteniendo URL con parametros #########$RESET" 								
-								# grep --color=never "\?" .enumeracion/*_web_wayback.txt | awk {'print $1'} | sort | uniq > logs/enumeracion/parametrosGET2.txt
-								# grep --color=never "\?" .enumeracion/*_indexado.txt | sed 's/txt:/;/g' | cut -d ";" -f2 | sort | uniq >> logs/enumeracion/parametrosGET2.txt								
-							fi
-							
-							
+							echo ""											
 							 
 							grep --color=never "\?" .enumeracion/*_webCrawled.txt | sort | uniq >> logs/enumeracion/parametrosGET2.txt
-							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq  >> logs/enumeracion/parametrosGET_uniq.txt
+							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq  >> logs/enumeracion/"$host"_parametrosGET_uniq.txt
 							
 							##### Eliminar URL repetidas que solo varian en los parametros
 							current_uri=""
@@ -1251,15 +1238,15 @@ for line in $(cat $TARGETS); do
 									
 								if [ "$current_uri" != "$uri" ];
 								then
-									echo  "$url" >> logs/enumeracion/parametrosGET_uniq_final.txt
+									echo  "$url" >> logs/enumeracion/"$host"_parametrosGET_uniq_final.txt
 									current_uri=$uri
 								fi	
-							done < logs/enumeracion/parametrosGET_uniq.txt
+							done < logs/enumeracion/"$host"_parametrosGET_uniq.txt
 							
 							
 							########### XSS / SQLi ####
 							i=1
-							for url in `cat logs/enumeracion/parametrosGET_uniq_final.txt 2>/dev/null`; do
+							for url in `cat logs/enumeracion/"$host"_parametrosGET_uniq_final.txt 2>/dev/null`; do
 								echo -e "$OKBLUE+ -- --=############ Revisando $url (SQLi/XSS) #########$RESET" 
 																
 								echo -e "$OKBLUE+ -- --=############ Probando SQL inyection. #########$RESET" 
@@ -1654,9 +1641,8 @@ fi
 ####Parse 2
 grep SUCCEED logs/vulnerabilidades/"$host"_"$port"_webdav.txt > .vulnerabilidades/"$host"_"$port"_webdav.txt 2>/dev/null
 grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt  2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt
-
 ######
-insert_data
+
 
 
 ##### Identificar paneles administrativos #####
@@ -1664,7 +1650,7 @@ echo " ##### Identificar paneles administrativos ##### "
 pwd
 touch .enumeracion2/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 fingerprint=''
-list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese"  .enumeracion2/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese"  .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 	for line in $(echo $list_admin); do 			
 		if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 		host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
@@ -1687,7 +1673,7 @@ list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|logi
 	done
 ############
 
-
+insert_data
 
 
 ######### find services ###
