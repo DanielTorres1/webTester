@@ -1647,10 +1647,9 @@ grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt  2>
 
 ##### Identificar paneles administrativos #####
 echo " ##### Identificar paneles administrativos ##### "
-pwd
-touch .enumeracion2/canary_webData.txt # para que grep no falle cuando solo hay un archivo
+touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 fingerprint=''
-list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese"  .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 	for line in $(echo $list_admin); do 			
 		if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 		host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
@@ -2064,11 +2063,9 @@ then
 					echo -e "\t[i] El listado de directorios esta habilitado o es un archivo"
 				fi
 			fi # Es directorio	
-
-		fi #404
-												
+		fi #404												
 	done < servicios/admin-web.txt	
-fi		
+fi
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
 
