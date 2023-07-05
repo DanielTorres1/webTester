@@ -336,6 +336,10 @@ function enumeracionIIS () {
 	echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
 	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webservices -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webservices.txt &
 
+	waitWeb 2.5
+	echo -e "\t\t[+] certsrv ($host - IIS)"
+	curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port"_certfnsh.txt &
+
 	if [[ "$MODE" == "total" ]]; then
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
@@ -364,6 +368,7 @@ function enumeracionIIS () {
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
 		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m backupIIS -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_backupweb.txt &
+		
 
 		if [  "$EXTRATEST" == "oscp" ]; then	
 			
@@ -1437,7 +1442,7 @@ for line in $(cat $TARGETS); do
 		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
 		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
+		egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
 
 		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
@@ -1458,6 +1463,7 @@ for line in $(cat $TARGETS); do
 		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
 		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
 		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sap-netweaver-leak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sap-netweaver-leak.txt
+		grep --color=never "401" logs/enumeracion/"$host"_"$port"_certfnsh.txt > .enumeracion/"$host"_"$port"_certfnsh.txt
 
 		grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
 		grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
@@ -1562,8 +1568,8 @@ for line in $(cat $TARGETS); do
 done # for web.txt
 ########
 
-if [ "$MODE" == "total" ] && [ -d archivos/$DOMINIO ]; then
-	echo -e "[+] Extraer metadatos de sitios clonados"	
+if [ "$MODE" == "total" ] && [ ! -z $DOMINIO ] ; then
+	echo -e "[+] Extraer metadatos de sitios clonados (DOMINIO= $DOMINIO)"	
 	exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
 	egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
 
@@ -1594,9 +1600,10 @@ if [ "$MODE" == "total" ] && [ -d archivos/$DOMINIO ]; then
 
 	egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webClone/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
 
-	echo -e "[+] Buscar datos sensible en archivos clonados"	
-	cd webClone/$DOMINIO
-		rm checksumsEscaneados.txt # tiene hashes md5 
+	#echo -e "[+] Buscar datos sensible en archivos clonados"	
+	#echo "cd webClone/$DOMINIO"
+	#cd webClone/$DOMINIO
+		#rm checksumsEscaneados.txt # tiene hashes md5 
 		# Creando repositorio temporal para que pueda ser escaneado por las herramientas
 
 		# cat scripts.js | js-beautify  | tee scripts.js
@@ -1634,7 +1641,7 @@ if [ "$MODE" == "total" ] && [ -d archivos/$DOMINIO ]; then
 		# generic token - truffle
 		#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
 
-	cd ../../
+	#cd ../../
 
 	#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
 	#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
@@ -1642,6 +1649,7 @@ if [ "$MODE" == "total" ] && [ -d archivos/$DOMINIO ]; then
 fi
 
 ####Parse 2
+pwd
 grep SUCCEED logs/vulnerabilidades/"$host"_"$port"_webdav.txt > .vulnerabilidades/"$host"_"$port"_webdav.txt 2>/dev/null
 grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt  2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt
 ######
@@ -1783,7 +1791,7 @@ cd ..
 #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
 	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-	cat .enumeracion2/*webdirectorios.txt | uniq > logs/enumeracion/webdirectorios_uniq.txt
+	cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_uniq.txt
 	while IFS= read -r line
 	do		
 		echo -e "\n\t########### $line #######"										
