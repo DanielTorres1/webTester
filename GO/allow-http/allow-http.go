@@ -79,7 +79,6 @@ func main() {
 	default:
 		result = "OK"
 	}
-
-	fmt.Printf("Longitud respuesta puerto 443 | Longitud respuesta puerto 80 | Resultado\n")
-	fmt.Printf("%d | %d | %s\n", len443, len80, result)
+	
+	fmt.Printf("Longitud respuesta puerto 443: %d |Longitud respuesta puerto 80: %d | %s\n", len443, len80, result)
 }

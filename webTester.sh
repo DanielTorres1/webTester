@@ -1156,6 +1156,7 @@ for line in $(cat $TARGETS); do
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
 		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			
 			mkdir -p archivos/$host 2>/dev/null
@@ -1222,18 +1223,9 @@ for line in $(cat $TARGETS); do
 
 						        										
 						#source resource integrity
-						echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
-						sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
-						grep -i '<script' logs/vulnerabilidades/"$host"_"$port"_sri.txt > .vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
-
-						# allow http
-						echo -e "\t[+] allow http check ($proto_http://$host:$port)  " 
-						allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_allow-http.txt 
-						egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_allow-http.txt
-						greprc=$?
-						if [[ $greprc -eq 0 ]] ; then	
-							cp logs/vulnerabilidades/"$host"_"$port"_allow-http.txt .vulnerabilidades/"$host"_"$port"_allow-http.txt
-						fi
+						#echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
+						#sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
+						#grep -i '<script' logs/vulnerabilidades/"$host"_"$port"_sri.txt > .vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
 
 						# _blank targets with no "rel nofollow no referrer"
 						echo -e "\t[+] _blank targets check ($proto_http://$host:$port)  " 
@@ -1430,6 +1422,9 @@ for line in $(cat $TARGETS); do
 			else
 				echo -e "\t\t[+] Redirección, error de proxy detectado o sitio ya escaneado \n"	
 			fi														
+		
+		else
+			if [ "$VERBOSE" == 's' ]; then  echo -e "NO escanear $proto_http://$host:$port/"; fi		
 		fi #hosting
 	done # subdominios 			  			
 done #for navegacino forzada
@@ -2173,8 +2168,15 @@ for line in $(cat $TARGETS); do
 		grep -i 'Vulnerable'  logs/vulnerabilidades/"$host"_"$port"_CS-42.txt > .vulnerabilidades/"$host"_"$port"_CS-42.txt
 		
 		#CS-44 Servidores
+		allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_CS-44.txt								   
+		egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_CS-44.txtt
+		greprc=$?
+		if [[ $greprc -eq 0 ]] ; then	
+			cp logs/vulnerabilidades/"$host"_"$port"_CS-44.txt .vulnerabilidades/"$host"_"$port"_CS-44.txt
+		fi
+		
 		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosPeligrosos|_backupweb' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  > .vulnerabilidades/"$host"_"$port"_CS-44.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-44.txt logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+		cat .vulnerabilidades/"$host"_"$port"_CS-44.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 		# CS-45 Protocolos antiguos
 		cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
