@@ -1134,7 +1134,7 @@ for line in $(cat $TARGETS); do
 		
 		#CS-44 Servidores
 		allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_CS-44.txt								   
-		egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_CS-44.txtt
+		egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_CS-44.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]] ; then	
 			cp logs/vulnerabilidades/"$host"_"$port"_CS-44.txt .vulnerabilidades/"$host"_"$port"_CS-44.txt
