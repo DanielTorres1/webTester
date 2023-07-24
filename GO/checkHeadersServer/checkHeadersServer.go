@@ -51,7 +51,9 @@ func main() {
 	if server != "" {
 		splitServer := strings.Split(server, "/")
 		if len(splitServer) > 1 {
-			fmt.Printf("Server version: %s (Vulnerable)\n", splitServer[1])		
+			fmt.Printf("Server version: %s (Vulnerable)\n", splitServer[1])
+		} else {
+			fmt.Printf("Server: %s (OK)\n", splitServer[0])
 		}
 	}
 
@@ -59,4 +61,3 @@ func main() {
 		fmt.Printf("X-Powered-By: %s (Vulnerable)\n", xPoweredBy)
 	}
 }
-
