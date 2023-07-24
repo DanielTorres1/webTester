@@ -1220,11 +1220,7 @@ for line in $(cat $TARGETS); do
 
 					if [[ "$MODE" == "total" ]]; then 
 
-						# Headers seguros
-						echo -e "\t[+] Revisar headers seguros ($proto_http://$host:$port) "
-						shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
-        				grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Content-Type|Strict-Transport|Referrer-Policy|X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt						
-						
+						        										
 						#source resource integrity
 						echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
 						sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
@@ -2181,8 +2177,8 @@ for line in $(cat $TARGETS); do
 		cp .vulnerabilidades/"$host"_"$port"_CS-44.txt logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 		# CS-45 Protocolos antiguos
-		cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt
-		cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt
+		cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+		cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 
 		#CS-46 Archivos por defecto
@@ -2196,17 +2192,15 @@ for line in $(cat $TARGETS); do
 		cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
 
 		# CS-49  Cache-Control
-		grep -i 'Cache-Control' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-49.txt 2>/dev/null
-
-
-
+		shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
+		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Cache-Control' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt
+		
 		# CS-51 Header seguros
-		grep -i 'X-Content-Type-Options' .vulnerabilidades2/"$host"_"$port"_CS-49.txt > .vulnerabilidades/"$host"_"$port"_CS-51-1.txt 2>/dev/null
-		grep -i 'Strict-Transport-Security' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-2.txt 2>/dev/null
-		grep -i 'Referrer-Policy' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-3.txt 2>/dev/null
-		grep -i 'X-Frame-Options' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-4.txt 2>/dev/null
-
-
+		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Content-Type-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-1.txt
+		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Strict-Transport-Security' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-2.txt
+		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Referrer-Policy' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-3.txt
+		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-4.txt
+		
 		#CS-63 Software obsoleto
 		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object|application\/x-silverlight" webclone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null

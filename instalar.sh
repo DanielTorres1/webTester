@@ -22,7 +22,7 @@ cp webTester.sh /usr/bin
 cp pentest/* /usr/bin/pentest
 
 echo -e "${RED}[+]${BLUE} Instalando librerias ${RESET}"
-apt install httrack webhttrack
+apt install -y httrack webhttrack
 
 echo -e "${RED}[+]${BLUE} Instalando dalfox ${RESET}"
 go install github.com/hahwul/dalfox/v2@latest
