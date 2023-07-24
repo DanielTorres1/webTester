@@ -21,7 +21,18 @@ echo -e "${GREEN} [+] Copiando archivos ${RESET}"
 cp webTester.sh /usr/bin
 cp pentest/* /usr/bin/pentest
 
+echo -e "${RED}[+]${BLUE} Instalando librerias ${RESET}"
+apt install httrack webhttrack
+
+echo -e "${RED}[+]${BLUE} Instalando dalfox ${RESET}"
+go install github.com/hahwul/dalfox/v2@latest
+mv ~/go/bin/dalfox /usr/bin
+
 echo -e "${RED}[+]${BLUE} Copiando ejecutables GO ${RESET}"
+
+cp GO/checkHeadersServer/checkHeadersServer /usr/bin/pentest
+cp GO/headi/headi /usr/bin/pentest
+cp GO/checkCookie/checkCookie /usr/bin/pentest
 cp GO/getStatus/getStatus /usr/bin/pentest
 cp GO/listDir/listDir /usr/bin/pentest
 cp GO/SAP-scan/SAP-scan /usr/bin/pentest
@@ -38,3 +49,11 @@ cp GO/validate-wordpress-user/validate-wordpress-user /usr/bin/pentest
 echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
 pip install sri-check --break-system-package
 
+
+echo -e "${RED}[+]${BLUE} katana ${RESET}"
+go install github.com/projectdiscovery/katana/cmd/katana@latest
+mv ~/go/bin/katana /usr/bin/katana
+
+echo -e "${GREEN} [+] Instalar blackwidow ${RESET}"
+cd BlackWidow
+bash install.sh
