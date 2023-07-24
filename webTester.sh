@@ -1107,7 +1107,7 @@ done # for web.txt
 
 waitFinish
 
-echo -e "\t[-] OWASP Verification Standard Part 1"
+echo -e "\t[+] OWASP Verification Standard Part 1"
 ### OWASP Verification Standard Part 1###
 for line in $(cat $TARGETS); do
 	ip=`echo $line | cut -f1 -d":"`
