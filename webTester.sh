@@ -1225,7 +1225,7 @@ for line in $(cat $TARGETS); do
 			if [[ "$MODE" == "total" ]]; then
 				echo -e "\t[+] Clonando: $proto_http://$host:$port"
 				script httrack.log -c "httrack $proto_http://$host:$port --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone"				
-				egrep -iqa '403' httrack.log
+				egrep -iqa '403|443' httrack.log
 				greprc=$?	
 				if [[ $greprc -eq 0 ]];then 
 					mkdir webClone/"$host"_"$port"
