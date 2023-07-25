@@ -1113,61 +1113,64 @@ done # for web.txt
 
 waitFinish
 
-echo -e "\t[+] OWASP Verification Standard Part 1"
-### OWASP Verification Standard Part 1###
-for line in $(cat $TARGETS); do
-	ip=`echo $line | cut -f1 -d":"`
-	port=`echo $line | cut -f2 -d":"`		
-	proto_http=`echo $line | cut -f3 -d":"`	
-	if [ -z $DOMINIO ] ; then 
-		lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
-		if [ -z "$lista_hosts" ] ; then 
-				lista_hosts=$ip
+if [[! -z "$URL"  ]];then
+	echo -e "\t[+] OWASP Verification Standard Part 1"
+	### OWASP Verification Standard Part 1###
+	for line in $(cat $TARGETS); do
+		ip=`echo $line | cut -f1 -d":"`
+		port=`echo $line | cut -f2 -d":"`		
+		proto_http=`echo $line | cut -f3 -d":"`	
+		if [ -z $DOMINIO ] ; then 
+			lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+			if [ -z "$lista_hosts" ] ; then 
+					lista_hosts=$ip
+			else
+					lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			fi
 		else
-				lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			lista_hosts=$ip
 		fi
-	else
-		lista_hosts=$ip
-	fi
 
-	for host in $lista_hosts; do
-		#log image
-		curl -k -I $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_responseHeaders.txt
+		for host in $lista_hosts; do
+			#log image
+			curl -k -I $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_responseHeaders.txt
 
-		#CS-08 Cookies
-		checkCookie $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-08.txt
-		grep 'NO OK' logs/vulnerabilidades/"$host"_"$port"_CS-08.txt > .vulnerabilidades/"$host"_"$port"_CS-08.txt
+			#CS-08 Cookies
+			checkCookie $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-08.txt
+			grep 'NO OK' logs/vulnerabilidades/"$host"_"$port"_CS-08.txt > .vulnerabilidades/"$host"_"$port"_CS-08.txt
 
-		# CS-42 Respuesta HTTP
-		checkHeadersServer -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-42.txt
-		grep -i 'Vulnerable'  logs/vulnerabilidades/"$host"_"$port"_CS-42.txt > .vulnerabilidades/"$host"_"$port"_CS-42.txt
-		
-		#CS-44 Servidores
-		allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_CS-44.txt								   
-		egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_CS-44.txt
-		greprc=$?
-		if [[ $greprc -eq 0 ]] ; then	
-			cp logs/vulnerabilidades/"$host"_"$port"_CS-44.txt .vulnerabilidades/"$host"_"$port"_CS-44.txt
-		fi
-				
-		# CS-49  Cache-Control
-		shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
-		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Cache-Control' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt
-		
-		# CS-51 Header seguros
-		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Content-Type-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-1.txt
-		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Strict-Transport-Security' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-2.txt
-		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Referrer-Policy' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-3.txt
-		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-4.txt
-		
-		if [[ "$MODE" == "total" ]]; then
-			# CS-62 HTTP header injection
-			headi -u $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
-			grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
-		fi		
-	done
-done	
-##############
+			# CS-42 Respuesta HTTP
+			checkHeadersServer -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-42.txt
+			grep -i 'Vulnerable'  logs/vulnerabilidades/"$host"_"$port"_CS-42.txt > .vulnerabilidades/"$host"_"$port"_CS-42.txt
+			
+			#CS-44 Servidores
+			allow-http -target=$host > logs/vulnerabilidades/"$host"_"$port"_CS-44.txt								   
+			egrep -iq "vulnerable" logs/vulnerabilidades/"$host"_"$port"_CS-44.txt
+			greprc=$?
+			if [[ $greprc -eq 0 ]] ; then	
+				cp logs/vulnerabilidades/"$host"_"$port"_CS-44.txt .vulnerabilidades/"$host"_"$port"_CS-44.txt
+			fi
+					
+			# CS-49  Cache-Control
+			shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
+			grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Cache-Control' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt
+			
+			# CS-51 Header seguros
+			grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Content-Type-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-1.txt
+			grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Strict-Transport-Security' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-2.txt
+			grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Referrer-Policy' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-3.txt
+			grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-4.txt
+			
+			if [[ "$MODE" == "total" ]]; then
+				# CS-62 HTTP header injection
+				headi -u $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
+				grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
+			fi		
+		done
+	done	
+	##############
+fi
+
 
 echo -e "$OKGREEN\n[i] Realizando la navegacion forzada $RESET"
 for line in $(cat $TARGETS); do
@@ -2188,79 +2191,81 @@ fi
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
 
-### OWASP Verification Standard Part 2###
-for line in $(cat $TARGETS); do
-	ip=`echo $line | cut -f1 -d":"`
-	port=`echo $line | cut -f2 -d":"`		
-	proto_http=`echo $line | cut -f3 -d":"`	
-	if [ -z $DOMINIO ] ; then 
-		lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
-		if [ -z "$lista_hosts" ] ; then 
-				lista_hosts=$ip
+if [[! -z "$URL"  ]];then
+	### OWASP Verification Standard Part 2###
+	for line in $(cat $TARGETS); do
+		ip=`echo $line | cut -f1 -d":"`
+		port=`echo $line | cut -f2 -d":"`		
+		proto_http=`echo $line | cut -f3 -d":"`	
+		if [ -z $DOMINIO ] ; then 
+			lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+			if [ -z "$lista_hosts" ] ; then 
+					lista_hosts=$ip
+			else
+					lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			fi
 		else
-				lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
+			lista_hosts=$ip
 		fi
-	else
-		lista_hosts=$ip
-	fi
 
-	for host in $lista_hosts; do		
+		for host in $lista_hosts; do		
+			
+			#CS-01 Variable en GET
+			egrep 'token|session' logs/enumeracion/"$host"_parametrosGET_uniq_final.txt > .vulnerabilidades/"$host"_"$port"_CS-01.txt 2>/dev/null		
+						
+			#CS-39	API REST y GRAPHQL			
+			grep -i 'graphql' .vulnerabilidades2/"$host"_"$port"_archivosPeligrosos.txt > .vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
+
+			#CS-40 Divulgación de información
+			grep -ira 'vulnerabilidad=divulgacionInformacion' logs | egrep -v '404|403'| awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			grep -ira 'vulnerabilidad=debugHabilitado' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
+
+
+			#CS-41 Exposición de usuarios
+			grep -ira 'vulnerabilidad=ExposicionUsuarios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-41.txt		
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | grep _wpUsers ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Usuarios:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-41.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-41.txt logs/vulnerabilidades/"$host"_"$port"_CS-41.txt 2>/dev/null
+
 		
-		#CS-01 Variable en GET
-		egrep 'token|session' logs/enumeracion/"$host"_parametrosGET_uniq_final.txt > .vulnerabilidades/"$host"_"$port"_CS-01.txt 2>/dev/null		
-					
-		#CS-39	API REST y GRAPHQL			
-		grep -i 'graphql' .vulnerabilidades2/"$host"_"$port"_archivosPeligrosos.txt > .vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
+			#CS-44 Servidores		
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosPeligrosos|_backupweb' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  > .vulnerabilidades/"$host"_"$port"_CS-44.txt
+			cat .vulnerabilidades/"$host"_"$port"_CS-44.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
-		#CS-40 Divulgación de información
-		grep -ira 'vulnerabilidad=divulgacionInformacion' logs | egrep -v '404|403'| awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=debugHabilitado' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
+			# CS-45 Protocolos antiguos
+			cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+			cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 
-		#CS-41 Exposición de usuarios
-		grep -ira 'vulnerabilidad=ExposicionUsuarios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-41.txt		
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | grep _wpUsers ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Usuarios:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-41.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-41.txt logs/vulnerabilidades/"$host"_"$port"_CS-41.txt 2>/dev/null
+			#CS-46 Archivos por defecto
+			grep -ira 'vulnerabilidad=contenidoPrueba' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-46.txt
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosDefecto|_passwordDefecto' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port"_CS-46.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-46.txt logs/vulnerabilidades/"$host"_"$port"_CS-46.txt 2>/dev/null
 
-	
-		#CS-44 Servidores		
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosPeligrosos|_backupweb' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  > .vulnerabilidades/"$host"_"$port"_CS-44.txt
-		cat .vulnerabilidades/"$host"_"$port"_CS-44.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+			#CS-48 Servidor mal configurado
+			grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} | uniq > .vulnerabilidades/"$host"_"$port"_CS-48.txt
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_heartbleed|_tomcatNuclei|_apacheNuclei|_IIS~CVE~2017~7269|_citrixVul|_apacheStruts|_shortname|_apacheTraversal' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad server:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-48.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
+			
+			#CS-63 Software obsoleto
+			egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object |application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
 
-		# CS-45 Protocolos antiguos
-		cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
-		cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+			#CS-56 Funciones peligrosas
+			egrep -ira " eval\(" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_CS-56.txt 2>/dev/null
 
-
-		#CS-46 Archivos por defecto
-		grep -ira 'vulnerabilidad=contenidoPrueba' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-46.txt
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosDefecto|_passwordDefecto' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port"_CS-46.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-46.txt logs/vulnerabilidades/"$host"_"$port"_CS-46.txt 2>/dev/null
-
-		#CS-48 Servidor mal configurado
-		grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} | uniq > .vulnerabilidades/"$host"_"$port"_CS-48.txt
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_heartbleed|_tomcatNuclei|_apacheNuclei|_IIS~CVE~2017~7269|_citrixVul|_apacheStruts|_shortname|_apacheTraversal' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad server:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-48.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
-		
-		#CS-63 Software obsoleto
-		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object |application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
-
-		#CS-56 Funciones peligrosas
-		egrep -ira " eval\(" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_CS-56.txt 2>/dev/null
-
-		# CS-69 Vulnerabilidades conocidas
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xml-rpc-habilitado|_wordpressPlugins|_wordpressCVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' > .vulnerabilidades/"$host"_"$port"_CS-69.txt
-		cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_CS-69.txt 2>/dev/null
-	done
-done	
+			# CS-69 Vulnerabilidades conocidas
+			for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xml-rpc-habilitado|_wordpressPlugins|_wordpressCVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' > .vulnerabilidades/"$host"_"$port"_CS-69.txt
+			cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_CS-69.txt 2>/dev/null
+		done
+	done	
+fi
 
 insert_data	
 # delete empty files
