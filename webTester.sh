@@ -122,13 +122,14 @@ else
 	echo "no crear carpetas"
 fi	
 
-# si escaneamos una sola app https://prueba.com.bo | http://192.168.1.2:8080
+# si escaneamos una sola app https://prueba.com.bo | http://192.168.1.2:8080 | https://prueba.com.bo/login
 if [ -z $TARGETS ] ; then
 	#cat $TARGETS | cut -d ":" -f1 | sort | uniq > hosts-lives.txt
 	#IP_LIST_FILE="hosts-lives.txt"
 	http_proto_http=`echo $URL|cut -d ':' -f1`
 	host=`echo $URL|cut -d ':' -f2| tr -d '/'`
 	port=`echo $URL|cut -d ':' -f3`
+	path=`echo $port | cut -d '/' -f3`
 	if [[ -z $port ]]; then
 		if [[  ${http_proto_http} == *"https"* ]]; then
 			port="443"
@@ -2212,13 +2213,13 @@ for line in $(cat $TARGETS); do
 		grep -i 'graphql' .vulnerabilidades2/"$host"_"$port"_archivosPeligrosos.txt > .vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
 
 		#CS-40 Divulgación de información
-		grep -ira 'vulnerabilidad=divulgacionInformacion' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=debugHabilitado' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=MensajeError' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=IPinterna' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		grep -ira 'vulnerabilidad=phpinfo' logs | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=divulgacionInformacion' logs | egrep -v '404|403'| awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=debugHabilitado' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 		for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
 
 
@@ -2243,12 +2244,12 @@ for line in $(cat $TARGETS); do
 		cp .vulnerabilidades/"$host"_"$port"_CS-46.txt logs/vulnerabilidades/"$host"_"$port"_CS-46.txt 2>/dev/null
 
 		#CS-48 Servidor mal configurado
-		grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port"_CS-48.txt
+		grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} | uniq > .vulnerabilidades/"$host"_"$port"_CS-48.txt
 		for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_heartbleed|_tomcatNuclei|_apacheNuclei|_IIS~CVE~2017~7269|_citrixVul|_apacheStruts|_shortname|_apacheTraversal' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad server:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-48.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
 		
 		#CS-63 Software obsoleto
-		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object|application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
+		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object |application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
 
 		#CS-56 Funciones peligrosas
