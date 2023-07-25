@@ -119,7 +119,7 @@ if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades 
 	mkdir servicios
 	cp /usr/share/lanscanner/.resultados.db .
 else
-	echo "no crear carp"
+	echo "no crear carpetas"
 fi	
 
 # si escaneamos una sola app https://prueba.com.bo | http://192.168.1.2:8080
@@ -953,6 +953,7 @@ function cloneSite ()
 
 	
 ############## Extraer informacion web y SSL
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 # web.txt
 # 192.168.0.1:80:http
 # www.ejemplo.com:443:https
@@ -991,7 +992,7 @@ for line in $(cat $TARGETS); do
 		grep 'Dominio identificado' .enumeracion/"$ip"_"$port"_webData.txt | cut -d "^" -f4 | uniq > logs/enumeracion/"$ip"_web_domainWebData.txt
 	fi																											
 								
-	if [[ "$IP_LIST_FILE" == *"importarMaltego"* ]] && [[ ! -z "$DOMINIO" ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
+	if [[ "$IP_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
 		echo -e "\t[+]  Fuzzing DOMINIO: $DOMINIO en busca de vhost"
 		wfuzz -c -w /usr/share/seclists/Discovery/DNS/subdomain.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$DOMINIO -t 100 -f logs/enumeracion/baseline_"$proto_http"_vhosts.txt	2>/dev/null
 		chars=`cat logs/enumeracion/baseline_"$proto_http"_vhosts.txt | grep 'C=' | awk '{print $7}'`
@@ -1016,19 +1017,20 @@ waitFinish
 
 ############ Obteniendo información web DOMINIO
 for line in $(cat $TARGETS); do  	
-	ip=`echo $line | cut -f1 -d":"`
+	host=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`	
-	proto_http=`echo $line | cut -f3 -d":"` #http/https
+	proto_http=`echo $line | cut -f3 -d":"` #http/https	
+	
+	result=$(formato_ip "$host")			
+	if [[ $result -eq 1 && $HOSTING == 'n' ]] ; then
+		if [ "$VERBOSE" == 's' ]; then  echo "[+] $host es una dirección IP"; fi
 
-	if formato_ip $ip; then		
-		if [ "$VERBOSE" == 's' ]; then  echo "[+] $ip es una dirección IP"; fi
-
-		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $ip:$port $RESET########"
+		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $host:$port $RESET########"
 		#Certificado SSL + nmap + webdata
-		grep -v 'failed' logs/enumeracion/"$ip"_"$port"_cert.txt > .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null
-		DOMINIOS_SSL=`cat .enumeracion/"$ip"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
-		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$ip"_"$port"_domainNmap.txt 2>/dev/null`
-		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$ip"_web_domainWebData.txt 2>/dev/null`
+		grep -v 'failed' logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2>/dev/null
+		DOMINIOS_SSL=`cat .enumeracion/"$host"_"$port"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
+		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$host"_"$port"_domainNmap.txt 2>/dev/null`
+		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$host"_web_domainWebData.txt 2>/dev/null`
 
 		if [[  $DOMINIOS_SSL =~ ^[0-9]+$ || $DOMINIOS_SSL == *"_"* || $DOMINIOS_SSL == *"*"* ]] ; then #si contiene solo numeros, el caracter '_' o el caracter * no adicionar
 			DOMINIOS_INTERNOS_TODOS="$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
@@ -1042,7 +1044,7 @@ for line in $(cat $TARGETS); do
 		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_INTERNOS_TODOS $DOMINIOS_INTERNOS_TODOS"; fi
 		for DOMINIO_INTERNO in $DOMINIOS_INTERNOS_TODOS; do	
 			if [[ ${DOMINIO_INTERNO} == *"enterpriseregistration.windows.net"*  ]];then 
-				echo "$DOMINIO_INTERNO" >> .enumeracion/"$ip"_"$port"_azureAD.txt 
+				echo "$DOMINIO_INTERNO" >> .enumeracion/"$host"_"$port"_azureAD.txt 
 			else	
 				echo -e "[+] DOMINIO_INTERNO $DOMINIO_INTERNO"
 				
@@ -1052,10 +1054,10 @@ for line in $(cat $TARGETS); do
 				if [ "$DOMINIO_INTERNO" != NULL ] && [ "$DOMINIO_INTERNO" != "localhost" ] && [ "$DOMINIO_INTERNO" != "" ] && [ "$DOMINIO_INTERNO" != *"*"* ] && ([ "$greprc" -eq 1 ] || [ "$greprc" -eq 2 ]); then
 						
 					#Agregar a la lista de targets
-					grep -q "$ip,$DOMINIO_INTERNO" $IP_LIST_FILE
+					grep -q "$host,$DOMINIO_INTERNO" $IP_LIST_FILE
 					greprc=$?
 					if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
-						echo "$ip,$DOMINIO_INTERNO,DOMINIO" >> $IP_LIST_FILE						
+						echo "$host,$DOMINIO_INTERNO,DOMINIO" >> $IP_LIST_FILE						
 					else
 						echo "Ya agregue mas antes $DOMINIO_INTERNO a  $IP_LIST_FILE"
 					fi
@@ -1065,7 +1067,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 1  &&  ${DOMINIO_INTERNO} != *"localhost"* &&  ${DOMINIO_INTERNO} != *"127.0.0.1"*  ]];then # si ya agregamos ese dominio																
 						echo "Adicionando $DOMINIO_INTERNO a /etc/hosts"
-						echo "$ip $DOMINIO_INTERNO" >> /etc/hosts							
+						echo "$host $DOMINIO_INTERNO" >> /etc/hosts							
 					else
 						echo "Ya agregue mas antes $DOMINIO_INTERNO a /etc/hosts "					
 					fi
@@ -1073,36 +1075,39 @@ for line in $(cat $TARGETS); do
 			fi		
 		done
 	fi # Fin IP format
-	
-	########## Obteniendo información web DOMINIO ###########			
-	while true; do
-		free_ram=`free -m | grep -i mem | awk '{print $7}'`		
-		script_instancias=$((`ps aux | grep webData | wc -l` - 1)) 
-		python_instancias=$((`ps aux | grep get_ssl_cert | wc -l` - 1)) 
-		script_instancias=$((script_instancias + python_instancias))
 		
-		if [[ $free_ram -gt $MIN_RAM && $script_instancias -lt 4  ]];then 								
-			if [ "$VERBOSE" == 's' ]; then  echo "SUBNET $SUBNET IP_LIST_FILE=$IP_LIST_FILE"; fi
-				lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`		
-							
-			if [ "$VERBOSE" == 's' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
-			for host in $lista_hosts; do
-				if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
-					echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
-					# Una sola rediccion (-r 1) para evitar que escaneemos 2 veces el mismo sitio
-					$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
-				fi
-			done
-		
-			################################	
+	echo -e "[+] host ($host)"	
+	if [[ ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk"* && ${host} != *"webmail."* &&  ${host} != *"whm."* && $HOSTING == 'n' ]] ; then
+		########## Obteniendo información web DOMINIO ###########			
+		while true; do			
+			free_ram=`free -m | grep -i mem | awk '{print $7}'`		
+			script_instancias=$((`ps aux | grep webData | wc -l` - 1)) 
+			python_instancias=$((`ps aux | grep get_ssl_cert | wc -l` - 1)) 
+			script_instancias=$((script_instancias + python_instancias))
 			
-			break
-		else								
-			script_instancias=`ps aux | grep perl | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E'| wc -l`
-			echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb "
-			sleep 3										
-		fi		
-	done # while true
+			if [[ $free_ram -gt $MIN_RAM && $script_instancias -lt 4  ]];then 								
+				if [ "$VERBOSE" == 's' ]; then  echo "SUBNET $SUBNET IP_LIST_FILE=$IP_LIST_FILE"; fi
+					lista_hosts=`grep --color=never $host $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`		
+								
+				if [ "$VERBOSE" == 's' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
+				for host in $lista_hosts; do
+					if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
+						echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
+						# Una sola rediccion (-r 1) para evitar que escaneemos 2 veces el mismo sitio
+						$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
+					fi
+				done
+			
+				################################	
+				
+				break
+			else								
+				script_instancias=`ps aux | grep perl | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E'| wc -l`
+				echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb "
+				sleep 3										
+			fi		
+		done # while true
+	fi	
 done # for web.txt
 
 waitFinish
@@ -1124,7 +1129,10 @@ for line in $(cat $TARGETS); do
 		lista_hosts=$ip
 	fi
 
-	for host in $lista_hosts; do		
+	for host in $lista_hosts; do
+		#log image
+		curl -k -I $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_responseHeaders.txt
+
 		#CS-08 Cookies
 		checkCookie $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-08.txt
 		grep 'NO OK' logs/vulnerabilidades/"$host"_"$port"_CS-08.txt > .vulnerabilidades/"$host"_"$port"_CS-08.txt
@@ -1141,7 +1149,6 @@ for line in $(cat $TARGETS); do
 			cp logs/vulnerabilidades/"$host"_"$port"_CS-44.txt .vulnerabilidades/"$host"_"$port"_CS-44.txt
 		fi
 				
-
 		# CS-49  Cache-Control
 		shcheck.py -d --colours=none --caching --use-get-method $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_CS-49.txt  2>/dev/null
 		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Cache-Control' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-49.txt
@@ -1152,13 +1159,14 @@ for line in $(cat $TARGETS); do
 		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'Referrer-Policy' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-3.txt
 		grep 'Header seguro faltante' logs/vulnerabilidades/"$host"_"$port"_CS-49.txt | egrep 'X-Frame-Options' | sed 's/Header seguro faltante://g' > .vulnerabilidades/"$host"_"$port"_CS-51-4.txt
 		
-		
-		# CS-62 HTTP header injection
-		 headi -u $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
-		 grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
+		if [[ "$MODE" == "total" ]]; then
+			# CS-62 HTTP header injection
+			headi -u $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
+			grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
+		fi		
 	done
 done	
-##############3
+##############
 
 echo -e "$OKGREEN\n[i] Realizando la navegacion forzada $RESET"
 for line in $(cat $TARGETS); do
@@ -1207,7 +1215,7 @@ for line in $(cat $TARGETS); do
 		fi
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-		if [[  ${host} != *"localhost"*  && ${host} != *"cpanel."*  && ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"ftp."* && ${host} != *"webdisk."* && ${host} != *"webmail."* &&  ${host} != *"whm."* && "$status_code_nonexist" == *"40"*  ]];then 
+		if [[ "$status_code_nonexist" == *"40"*  ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			
@@ -1216,7 +1224,15 @@ for line in $(cat $TARGETS); do
 
 			if [[ "$MODE" == "total" ]]; then
 				echo -e "\t[+] Clonando: $proto_http://$host:$port"
-				httrack $proto_http://$host:$port -O webclone				
+				script httrack.log -c "httrack $proto_http://$host:$port --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone"				
+				egrep -iq '403' httrack.log
+				greprc=$?	
+				if [[ $greprc -eq 0 ]];then 
+					mkdir webClone/"$host"_"$port"
+					echo "Decargar manualmente el sitio y guardar en $host $port"
+					read resp
+				fi
+
 			fi
 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
@@ -1246,7 +1262,7 @@ for line in $(cat $TARGETS); do
 						
 			grep "Dominio identificado" .enumeracion/"$host"_"$port"_webData.txt
 			greprc=$? 	# 1= no coincide 		
-			result=$(formato_ip "$host")
+			result=$(formato_ip "$host")			
 			if [[ $result -eq 1 && $greprc -eq 0 ]] ;then
 				ip2domainRedirect=1
 			else
@@ -1271,9 +1287,7 @@ for line in $(cat $TARGETS); do
 					echo -e "\t[+] HTTP methods ($proto_http://$host:$port) "			
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_httpmethods.txt  2>/dev/null &
 
-					if [[ "$MODE" == "total" ]]; then 
-
-						        										
+					if [[ "$MODE" == "total" ]]; then 					    										
 						#source resource integrity
 						#echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
 						#sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
@@ -1294,9 +1308,9 @@ for line in $(cat $TARGETS); do
 							blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt
 							head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
 
-							sort logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
-							grep Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt| awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
-							grep -v Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | uniq >> logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							sort logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g"  | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							grep Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
+							grep -v Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | uniq >> logs/enumeracion/"$host"_"$port"_webCrawled.txt
 
 							grep $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq > .enumeracion/"$host"_"$port"_webCrawled.txt
 							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
@@ -1393,6 +1407,8 @@ for line in $(cat $TARGETS); do
 					echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " > .vulnerabilidades/"$ip"_"$port"_ProFTPD-RCE.txt
 				fi
 
+				enumeracionCMS "$proto_http" $host $port
+
 				###  if the server is apache ######
 				egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs" # solo el segundo egrep poner "-q"
 				greprc=$?
@@ -1441,7 +1457,7 @@ for line in $(cat $TARGETS); do
 				fi									
 				####################################
 					
-				enumeracionCMS "$proto_http" $host $port
+				
 
 				if [ $proto_http == "https" ]; then
 					testSSL "$proto_http" $host $port	
@@ -2231,11 +2247,11 @@ for line in $(cat $TARGETS); do
 		cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
 		
 		#CS-63 Software obsoleto
-		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object|application\/x-silverlight" webclone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
+		egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object|application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
 
 		#CS-56 Funciones peligrosas
-		egrep -ira " eval\(" webclone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
+		egrep -ira " eval\(" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
 		cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_CS-56.txt 2>/dev/null
 
 		# CS-69 Vulnerabilidades conocidas
