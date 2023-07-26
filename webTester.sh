@@ -1197,7 +1197,7 @@ for line in $(cat $TARGETS); do
 		fi
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-		if [[ "$status_code_nonexist" == *"40"*  ]];then 
+		if [[ "$status_code_nonexist" == *"404"* ||  "$status_code_nonexist" == *"303"* ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			
