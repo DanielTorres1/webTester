@@ -1205,12 +1205,12 @@ for line in $(cat $TARGETS); do
 			touch webTrack/$host/checksumsEscaneados.txt
 
 			if [[ "$MODE" == "total" ]]; then
-				echo -e "\t[+] Clonando: $proto_http://$host:$port"
-				script httrack.log -c "httrack $proto_http://$host:$port --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone"				
-				egrep -iqa '403|443' httrack.log
+				echo -e "\t[+] Clonando: $URL"
+				script httrack.log -c "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone"				
+				egrep -iqa '403|303' httrack.log
 				greprc=$?	
 				if [[ $greprc -eq 0 ]];then 
-					mkdir webClone/"$host"_"$port"
+					mkdir webClone/"$host"_"$port" 2>/dev/null
 					echo "Decargar manualmente el sitio y guardar en $host $port"
 					read resp
 				fi
