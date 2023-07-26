@@ -1197,7 +1197,7 @@ for line in $(cat $TARGETS); do
 		fi
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-		if [[ "$status_code_nonexist" == *"404"* ||  "$status_code_nonexist" == *"303"* ]];then 
+		if [[ "$status_code_nonexist" == *"404"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			
@@ -1214,6 +1214,12 @@ for line in $(cat $TARGETS); do
 					echo "Decargar manualmente el sitio y guardar en $host $port"
 					read resp
 				fi
+				
+				find webClone | egrep '\.html|\.js' | while read line
+				do
+					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' > directorios-personalizado.txt
+					web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m custom -i 60 -u directorios-personalizado.txt -s $proto_http $param_msg_error >> logs/enumeracion/"$host"_"$port"_custom.txt  &
+				done
 
 			fi
 
@@ -1526,6 +1532,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
 			egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
+
+			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null		
 
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
@@ -2185,7 +2193,7 @@ if [[ ! -z "$URL"  ]];then
 	grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
-	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak|_custom' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
 
 

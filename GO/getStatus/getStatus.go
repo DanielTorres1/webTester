@@ -23,7 +23,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Crea un cliente HTTP que no verifica los certificados TLS, tiene un timeout de 10 segundos, y no sigue redirecciones
+	// Crea un cliente HTTP que no verifica los certificados TLS, tiene un timeout de 10 segundos y no sigue redirecciones
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -31,7 +31,7 @@ func main() {
 		Transport: tr,
 		Timeout:   3 * time.Second,
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse // Detiene las redirecciones
+			return http.ErrUseLastResponse
 		},
 	}
 
