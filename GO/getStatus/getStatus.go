@@ -29,7 +29,7 @@ func main() {
 	}
 	client := &http.Client{
 		Transport: tr,
-		Timeout:   10 * time.Second,
+		Timeout:   3 * time.Second,
 	}
 
 	// Crea una nueva petición GET
