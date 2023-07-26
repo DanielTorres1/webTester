@@ -1562,7 +1562,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port"_archivosDefecto.txt 2>/dev/null 		
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt 2>/dev/null
 			
-			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt
+			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
 			
 			
 
@@ -1574,7 +1574,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
 			grep --color=never "401" logs/enumeracion/"$host"_"$port"_certfnsh.txt > .enumeracion/"$host"_"$port"_certfnsh. 2>/dev/null
 
-			cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt
+			cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt 2>/dev/null
 			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
 			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
 			grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
