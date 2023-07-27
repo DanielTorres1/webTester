@@ -1181,15 +1181,18 @@ for line in $(cat $TARGETS); do
 		fi
 
 		only_status=`echo $status_code_nonexist | cut -d ':' -f1`
-		
-		if [ ! -z "$msg_error_404" ];then
-			param_msg_error="-e $msg_error_404" #parametro para web-buster
-		fi
-		
+
 		if [[ "$only_status" == '200' &&  -z "$msg_error_404" ]]; then 
 			echo -n "~Always200-OK" >> .enumeracion/"$host"_"$port"_webData.txt
 			sed -i ':a;N;$!ba;s/\n//g' .enumeracion/"$host"_"$port"_webData.txt #borrar salto de linea
 		fi
+		
+		if [ ! -z "$msg_error_404" ];then
+			param_msg_error="-e $msg_error_404" #parametro para web-buster
+			
+		fi
+		
+		
 		
 		
 		if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
@@ -1197,7 +1200,7 @@ for line in $(cat $TARGETS); do
 		fi
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-		if [[ "$status_code_nonexist" == *"404"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ]];then 
+		if [[ "$only_status" =="404" ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			

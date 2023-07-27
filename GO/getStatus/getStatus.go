@@ -1,9 +1,11 @@
 package main
 
 import (
+	"compress/gzip"
 	"crypto/tls"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -65,8 +67,21 @@ func main() {
 	if len(statusCode) > 3 {
 		fmt.Println("Network error")
 	} else {
+		var bodyReader io.ReadCloser
+		switch resp.Header.Get("Content-Encoding") {
+		case "gzip":
+			bodyReader, err = gzip.NewReader(resp.Body)
+			if err != nil {
+				fmt.Println("Error al descomprimir la respuesta gzip")
+				os.Exit(1)
+			}
+			defer bodyReader.Close()
+		default:
+			bodyReader = resp.Body
+		}
+
 		// Lee el cuerpo de la respuesta
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		bodyBytes, err := ioutil.ReadAll(bodyReader)
 		if err != nil {
 			fmt.Println("Error al leer el cuerpo de la respuesta")
 			os.Exit(1)
@@ -77,6 +92,7 @@ func main() {
 		errorRegexps := []*regexp.Regexp{
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
 			regexp.MustCompile(`(?i)404\s+no\s+encontrado`),
+			regexp.MustCompile(`<app-root>`),
 		}
 
 		// Busca las cadenas en el cuerpo
