@@ -742,8 +742,14 @@ function enumeracionCMS () {
     if [[ $greprc -eq 0 ]];then 		
         echo -e "\t\t[+] Revisando vulnerabilidades de OWA($host)"
         
+		if [[ ! -z "$URL"  ]];then
+			owa_version=`grep -roP 'owa/auth/\K[^/]+' webClone/"$host"_"$port" | head -1 | cut -d ':' -f2`
+			owa.pl -version $owa_version  > logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 
+		else
+			$proxychains owa.pl -host $host -port $port  > logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt &
+		fi
 		#CVE-2020-0688 
-        $proxychains owa.pl -host $host -port $port  > logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt &
+        
         #https://github.com/MrTiz/CVE-2020-0688 authenticated
 
 		#CVE-2021-34473 
@@ -1214,7 +1220,7 @@ for line in $(cat $TARGETS); do
 		fi
 
 		if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-		if [[ "$only_status" == "404" || "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ]];then 
+		if [[ "$only_status" == "404" || "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"302"* ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
 			mkdir -p webTrack/$host 2>/dev/null			
@@ -1240,7 +1246,7 @@ for line in $(cat $TARGETS); do
 			rm directorios-personalizado2.txt
 			
 			checkRAM
-			echo "\t[+] directorios personalizado"				
+			echo -e "\t[+] directorios personalizado"				
 			web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
@@ -1588,8 +1594,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
 			grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
 			#grep -i --color=never "ofrecido" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-			grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-			grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 
+			grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
 
 			egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
 			egrep --color=never "Registro habilitado" logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt  >> .vulnerabilidades/"$host"_"$port"_registroHabilitado.txt	2>/dev/null
@@ -2231,7 +2237,7 @@ if [[ ! -z "$URL"  ]];then
 	cat .vulnerabilidades/"$host"_"$port"_CS-44.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 	# CS-45 Protocolos antiguos
-	cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt | grep -v 'HSTS' > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+	cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt 2>/dev/null | grep -v 'HSTS' > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 	cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
 
