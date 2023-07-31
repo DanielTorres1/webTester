@@ -1227,27 +1227,24 @@ for line in $(cat $TARGETS); do
 			mkdir -p archivos/$host 2>/dev/null
 			touch webTrack/$host/checksumsEscaneados.txt
 
-			echo -e "\t[+] Clonando: $URL"
-			#script httrack.log -c "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone"				
-			#egrep -iqa '403|303' httrack.log
-			#greprc=$?	
-			#if [[ $greprc -eq 0 ]];then 
+			if [[ ! -z "$URL"  ]];then
+				echo -e "\t[+] Clonando: $URL"
 				mkdir webClone/"$host"_"$port" 2>/dev/null
 				echo "Descargar manualmente el sitio y guardar en $host $port"
-				read resp
-			#fi
-			
-			find webClone | egrep '\.html|\.js' | while read line
-			do
-				extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
-			done
-			sed -i '/^$/d' directorios-personalizado2.txt
-			sort directorios-personalizado2.txt | uniq > directorios-personalizado.txt
-			rm directorios-personalizado2.txt
-			
-			checkRAM
-			echo -e "\t[+] directorios personalizado"				
-			web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
+				read resp			
+				
+				find webClone | egrep '\.html|\.js' | while read line
+				do
+					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
+				done
+				sed -i '/^$/d' directorios-personalizado2.txt
+				sort directorios-personalizado2.txt | uniq > directorios-personalizado.txt
+				rm directorios-personalizado2.txt
+				
+				checkRAM
+				echo -e "\t[+] directorios personalizado"				
+				web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
+			fi			
 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
 			checkRAM		
