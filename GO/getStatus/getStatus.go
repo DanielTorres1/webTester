@@ -93,6 +93,7 @@ func main() {
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
 			regexp.MustCompile(`(?i)404\s+no\s+encontrado`),
 			regexp.MustCompile(`<app-root>`),
+			regexp.MustCompile(`(?i)<meta http-equiv=`), // Añadida esta línea
 		}
 
 		// Busca las cadenas en el cuerpo

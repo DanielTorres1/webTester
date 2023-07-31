@@ -1193,7 +1193,7 @@ for line in $(cat $TARGETS); do
 		#Verificar que no siempre devuelve 200 OK
 		status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 		webScaneado=0
-
+		msg_error_404=''
 		if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 			msg_error_404=`echo $status_code_nonexist | cut -d ':' -f2`
 			msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
