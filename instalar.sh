@@ -20,6 +20,7 @@ RESET="\033[00m"       # Normal
 echo -e "${GREEN} [+] Copiando archivos ${RESET}"
 cp webTester.sh /usr/bin
 cp pentest/* /usr/bin/pentest
+cp vhost-non-exist.txt /usr/share/lanscanner/vhost-non-exist.txt
 
 echo -e "${RED}[+]${BLUE} Instalando librerias ${RESET}"
 apt install -y httrack webhttrack

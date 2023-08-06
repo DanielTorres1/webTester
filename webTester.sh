@@ -1014,11 +1014,14 @@ for line in $(cat $TARGETS); do
 								
 	if [[ "$IP_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
 		echo -e "\t[+]  Fuzzing DOMINIO: $DOMINIO en busca de vhost"
-		wfuzz -c -w /usr/share/seclists/Discovery/DNS/subdomain.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$DOMINIO -t 100 -f logs/enumeracion/baseline_"$proto_http"_vhosts.txt	2>/dev/null
-		chars=`cat logs/enumeracion/baseline_"$proto_http"_vhosts.txt | grep 'C=' | awk '{print $7}'`
+		wfuzz -c -w /usr/share/lanscanner/vhost-non-exist.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$ip -t 100 -f logs/enumeracion/"$ip"_"$proto_http"_vhosts~baseline.txt	2>/dev/null
+		chars=`cat logs/enumeracion/"$ip"_"$proto_http"_vhosts~baseline.txt | grep 'C=' | awk '{print $7}'`
 		echo "chars $chars"
 
-		wfuzz -c -w /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$DOMINIO -t 100 --hh $chars --hc 401 -f logs/enumeracion/"$ip"_"$port"_vhosts.txt	2>/dev/null
+		cat importarMaltego/subdominios.csv | cut -d ',' -f2 | cut -d '.' -f1 | sort |uniq > subdominios.txt
+		cat /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt >> subdominios.txt
+
+		wfuzz -c -w subdominios.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$ip -t 100 --hh $chars --hc 401,400 -f logs/enumeracion/"$ip"_"$port"_vhosts.txt	2>/dev/null
 		grep 'Ch' logs/enumeracion/"$ip"_"$port"_vhosts.txt | grep -v 'Word' | awk '{print $9}' | tr -d '"' > .enumeracion/"$ip"_"$port"_vhosts.txt
 		vhosts=`cat .enumeracion/"$ip"_"$port"_vhosts.txt`
 		vhosts=$(echo $vhosts | sed 's/_/-/g')
