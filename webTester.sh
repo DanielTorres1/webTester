@@ -1230,7 +1230,7 @@ for line in $(cat $TARGETS); do
 			mkdir -p archivos/$host 2>/dev/null
 			touch webTrack/$host/checksumsEscaneados.txt
 
-			if [[ ! -z "$URL"  ]];then
+			if [[ ! -z "$URL" && "$MODE" == "total" ]];then
 				echo -e "\t[+] Clonando: $URL"
 				mkdir webClone/"$host"_"$port" 2>/dev/null
 				echo "Descargar manualmente el sitio y guardar en $host $port"
