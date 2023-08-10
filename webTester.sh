@@ -1001,7 +1001,7 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt > .enumeracion/"$ip"_"$port"_webLinks.txt
+	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep 'microsoft|gitlab.com|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook' > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
