@@ -1808,7 +1808,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 	if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
 		echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-		cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_uniq.txt
+		cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
 		while IFS= read -r line
 		do		
 			echo -e "\n\t########### $line #######"										
@@ -1824,6 +1824,14 @@ if [[ $webScaneado -eq 1 ]]; then
 						host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
 						port=`echo $host_port | cut -d ":" -f 2`		
 						path_web=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
+								
+						if [[  ${port} == *"."* ]]; then
+							if [[ ${proto_http} == *"https"*  ]]; then
+								port="443"
+							else
+								port="80"
+							fi
+						fi
 					
 						if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"manual"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
