@@ -20,6 +20,10 @@ while (( "$#" )); do
       TARGETS=$2
       shift 2
       ;;
+	--speed) #1->1 hilo /2-> 5 hilos /3-> 10 hilos
+      SPEED=$2
+      shift 2
+      ;;
     --mode)
       MODE=$2
       shift 2
@@ -72,7 +76,16 @@ eval set -- "$PARAMS"
 
 MIN_RAM=900;
 MAX_SCRIPT_INSTANCES=80
-hilos_web=10;
+if [[  ${SPEED} == "1" ]]; then
+	hilos_web=1
+fi
+if [[  ${SPEED} == "2" ]]; then
+	hilos_web=5
+fi
+if [[  ${SPEED} == "3" ]]; then
+	hilos_web=10
+fi
+
 
 
 if [[ -z $TARGETS && -z $URL ]] ; then
