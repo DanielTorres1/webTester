@@ -76,9 +76,7 @@ eval set -- "$PARAMS"
 
 MIN_RAM=900;
 MAX_SCRIPT_INSTANCES=80
-if [[ -z $SPEED ]]; then
 hilos_web=10
-fi
 
 if [[  ${SPEED} == "1" ]]; then
 	hilos_web=1
