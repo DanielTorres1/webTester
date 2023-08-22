@@ -76,6 +76,10 @@ eval set -- "$PARAMS"
 
 MIN_RAM=900;
 MAX_SCRIPT_INSTANCES=80
+if [[ -z $SPEED ]]; then
+hilos_web=10
+fi
+
 if [[  ${SPEED} == "1" ]]; then
 	hilos_web=1
 fi
@@ -87,6 +91,8 @@ if [[  ${SPEED} == "3" ]]; then
 fi
 
 
+
+echo "hilos_web $hilos_web"
 
 if [[ -z $TARGETS && -z $URL ]] ; then
 
@@ -756,7 +762,7 @@ function enumeracionCMS () {
         echo -e "\t\t[+] Revisando vulnerabilidades de OWA($host)"
         
 		if [[ ! -z "$URL"  ]];then
-			owa_version=`grep -roP 'owa/auth/\K[^/]+' webClone/"$host"_"$port" | head -1 | cut -d ':' -f2`
+			owa_version=`grep -roP 'owa/auth/\K[^/]+' webClone/"$host" | head -1 | cut -d ':' -f2`
 			owa.pl -version $owa_version  > logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 
 		else
 			$proxychains owa.pl -host $host -port $port  > logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt &
@@ -1247,8 +1253,8 @@ for line in $(cat $TARGETS); do
 
 			if [[ ! -z "$URL" && "$MODE" == "total" ]];then
 				echo -e "\t[+] Clonando: $URL"
-				mkdir webClone/"$host"_"$port" 2>/dev/null
-				echo "Descargar manualmente el sitio y guardar en $host $port"
+				mkdir webClone/$host 2>/dev/null
+				echo "Descargar manualmente el sitio y guardar en $host"
 				read resp			
 				
 				find webClone | egrep '\.html|\.js' | while read line
@@ -1739,23 +1745,36 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webTrack/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt 
 
-		#echo -e "[+] Buscar datos sensible en archivos clonados"	
+		echo -e "[+] Buscar datos sensible en archivos clonados"	
 		#echo "cd webTrack/$DOMINIO"
-		#cd webTrack/$DOMINIO
-			#rm checksumsEscaneados.txt # tiene hashes md5 
-			# Creando repositorio temporal para que pueda ser escaneado por las herramientas
+		cd webClone/$DOMINIO
+			### replace "space" for "-"
+			for dir in *; do							
+				new_name=$(echo "$dir" | sed 's/ /-/g' | sed 'y/óÓ/oO/' | sed 'y/éÉ/eE/' | sed 'y/áÁ/aA/')
+				mv "$dir" "$new_name" 2>/dev/null
+			done
+			##############
 
-			# cat scripts.js | js-beautify  | tee scripts.js
+			rm -rf .git 2>/dev/null
+			git init >/dev/null 2>/dev/null
+			git add . >/dev/null 2>/dev/null
+			git commit -m "test" >/dev/null 2>/dev/null
+		
+			# generic token - truffle
+			docker run --rm -v "$(pwd):/project" truffle-hog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt
+			sed -i "s/'/\"/g" ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt # ' --> "
 
-			# rm -rf .git 2>/dev/null
-			# git init >/dev/null 2>/dev/null
-			# git add . >/dev/null 2>/dev/null
-			# git commit -m "test" >/dev/null 2>/dev/null
-
-			# # llaves SSH
-			# echo -e "\nllaves SSH" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 70 --max-key 72 --entropy 5.1  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
+			cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt | jq '.[] | "\(.File), \(.["Strings found"])"' | egrep -v 'a1b2c3|ABCDEFG'  | sort |uniq > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
+			sed -i 's/, /,/g' ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt # espacios
+			sed -i 's/ /\\ /g' ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt # espacios
+			while IFS= read -r line; do
+				#echo  $line
+				path_file=`echo $line | cut -d ',' -f1 | tr -d '"'| sed 's/ /\\ /g'`
+				keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
+				apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file`				
+				echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+			done < ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
+			
 			# # AWS Secret Access Key
 			# echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
@@ -1776,12 +1795,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			# # generic token - dumpster-diver
 			# echo -e "\n generic token (dumpster-diver)" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 			# docker run -v "$(pwd):/files" -it dumpster-diver -p files --min-key 25 --max-key 40 --entropy 4.6  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
-
-			# generic token - truffle
-			#docker run --rm -v "$(pwd):/project" trufflehog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt
-
-		#cd ../../
-
+		cd ../../
 		#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt > .vulnerabilidades/"$DOMINIO"_web_secrets.txt 
 		#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt 	
 		###################
@@ -2275,19 +2289,18 @@ if [[ ! -z "$URL"  ]];then
 	cp .vulnerabilidades/"$host"_"$port"_CS-48.txt logs/vulnerabilidades/"$host"_"$port"_CS-48.txt 2>/dev/null
 	
 	#CS-63 Software obsoleto
-	egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object |application\/x-silverlight" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
+	egrep -ira "\.class\"|\.class\'|\.class |\.nmf\"|\.nmf\'|\.nmf |\.xap\"|\.xap\'|\.xap |\.swf\"|\.swf\'|\.swf |x-nacl|<object |application\/x-silverlight" webClone/"$host"/ > .vulnerabilidades/"$host"_"$port"_CS-63.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-63.txt logs/vulnerabilidades/"$host"_"$port"_CS-63.txt 2>/dev/null
 
 	#CS-56 Funciones peligrosas
-	egrep -ira " eval\(" webClone/"$host"_"$port"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
+	egrep -ira " eval\(" webClone/"$host"/ > .vulnerabilidades/"$host"_"$port"_CS-56.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_CS-56.txt 2>/dev/null
 
 	# CS-69 Vulnerabilidades conocidas
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xml-rpc-habilitado|_wordpressPlugins|_wordpressCVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' > .vulnerabilidades/"$host"_"$port"_CS-69.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_CS-69.txt 2>/dev/null	
 
-	if [[ "$MODE" == "total" ]]; then
-		echo "headi"
+	if [[ "$MODE" == "total" ]]; then		
 		# CS-62 HTTP header injection
 		headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
 		grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		

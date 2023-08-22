@@ -107,7 +107,7 @@ func main() {
 		}
 
 		// Imprime el código de estado HTTP final junto con el mensaje de error, si se encuentra alguno
-		if errorMsg != "" {
+		if resp.StatusCode != 404 && errorMsg != "" {
 			fmt.Printf("%d:%s\n", resp.StatusCode, errorMsg)
 		} else {
 			fmt.Println(resp.StatusCode)

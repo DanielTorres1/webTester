@@ -58,3 +58,14 @@ mv ~/go/bin/katana /usr/bin/katana
 echo -e "${GREEN} [+] Instalar blackwidow ${RESET}"
 cd BlackWidow
 bash install.sh
+cd ..
+
+# echo -e "${GREEN} [+] Instalar DumpsterDiver ${RESET}"
+# cd DumpsterDiver
+# docker build -t dumpster-diver .  
+# cd ..
+
+echo -e "${GREEN} [+] Instalar truffleHog ${RESET}"
+cd truffleHog
+docker build -t truffle-hog .  
+cd ..
