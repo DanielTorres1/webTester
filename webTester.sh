@@ -656,6 +656,16 @@ function enumeracionCMS () {
 		fi            																																	
     fi
 
+	#######  chamilo  ######
+    grep -qi Chamilo .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 
+
+		echo -e "\t\t[+] CVE-2023-34960 ("$proto_http"://"$host":"$port")"	
+		chamilo-CVE-2023-34960.py -u "$proto_http://$host:$port/"  -c 'uname -a'  logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt &
+		# http://www.mipc.com.bo/node/9/devel/token        																																	
+    fi
+
     #######  wordpress  ######
     grep -qi wordpress .enumeracion/"$host"_"$port"_webData.txt
     greprc=$?
@@ -1022,7 +1032,7 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep -v 'microsoft|gitlab.com|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook' > .enumeracion/"$ip"_"$port"_webLinks.txt
+	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep -v 'microsoft|gitlab.com|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg' > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1453,6 +1463,10 @@ for line in $(cat $TARGETS); do
 						echo -e "\t\t[+] blackwidow"
 						blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt
 						head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
+						grep 'Telephone' logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | sort | uniq > .enumeracion/"$host"_"$port"_telephones.txt
+						grep -i 'sub-domain' logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | sort | uniq | awk {'print $4'} | httprobe.py > .enumeracion/"$host"_web_app2.txt
+						cat .enumeracion/"$host"_web_app2.txt servicios/webApp.txt | delete-duplicate-urls.py  > servicios/webApp2.txt
+						mv servicios/webApp2.txt servicios/webApp.txt
 
 						sort logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g"  | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
 						grep Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
@@ -1652,6 +1666,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
 			grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
 			grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
+			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt
 
 			grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 
@@ -1785,8 +1800,11 @@ if [[ $webScaneado -eq 1 ]]; then
 				#echo  $line
 				path_file=`echo $line | cut -d ',' -f1 | tr -d '"'| sed 's/ /\\ /g'`
 				keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
-				apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file`				
-				echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+				apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file`					
+				if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"* ) ]];then 
+					echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+				fi		
+				
 			done < ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
 			
 			# # AWS Secret Access Key
@@ -2316,6 +2334,7 @@ if [[ ! -z "$URL"  ]];then
 
 	if [[ "$MODE" == "total" ]]; then		
 		# CS-62 HTTP header injection
+		echo "\t[+]HTTP header injection"
 		headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
 		grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
 	fi	
