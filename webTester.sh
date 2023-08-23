@@ -52,6 +52,10 @@ while (( "$#" )); do
       EXTRATEST=$2 # oscp = aspx/php file bruteforce + web crawling + sqli + xss
       shift 2
       ;;
+	--specific)
+      ESPECIFIC=$2 # 1 = esperar guardar sitio del navegador usar blackwidow/sqlmap/dalfox 
+      shift 2
+      ;;
     --verbose)
       VERBOSE=$2
       shift 2
@@ -89,8 +93,6 @@ if [[  ${SPEED} == "3" ]]; then
 fi
 
 
-
-
 echo "hilos_web $hilos_web"
 
 if [[ -z $TARGETS && -z $URL ]] ; then
@@ -101,6 +103,7 @@ Options:
 --mode: hacking/total
 --proxychains: s/n
 --hosting: s/n
+--specific: 1 = esperar guardar sitio del navegador usar blackwidow/sqlmap/dalfox 
 --extratest: oscp
 	*aspx/php file bruteforce 
 	*web crawling 
@@ -113,7 +116,7 @@ Options:
 	* Metadata
 
 Para escanear una sola aplicacion:
-webTester.sh --url https://ypfb.com.bo --mode $MODE --hosting $HOSTING --internet $INTERNET --verbose $VERBOSE
+webTester.sh --url https://ypfb.com.bo --mode $MODE --hosting $HOSTING --internet $INTERNET --verbose $VERBOSE --specific 1
 
 Para escanear varias aplicaciones web
 webTester.sh --target servicios/web.txt --mode hacking --proxychains s --hosting n --internet n --ipList vivos.txt --domain www.ypfb.com.bo --verbose 1
@@ -187,7 +190,7 @@ if [ ! -z $URL ] ; then #
 	IP_LIST_FILE="servicios/hosts.txt"
 fi
 
-echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE EXTRATEST:$EXTRATEST" 
+echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE EXTRATEST:$EXTRATEST ESPECIFIC $ESPECIFIC SPEED $SPEED" 
 
 function insert_data () {
 	find .vulnerabilidades -size  0 -print0 |xargs -0 rm 2>/dev/null # delete empty files
@@ -1251,11 +1254,24 @@ for line in $(cat $TARGETS); do
 			touch webTrack/$host/checksumsEscaneados.txt
 
 			if [[ ! -z "$URL" && "$MODE" == "total" ]];then
-				echo -e "\t[+] Clonando: $URL"
+				echo -e "\t[+] Clonandoss: $URL"
 				mkdir webClone/$host 2>/dev/null
-				echo "Descargar manualmente el sitio y guardar en $host"
-				read resp			
+
+				rm resultado-httrack.txt 2>/dev/null				
 				
+				script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
+				
+				egrep -iq "403" resultado-httrack.txt
+				greprc=$?
+				if [[ $greprc -eq 0 ]] ; then
+					if [[ "$ESPECIFIC" == "1" ]];then
+						rm -rf webClone/$host
+						mkdir webClone/$host
+						echo "Descargar manualmente el sitio y guardar en $host"
+						read resp		
+					fi
+				fi
+
 				find webClone | egrep '\.html|\.js' | while read line
 				do
 					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
@@ -1427,12 +1443,14 @@ for line in $(cat $TARGETS); do
 					checkRAM
 					egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 					greprc=$?						
-					if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 ]]; then	
+					if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 &&  ! -z "$DOMINIO" && "$ESPECIFIC" == "1" ]]; then	
 						
 						##########################################
 						checkRAM
-						echo -e "\t[+] Crawling ($proto_http://$host:$port )"							
+						echo -e "\t[+] Crawling ($proto_http://$host:$port )"
+						echo -e "\t\t[+] katana"
 						katana -u $proto_http://$host:$port -no-scope -no-color -silent -output logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt >/dev/null 2>/dev/null
+						echo -e "\t\t[+] blackwidow"
 						blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt
 						head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
 
@@ -1462,9 +1480,6 @@ for line in $(cat $TARGETS); do
 							fi	
 						done < logs/enumeracion/"$host"_parametrosGET_uniq.txt
 
-						
-						
-						
 						########### XSS / SQLi ####
 						i=1
 						for url in `cat logs/enumeracion/"$host"_parametrosGET_uniq_final.txt 2>/dev/null`; do
