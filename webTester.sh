@@ -660,10 +660,9 @@ function enumeracionCMS () {
     grep -qi Chamilo .enumeracion/"$host"_"$port"_webData.txt
     greprc=$?
     if [[ $greprc -eq 0 ]];then 
-
+		echo -e "\t[+] Revisando vulnerabilidades de Chamilo ($host)"		
 		echo -e "\t\t[+] CVE-2023-34960 ("$proto_http"://"$host":"$port")"	
-		chamilo-CVE-2023-34960.py -u "$proto_http://$host:$port/"  -c 'uname -a'  logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt &
-		# http://www.mipc.com.bo/node/9/devel/token        																																	
+		chamilo-CVE-2023-34960.py -u "$proto_http://$host:$port/"  -c 'uname -a' > logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt &
     fi
 
     #######  wordpress  ######
