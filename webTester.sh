@@ -449,14 +449,17 @@ function enumeracionApache () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
+	echo "web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error" >  logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
+	echo "$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error" >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt
     $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 
   	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
+	echo "web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error" >> logs/enumeracion/"$host"_"$port"_webarchivos.txt
 	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m files -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webarchivos.txt  &
 	
 	waitWeb 2.5
@@ -489,6 +492,7 @@ function enumeracionApache () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
+				echo "web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error" > logs/enumeracion/"$host"_"$port"_webdirectorios.txt
 				web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
 				sleep 1	
 			fi					
@@ -1032,7 +1036,7 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep -v 'microsoft|gitlab.com|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg' > .enumeracion/"$ip"_"$port"_webLinks.txt
+	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1228,6 +1232,11 @@ for line in $(cat $TARGETS); do
 	for host in $lista_hosts; do
 		#Verificar que no siempre devuelve 200 OK
 		status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+		if [[  "$status_code_nonexist" == *"Network error"*  ]]; then # error de red
+			#intentar una vez mas
+			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+		fi
+
 		webScaneado=0
 		msg_error_404=''
 		if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
@@ -1794,7 +1803,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				if [[ (  ${path_file} != *"cookies"* && ${path_file} != *"cookies"* ) ]];then 
 					keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
 					echo "apikey $keyword"
-					apikey=`grep -o  ".\{25\}$keyword.\{25\}" $path_file|sort|uniq | head -1`
+					apikey=`grep -o  ".\{21\}$keyword.\{1\}" $path_file|sort|uniq | head -1`
 					if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"* ) ]];then 
 						echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
 					fi	
@@ -2247,10 +2256,10 @@ then
 							echo -e "\t[i] Buscar mas archivos y directorios dentro de  $proto_http://$host:$port/$path_web"
 							echo "Escaneando con la opcion -m archivosPeligrosos"
 							path_web_sin_slash=$(echo "$path_web" | sed 's/\///g')
-							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m archivosPeligrosos -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt
+							web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d /$path_web -m archivosPeligrosos -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"-perdidaAutenticacion.txt
 
 							if [ "$MODE" == "total" ]; then 							
-							web-buster.pl -r 0 -t $host -p $port -h 50 -d /$path_web -m folders -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 
+							web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d /$path_web -m folders -s $proto_http $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_perdidaAutenticacion.txt 
 							fi		
 						fi
 						
