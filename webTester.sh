@@ -1272,7 +1272,7 @@ for line in $(cat $TARGETS); do
 			mkdir -p archivos/$host 2>/dev/null
 			touch webTrack/$host/checksumsEscaneados.txt
 
-			if [[ "$MODE" == "total" ]];then
+			if [[ "$MODE" == "total" &&  ! -z "$URL" ]];then
 				echo -e "\t[+] Clonandos: $URL"
 				mkdir webClone/$host 2>/dev/null				
 				if [[ "$ESPECIFIC" == "1" ]];then					
