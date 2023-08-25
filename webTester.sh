@@ -1233,7 +1233,7 @@ for line in $(cat $TARGETS); do
 		#Verificar que no siempre devuelve 200 OK
 		status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 		if [[  "$status_code_nonexist" == *"Network error"*  ]]; then # error de red
-			#intentar una vez mas
+			echo "intentar una vez mas"
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 		fi
 
