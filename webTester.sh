@@ -81,6 +81,7 @@ eval set -- "$PARAMS"
 MIN_RAM=900;
 MAX_SCRIPT_INSTANCES=80
 hilos_web=10
+webScaneado=0 # para saber si escaneo algun sitio web
 
 if [[  ${SPEED} == "1" ]]; then
 	hilos_web=1
@@ -585,7 +586,8 @@ function enumeracionTomcat () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
+	echo "web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error" > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
@@ -1008,7 +1010,6 @@ function cloneSite ()
 
 	
 ############## Extraer informacion web y SSL
-echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 # web.txt
 # 192.168.0.1:80:http
 # www.ejemplo.com:443:https
@@ -1172,7 +1173,7 @@ done # for web.txt
 
 waitFinish
 
-if [[ ! -z "$URL"  ]];then
+if [[ "$ESPECIFIC" == "1"  ]];then
 	echo -e "\t[+] OWASP Verification Standard Part 1"
 	### OWASP Verification Standard Part 1###
 	
@@ -1236,8 +1237,7 @@ for line in $(cat $TARGETS); do
 			echo "intentar una vez mas"
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 		fi
-
-		webScaneado=0
+		
 		msg_error_404=''
 		if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 			msg_error_404=`echo $status_code_nonexist | cut -d ':' -f2`
@@ -1272,7 +1272,7 @@ for line in $(cat $TARGETS); do
 			mkdir -p archivos/$host 2>/dev/null
 			touch webTrack/$host/checksumsEscaneados.txt
 
-			if [[ ! -z "$URL" && "$MODE" == "total" ]];then
+			if [[ "$MODE" == "total" ]];then
 				echo -e "\t[+] Clonandos: $URL"
 				mkdir webClone/$host 2>/dev/null				
 				if [[ "$ESPECIFIC" == "1" ]];then					
@@ -1454,7 +1454,7 @@ for line in $(cat $TARGETS); do
 					checkRAM
 					egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 					greprc=$?						
-					if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 &&  ! -z "$DOMINIO" && "$ESPECIFIC" == "1" ]]; then	
+					if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then	
 						
 						##########################################
 						checkRAM
@@ -1570,6 +1570,7 @@ if [ "$VERBOSE" == 's' ]; then  echo " IP_LIST_FILE $IP_LIST_FILE"; fi
 
 
 ####### PARSE ########
+echo "webScaneado $webScaneado"
 if [[ $webScaneado -eq 1 ]]; then
 	##########  Filtrar los directorios que respondieron 200 OK (llevarlos a .enumeracion) ################
 	echo -e "$OKBLUE [i] Filtrar los directorios descubiertos que respondieron 200 OK (llevarlos a .enumeracion) $RESET"	    
@@ -2278,7 +2279,7 @@ fi
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
 
-if [[ ! -z "$URL"  ]];then
+if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
 				
 	#CS-01 Variable en GET
@@ -2293,6 +2294,8 @@ if [[ ! -z "$URL"  ]];then
 	grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+	grep -ira 'vulnerabilidad=backdoor' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
+
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak|_custom' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port"_CS-40.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-40.txt logs/vulnerabilidades/"$host"_"$port"_CS-40.txt 2>/dev/null
