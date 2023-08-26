@@ -898,115 +898,100 @@ function enumeracionIOT ()
 }        
 
 
-function cloneSite ()
-{
-   proto_http=$1
-   host=$2
-   port=$3  
-   echo -e "\t\t[+] Clone site ($proto_http : $host : $port)"	
+# function cloneSite ()
+# {
+#    proto_http=$1
+#    host=$2
+#    port=$3  
+#    echo -e "\t\t[+] Clone site ($proto_http : $host : $port)"	
 
-    #######  clone site  ####### 			
-    cd webTrack/$host/
-        echo -e "\t\t[+] Clonando sitio ($host) del DOMINIO $DOMINIO tardara un rato"	
-		pwd
-        wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
-        rm index.html.orig 2>/dev/null
-
-        echo ""
-        echo -e "\t\t[+] Extrayendo URL de los sitios clonados"	
-        grep --color=never -irao "http://[^ ]*"  * 2>/dev/null| cut -d ":" -f3 | grep --color=never -ia "$host" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > http.txt
-        lines=`wc -l http.txt  | cut -d " " -f1`
-        perl -E "say \"http://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt http.txt >> ../../logs/enumeracion/"$host"_web_wget2.txt 2>/dev/null # adicionar http:// a cada linea
-        rm http.txt 2>/dev/null
-
-        grep --color=never -irao "https://[^ ]*"  * 2>/dev/null | cut -d ":" -f3 | grep --color=never -ia "$host" | grep -v '\?'| cut -d "/" -f3-4 | egrep -iv "galeria|images|plugin" |cut -d '"' -f1 | sort | uniq > https.txt 
-        lines=`wc -l https.txt  | cut -d " " -f1`
-        perl -E "say \"https://\n\" x $lines" > prefijo.txt # file with the DOMINIO (n times)
-        paste -d '' prefijo.txt https.txt >> ../../logs/enumeracion/"$host"_web_wget2.txt 2>/dev/null  # adicionar https:// a cada linea
-        rm https.txt 2>/dev/null
-
+#     ######  clone site  ####### 			
+#     cd webTrack/$host/
+        
+		
+#         wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
+#         rm index.html.orig 2>/dev/null
                     
-        echo -e "\t\t[+] Buscando archivos sin extension"
-        find . -type f ! \( -iname \*.pdf -o -iname \*.html -o -iname \*.htm -o -iname \*.doc -o -iname \*.docx -o -iname \*.xls -o -iname \*.ppt -o -iname \*.pptx -o -iname \*.xlsx -o -iname \*.js -o -iname \*.PNG  -o -iname \*.txt  -o -iname \*.css  -o -iname \*.php -o -iname \*.orig \) > archivos-sin-extension.txt
-        contador=1
-        mkdir documentos_renombrados 2>/dev/null
-        for archivo in `cat archivos-sin-extension.txt`;
-        do 		
-            tipo_archivo=`file $archivo`
-            # tipos de archivos : https://docs.microsoft.com/en-us/previous-versions//cc179224(v=technet.10)
-            if [[ ${tipo_archivo} == *"PDF"*  ]];then 
-                mv $archivo documentos_renombrados/$contador.pdf 
-            fi		
+#         echo -e "\t\t[+] Buscando archivos sin extension"
+#         find . -type f ! \( -iname \*.pdf -o -iname \*.html -o -iname \*.htm -o -iname \*.doc -o -iname \*.docx -o -iname \*.xls -o -iname \*.ppt -o -iname \*.pptx -o -iname \*.xlsx -o -iname \*.js -o -iname \*.PNG  -o -iname \*.txt  -o -iname \*.css  -o -iname \*.php -o -iname \*.orig \) > archivos-sin-extension.txt
+#         contador=1
+#         mkdir documentos_renombrados 2>/dev/null
+#         for archivo in `cat archivos-sin-extension.txt`;
+#         do 		
+#             tipo_archivo=`file $archivo`
+#             tipos de archivos : https://docs.microsoft.com/en-us/previous-versions//cc179224(v=technet.10)
+#             if [[ ${tipo_archivo} == *"PDF"*  ]];then 
+#                 mv $archivo documentos_renombrados/$contador.pdf 
+#             fi		
         
-            if [[ ${tipo_archivo} == *"Creating Application: Microsoft Word"*  ]];then 												
-                mv $archivo documentos_renombrados/$contador.doc 
-            fi		
+#             if [[ ${tipo_archivo} == *"Creating Application: Microsoft Word"*  ]];then 												
+#                 mv $archivo documentos_renombrados/$contador.doc 
+#             fi		
             
-            if [[ ${tipo_archivo} == *"Microsoft Word 2007"*  ]];then 												
-                mv $archivo documentos_renombrados/$contador.docx 
-            fi		
+#             if [[ ${tipo_archivo} == *"Microsoft Word 2007"*  ]];then 												
+#                 mv $archivo documentos_renombrados/$contador.docx 
+#             fi		
         
-            if [[ ${tipo_archivo} == *"Creating Application: Microsoft Excel"*  ]];then 				
-                mv $archivo documentos_renombrados/$contador.xls 
-            fi				 
+#             if [[ ${tipo_archivo} == *"Creating Application: Microsoft Excel"*  ]];then 				
+#                 mv $archivo documentos_renombrados/$contador.xls 
+#             fi				 
         
-            if [[ ${tipo_archivo} == *"Office Excel 2007"*  ]];then 							
-                mv $archivo documentos_renombrados/$contador.xlsx 
-            fi
+#             if [[ ${tipo_archivo} == *"Office Excel 2007"*  ]];then 							
+#                 mv $archivo documentos_renombrados/$contador.xlsx 
+#             fi
                 
-            if [[ ${tipo_archivo} == *"Creating Application: Microsoft PowerPoint"*  ]];then 								
-                mv $archivo documentos_renombrados/$contador.ppt 
-            fi	
+#             if [[ ${tipo_archivo} == *"Creating Application: Microsoft PowerPoint"*  ]];then 								
+#                 mv $archivo documentos_renombrados/$contador.ppt 
+#             fi	
                 
-            if [[ ${tipo_archivo} == *"Office PowerPoint 2007"*  ]];then 				
-                mv $archivo documentos_renombrados/$contador.pptx 
-            fi		
+#             if [[ ${tipo_archivo} == *"Office PowerPoint 2007"*  ]];then 				
+#                 mv $archivo documentos_renombrados/$contador.pptx 
+#             fi		
         
-            if [[ ${tipo_archivo} == *"RAR archive data"*  ]];then 						
-                mv $archivo documentos_renombrados/$contador.rar 
-            fi		
-            let "contador=contador+1"	 
-        done # fin revisar archivos sin extension
+#             if [[ ${tipo_archivo} == *"RAR archive data"*  ]];then 						
+#                 mv $archivo documentos_renombrados/$contador.rar 
+#             fi		
+#             let "contador=contador+1"	 
+#         done # fin revisar archivos sin extension
         
-        #### mover archivos con metadata para extraerlos ########
-        echo -e "\t\t[+] Extraer metadatos con exiftool"										
-        find . -name "*.pdf" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.xls" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.doc" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.ppt" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.pps" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.docx" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.pptx" -exec mv {} "../../archivos/$host/" \;
-        find . -name "*.xlsx" -exec mv {} "../../archivos/$host/" \;
+#         ### mover archivos con metadata para extraerlos ########
+#         echo -e "\t\t[+] Extraer metadatos con exiftool"										
+#         find . -name "*.pdf" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.xls" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.doc" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.ppt" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.pps" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.docx" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.pptx" -exec mv {} "../../archivos/$host/" \;
+#         find . -name "*.xlsx" -exec mv {} "../../archivos/$host/" \;
         
-		if [ "$INTERNET" == "s" ]; then 	#escluir CDN 
-			######### buscar IPs privadas
-			echo -e "\t\t[+] Revisando si hay divulgación de IPs privadas"	
-			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 		if [ "$INTERNET" == "s" ]; then 	#escluir CDN 
+# 			######## buscar IPs privadas
+# 			echo -e "\t\t[+] Revisando si hay divulgación de IPs privadas"	
+# 			grep -ira "192\.168\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "172\.16\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
 									
-			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "http://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "http://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "http://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
 
-			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
-			###############################	
-		fi
+# 			grep -ira "https://172\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "https://10\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			grep -ira "https://192\." * | grep -v "checksumsEscaneados" | sort | uniq >> ../../.vulnerabilidades/"$host"_web_IPinterna.txt
+# 			##############################	
+# 		fi
         
-        ######### buscar links de amazon EC2
-        grep --color=never -ir 'amazonaws.com' * >> ../../.enumeracion/"$host"_web_amazon.txt
+#         ######## buscar links de amazon EC2
+#         grep --color=never -ir 'amazonaws.com' * >> ../../.enumeracion/"$host"_web_amazon.txt
         
-        ######### buscar comentarios 
-        echo -e "\t\t[+] Revisando si hay comentarios html, JS"	
-        grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
-        grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
-        grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt        
-        ###############################	
-    cd ../../
-}
+#         ######## buscar comentarios 
+#         echo -e "\t\t[+] Revisando si hay comentarios html, JS"	
+#         grep --color=never -ir '// ' * | egrep -v "http|https|header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
+#         grep --color=never -r '<!-- ' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt
+#         grep --color=never -r ' \-\->' * | egrep -v "header|footer|div|class|a padding to disable MSIE " >> ../../.enumeracion/"$host"_web_comentario.txt        
+#         ##############################	
+#     cd ../../
+# }
 
 	
 ############## Extraer informacion web y SSL
@@ -1268,33 +1253,48 @@ for line in $(cat $TARGETS); do
 		if [[ "$only_status" == "404" || "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"302"* ]];then 
 			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 			webScaneado=1
-			mkdir -p webTrack/$host 2>/dev/null			
+			mkdir -p webTrack/$host 2>/dev/null
+			mkdir -p webClone/$host 2>/dev/null			
 			mkdir -p archivos/$host 2>/dev/null
 			touch webTrack/$host/checksumsEscaneados.txt
 
 			if [[ "$MODE" == "total" &&  ! -z "$URL" ]];then
-				echo -e "\t[+] Clonandos: $URL"
-				mkdir webClone/$host 2>/dev/null				
+				echo -e "\t[+] Clonando: $URL"
+				
 				if [[ "$ESPECIFIC" == "1" ]];then					
 					echo "Descargar manualmente el sitio y guardar en $host"
 					read resp	
 				else
-					rm resultado-httrack.txt 2>/dev/null	
+				 	rm resultado-httrack.txt 2>/dev/null	
+				 	####### httrack ####
 					script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
-				fi			
-				
-				find webClone | egrep '\.html|\.js' | while read line
-				do
-					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
-				done
-				sed -i '/^$/d' directorios-personalizado2.txt
-				sort directorios-personalizado2.txt | uniq > directorios-personalizado.txt
-				rm directorios-personalizado2.txt
-				
-				checkRAM
-				echo -e "\t[+] directorios personalizado"				
-				web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
-			fi			
+					find webClone | egrep '\.html|\.js' | while read line
+					do
+						extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
+					done
+					####################					
+				fi											
+			fi	#total && URL
+
+			####### wget ##### (usado para control si es un mismo sitio web es el mismo)
+			cd webTrack/$host
+				wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico,pdf,docx,xls,doc,ppt,pps,pptx,xlsx --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
+			cd ../../
+			find webTrack/$host | egrep '\.html|\.js' | while read line
+			do
+				extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
+			done
+			##################
+
+			### fuzz directorios personalizados ###
+			sed -i '/^$/d' webTrack/directorios-personalizado2.txt
+			sort webTrack/directorios-personalizado2.txt | uniq > webTrack/directorios-personalizado.txt
+			rm webTrack/directorios-personalizado2.txt
+			
+			checkRAM
+			echo -e "\t[+] directorios personalizado"				
+			web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
+			####################################
 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
 			checkRAM		
