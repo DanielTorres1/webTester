@@ -1287,13 +1287,17 @@ for line in $(cat $TARGETS); do
 			##################
 
 			### fuzz directorios personalizados ###
-			sed -i '/^$/d' webTrack/directorios-personalizado2.txt
-			sort webTrack/directorios-personalizado2.txt | uniq > webTrack/directorios-personalizado.txt
-			rm webTrack/directorios-personalizado2.txt
+			sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
+			sort webTrack/directorios-personalizado2.txt 2>/dev/null | uniq > webTrack/directorios-personalizado.txt
+						
+			if [ -f webTrack/directorios-personalizado2.txt ]; then
+				checkRAM
+				echo -e "\t[+] directorios personalizado"				
+				web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado2.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
+				rm webTrack/directorios-personalizado2.txt 2>/dev/null
+			fi
+
 			
-			checkRAM
-			echo -e "\t[+] directorios personalizado"				
-			web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
 			####################################
 
 			echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
