@@ -1795,7 +1795,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			docker run --rm -v "$(pwd):/project" truffle-hog  --rules /etc/truffle-rules.json  --exclude_paths  /etc/truffle-exclude.txt --regex --json file:///project  | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt
 			sed -i "s/'/\"/g" ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt # ' --> "
 
-			cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt | jq '.[] | "\(.File), \(.["Strings found"])"' | egrep -v 'a1b2c3|ABCDEFG'  | sort |uniq > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
+			cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog.txt | jq '.[] | "\(.File), \(.["Strings found"])"' | egrep -v 'a1b2c3|ABCDEFG|dddd'  | sort |uniq > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
 			sed -i 's/, /,/g' ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt # espacios
 			sed -i 's/ /\\ /g' ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt # espacios
 			while IFS= read -r line; do
@@ -1846,7 +1846,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 	fingerprint=''
-	list_admin=`egrep -ira "inicia|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+	list_admin=`egrep -ira "inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 		for line in $(echo $list_admin); do 			
 			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
