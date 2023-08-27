@@ -1447,9 +1447,9 @@ for line in $(cat $TARGETS); do
 
 					#echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
 					######### clone #####
-					if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then 
-						cloneSite $proto_http $host $port	
-					fi  					
+					# if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then 
+					# 	cloneSite $proto_http $host $port	
+					# fi  					
 					####################################
 
 					if [[ "$MODE" == "total" ]]; then 					    										
