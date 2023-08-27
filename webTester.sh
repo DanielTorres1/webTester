@@ -1215,14 +1215,15 @@ for line in $(cat $TARGETS); do
 	for host in $lista_hosts; do
 		echo -e "\t[+] host actual: $host"
 		escanearConURL=0
-		egrep -iq "$host" servicios/webApp.txt
+		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
 		if [[ $greprc -eq 0  ]];then 
+			echo -e "\t[+] host $host en lista servicios/webApp.txt"
 			escanearConURL=1 # para que escaneo como URL a parte
 
 		fi
 
-		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
+		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
 			#Verificar que no siempre devuelve 200 OK
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 			if [[  "$status_code_nonexist" == *"Network error"*  ]]; then # error de red
