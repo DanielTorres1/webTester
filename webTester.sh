@@ -1700,7 +1700,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
 			do						
 				if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
-				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`			
+				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
 				sleep 4
 				if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
 					username="${username//-/.}" # reemplazar - con .
