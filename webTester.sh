@@ -1019,7 +1019,7 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' > .enumeracion/"$ip"_"$port"_webLinks.txt
+	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1276,7 +1276,7 @@ for line in $(cat $TARGETS); do
 						script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
 						find webClone | egrep '\.html|\.js' | while read line
 						do
-							extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
+							extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
 						done
 						####################					
 					fi											
@@ -1288,7 +1288,7 @@ for line in $(cat $TARGETS); do
 				cd ../../
 				find webTrack/$host | egrep '\.html|\.js' | while read line
 				do
-					extractLinks.py "$line" | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
+					extractLinks.py "$line" 2>/dev/null | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
 				done
 				##################
 
@@ -1402,7 +1402,7 @@ for line in $(cat $TARGETS); do
 
 
 					#######  if the server is tomcat ######
-					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found" 
+					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly|Payara" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found" 
 					greprc=$?				
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 						checkRAM
@@ -1861,7 +1861,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 	fingerprint=''
-	list_admin=`egrep -ira "inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+	list_admin=`egrep -ira "server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 		for line in $(echo $list_admin); do 			
 			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
@@ -1888,7 +1888,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 	if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
 		echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-		cat .enumeracion2/*webdirectorios.txt | egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
+		cat .enumeracion2/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
 		while IFS= read -r line
 		do		
 			echo -e "\n\t########### $line #######"										
@@ -1943,7 +1943,7 @@ if [[ $webScaneado -eq 1 ]]; then
 					sleep 3									
 				fi	
 			done #while				
-		done < logs/enumeracion/webdirectorios_uniq.txt
+		done < logs/enumeracion/webdirectorios_web_uniq.txt
 			
 	fi  
 
