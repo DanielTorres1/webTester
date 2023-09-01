@@ -477,10 +477,7 @@ function enumeracionApache () {
     #  CVE-2021-4177								
     echo -e "\t\t[+] Revisando apache traversal)" 
     $proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt &
-
-	echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
-	multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
-	grep vulnerable logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
+	
 
 	# cve-2021-41773
 	#echo -e "\t\t[+] Revisando cve-2021-41773 (RCE)" 
@@ -508,6 +505,10 @@ function enumeracionApache () {
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando archivos graphQL ($host - Apache/nginx)"
 	    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m graphQL -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_graphQL.txt &
+
+			echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
+			multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
+			grep vulnerable logs/vulnerabilidades/"$host"_"$port"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt 
 
 			if [ "$EXTRATEST" == "oscp" ]; then	
 				egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
@@ -662,6 +663,16 @@ function enumeracionCMS () {
 		fi            																																	
     fi
 
+	#######  laravel  ######
+    grep -qi laravel .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 
+
+		echo -e "\t\t[+] nuclei laravel ("$proto_http"://"$host":"$port")"
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/laravel_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt &
+    																																	
+    fi
+
 	#######  chamilo  ######
     grep -qi Chamilo .enumeracion/"$host"_"$port"_webData.txt
     greprc=$?
@@ -806,7 +817,8 @@ function enumeracionCMS () {
     if [[ $greprc -eq 0 ]];then 										
         echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
         
-		juumla.sh -u "$proto_http"://$host/ > logs/vulnerabilidades/"$host"_"$port"_juumla.txt &	
+		echo "juumla.sh -u "$proto_http"://$host:$port/ " > logs/vulnerabilidades/"$host"_"$port"_juumla.txt
+		juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port"_juumla.txt &	
 
 		joomla_version.pl -host $host -port $port -path / > logs/enumeracion/"$host"_"$port"_joomla-version.txt &
         
@@ -1278,7 +1290,7 @@ for line in $(cat $TARGETS); do
 						rm resultado-httrack.txt 2>/dev/null	
 						####### httrack ####
 						script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
-						find webClone | egrep '\.html|\.js' | while read line
+						find webClone/$host | egrep '\.html|\.js' | while read line
 						do
 							extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
 						done
@@ -1298,12 +1310,12 @@ for line in $(cat $TARGETS); do
 
 				### fuzz directorios personalizados ###
 				sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
-				sort webTrack/directorios-personalizado2.txt 2>/dev/null | uniq > webTrack/directorios-personalizado.txt
+				sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
 							
-				if [ -f webTrack/directorios-personalizado2.txt ]; then
+				if [ -f webTrack/directorios-personalizado.txt ]; then
 					checkRAM
 					echo -e "\t[+] directorios personalizado"				
-					web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado2.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
+					web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt
 					rm webTrack/directorios-personalizado2.txt 2>/dev/null
 				fi
 
@@ -1697,6 +1709,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
 
 			cat logs/vulnerabilidades/"$host"_"$port"_juumla.txt > .vulnerabilidades/"$host"_"$port"_joomlaVulnerabilidades.txt
 
