@@ -224,10 +224,10 @@ function checkRAM (){
 
 function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
-	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint2.txt 2>/dev/null
+	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint-inserted.txt 2>/dev/null
 	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 
-	cat servicios/admin-web.txt >> servicios/admin-web2.txt 2>/dev/null	
+	cat servicios/admin-web.txt >> servicios/admin-web-inserted.txt 2>/dev/null	
 	rm servicios/admin-web.txt 2>/dev/null
 	}
 
@@ -805,7 +805,9 @@ function enumeracionCMS () {
     greprc=$?
     if [[ $greprc -eq 0 ]];then 										
         echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
-        #joomscan.sh -u "$proto_http"://$host/ | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > logs/vulnerabilidades/"$host"_"$port"_joomscan.txt &	
+        
+		juumla.sh -u "$proto_http"://$host/ > logs/vulnerabilidades/"$host"_"$port"_juumla.txt &	
+
 		joomla_version.pl -host $host -port $port -path / > logs/enumeracion/"$host"_"$port"_joomla-version.txt &
         
 		#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port"_joomla-CVE-2023-23752.txt &
@@ -1220,10 +1222,9 @@ for line in $(cat $TARGETS); do
 		escanearConURL=0
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
-		if [[ $greprc -eq 0  ]];then 
+		if [[ $greprc -eq 0 && -z "$URL" ]];then 
 			echo -e "\t[+] host $host en lista servicios/webApp.txt"
 			escanearConURL=1 # para que escaneo como URL a parte
-
 		fi
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
@@ -1697,6 +1698,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
 
+			cat logs/vulnerabilidades/"$host"_"$port"_juumla.txt > .vulnerabilidades/"$host"_"$port"_joomlaVulnerabilidades.txt
+
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 			
@@ -1868,7 +1871,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		for line in $(echo $list_admin); do 			
 			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
-			port=`echo $line | cut -d "_" -f 2`
+			port=`echo $line | cut -d "_" -f 2`			
 			fingerprint1=`echo $line | cut -d ":" -f 2`
 			if [[ ${port} == *"443"* || ${port} == *"9091"*  ]]; then
 				proto_http="https"
@@ -1876,12 +1879,16 @@ if [[ $webScaneado -eq 1 ]]; then
 				proto_http="http"
 			fi
 			url="$proto_http://$host:$port/"
-			
+
 			if [[ ${fingerprint} == *"$fingerprint1"* ]]; then
 				echo "Mismo servicio corriendo "
 			else
-				if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
-				echo $url >> servicios/admin-web.txt
+				if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt; then # si ya lo testeamos
+					if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
+					echo $url >> servicios/admin-web.txt
+				else
+					echo "Ya lo testeamos"
+				fi
 			fi	
 			fingerprint=$fingerprint1		
 		done
