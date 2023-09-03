@@ -1880,7 +1880,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 	fingerprint=''
-	list_admin=`egrep -ira "server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
+	list_admin=`egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 		for line in $(echo $list_admin); do 			
 			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
 			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
