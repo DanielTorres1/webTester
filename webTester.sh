@@ -2349,9 +2349,9 @@ if [[ "$ESPECIFIC" == "1" ]];then
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosPeligrosos|_backupweb' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  > .vulnerabilidades/"$host"_"$port"_CS-44.txt
 	cat .vulnerabilidades/"$host"_"$port"_CS-44.txt >> logs/vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
 
-	# CS-45 Protocolos antiguos
-	cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt 2>/dev/null | grep -v 'HSTS' > .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
-	cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-44.txt 2>/dev/null
+	# CS-51-2 headers
+	cat .vulnerabilidades2/"$host"_"$port"_vulTLS.txt 2>/dev/null | grep -v 'HSTS' > .vulnerabilidades/"$host"_"$port"_CS-51-2.txt 2>/dev/null
+	cat .vulnerabilidades2/"$host"_"$port"_confTLS.txt >> .vulnerabilidades/"$host"_"$port"_CS-51-2.txt 2>/dev/null
 
 
 	#CS-46 Archivos por defecto
