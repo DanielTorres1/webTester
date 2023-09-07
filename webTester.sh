@@ -175,6 +175,12 @@ if [ ! -z $URL ] ; then #
 	echo "Ruta: $path"
 	
 	echo "port $port"
+
+	if [[ "$URL" == *"localhost"* ]] || [[ "$URL" == *"127.0.0.1"* ]]; then
+		echo "La URL contiene 'localhost'. Saliendo del programa."
+		exit 1
+	fi
+
 	echo "" > servicios/web-app-tmp.txt #clear last scan
 
 	# --url http://192.168.1.2:8080
