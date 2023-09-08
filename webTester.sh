@@ -1717,7 +1717,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
 
-			cat logs/vulnerabilidades/"$host"_"$port"_juumla.txt > .vulnerabilidades/"$host"_"$port"_joomlaVulnerabilidades.txt
+			cat logs/vulnerabilidades/"$host"_"$port"_juumla.txt > .vulnerabilidades/"$host"_"$port"_joomlaVulnerabilidades.txt 2>/dev/null
 
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
