@@ -2120,32 +2120,49 @@ if [[ $webScaneado -eq 1 ]]; then
 	############ vulnerabilidades relacionados a servidores/aplicaciones web ########
 	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web"	
 	#Vulnerabilidades detectada en la raiz del servidor
-	echo -e "[i] Revisar vulnerabilidades detectadas en la raiz del servidor"
 	echo "canary" > .enumeracion2/canary_webData.txt
-	egrep "vulnerabilidad=" .enumeracion2/*webData.txt 2>/dev/null| while read -r line ; do	
+	egrep "vulnerabilidad=" .enumeracion2/* 2>/dev/null| while read -r line ; do	
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"			
-		#line = .enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^
-		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/192.168.0.36_8080_webData.txt
-		url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
-
-		if [[ ${url_vulnerabilidad} == *"443"* || ${url_vulnerabilidad} == *"9091"*  ]]; then
-			url_vulnerabilidad="https://$url_vulnerabilidad" #http://192.168.0.36:8080
+		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
+		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/192.168.0.36_8080_webData.txt		
+		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"graphQL.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"* ]]; then
+			url_vulnerabilidad=`echo "$line" | grep -o 'https://[^ ]*'`
 		else
-			url_vulnerabilidad="http://$url_vulnerabilidad"
-		fi		
+			# Vulnerabilidad detectada en la raiz
+			url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
+			if [[ ${url_vulnerabilidad} == *"443"* || ${url_vulnerabilidad} == *"9091"*  ]]; then
+				url_vulnerabilidad="https://$url_vulnerabilidad" #http://192.168.0.36:8080
+			else
+				url_vulnerabilidad="http://$url_vulnerabilidad"
+			fi		
+		fi
 		
-		vulnerabilidad=`echo $line | cut -d '~' -f7 | sed 's/vulnerabilidad=//' ` #OpenPhpMyAdmin	
 		
+		vulnerabilidad=`echo "$line" | grep -o 'vulnerabilidad=[^ )~]*' | sed 's/vulnerabilidad=//'` #OpenPhpMyAdmin,MensajeError,etc			
+
 		archivo_destino=$archivo_origen       
 		archivo_destino=${archivo_destino/.enumeracion2/.vulnerabilidades}   	
 		archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}   	
 		archivo_destino=${archivo_destino/webarchivos/$vulnerabilidad}
 		archivo_destino=${archivo_destino/admin/$vulnerabilidad}   	
 		archivo_destino=${archivo_destino/webData/$vulnerabilidad} 
+		archivo_destino=${archivo_destino/custom/$vulnerabilidad} 
+		
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi
-			contenido=`listDir -url=$url_vulnerabilidad`		
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
+			contenido=`listDir -url=$url_vulnerabilidad`
+		fi
+
+		if [ $vulnerabilidad == 'contenidoPrueba' ];then				
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] contenidoPrueba"  ; fi
+			contenido==$url_vulnerabilidad
+		fi
+
+
+		if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then  			
+			echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"			
+			contenido==$url_vulnerabilidad
 		fi
 			
 		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' || $vulnerabilidad == 'divulgacionInformacion' ]];then	
@@ -2181,73 +2198,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo $contenido >> $archivo_destino
 	done
 
-	##Vulnerabilidades detectadas con web fuzzing
-	echo -e "[i] Revisar vulnerabilidades detectadas mediante navegacion forzada"
-	egrep -ira "vulnerabilidad=" logs |grep -i '200    ' 2>/dev/null| while read -r line ; do	
-		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"		
-		#line= logs/vulnerabilidades/127.0.0.1_80_divulgacionInformacion.txt:200       http://127.0.0.1/phpinfo.php (vulnerabilidad=phpinfo)
-		echo "$line"
-		archivo_origen=`echo $line | cut -d ':' -f1 | cut -d "/" -f3`  # 127.0.0.1_80_divulgacionInformacion.txt
-		echo "archivo_origen $archivo_origen"
-		url_vulnerabilidad=`echo $line | awk '{print $2}'` # http://127.0.0.1/phpinfo.php 
-		vulnerabilidad=`echo $line | awk '{print $3}'| cut -d '=' -f2 | tr -d ')'` #OpenPhpMyAdmin	
-		echo "vulnerabilidad $vulnerabilidad"
-
-		archivo_destino=".vulnerabilidades/$archivo_origen"
-		echo "archivo_destino $archivo_destino"
-
-		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios"  ; fi		
-			contenido=`listDir -url=$url_vulnerabilidad`
-			echo "$contenido\n" >> $archivo_destino		
-		fi
-			
-		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' ]];then	
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
-			contenido=$url_vulnerabilidad
-			echo $contenido >> $archivo_destino
-		fi
-
-		if [[ $vulnerabilidad == 'divulgacionInformacion' || $vulnerabilidad == 'phpinfo' ]];then	
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
-
-			if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then  			
-				echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"			
-				contenido==$url_vulnerabilidad
-
-			else
-				echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)" 
-				archivo_phpinfo=`echo "$archivo_origen" | sed 's/divulgacionInformacion/phpinfo/'`
-				#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
-				phpinfo.pl -url "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null				
-				egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
-				greprc=$?
-				if [[ $greprc -eq 0 ]] ; then													
-					echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
-					echo "URL  $url_vulnerabilidad" >> .vulnerabilidades/$archivo_phpinfo
-					echo ""  >> .vulnerabilidades/$archivo_phpinfo
-					grep ':' logs/vulnerabilidades/$archivo_phpinfo >> .vulnerabilidades/$archivo_phpinfo
-					echo -e "\n\n"  >> .vulnerabilidades/$archivo_phpinfo
-				else
-					echo -e "[i] No es un archivo phpinfo valido"
-				fi	#archivo phpinfo
-			fi	
-		fi
-
-
-		if [ $vulnerabilidad == 'MensajeError' ];then	
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
-			contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
-			archivo_phpinfo=`echo "$archivo_destino" | sed 's/archivosDefecto/MensajeError/'`
-			archivo_phpinfo=${archivo_phpinfo/webarchivos/MensajeError}   
-			archivo_phpinfo=${archivo_phpinfo/webdirectorios/MensajeError} 
-			archivo_phpinfo=${archivo_phpinfo/webadmin/MensajeError} 
-
-			echo $contenido >> $archivo_phpinfo		
-		fi
-		
-		echo -e "\n"
-	done
+	
 	# insertar datos 
 	insert_data
 	#################################
@@ -2288,7 +2239,7 @@ then
 			echo -e "\t[+] Falso positivo (404) "
 		else
 			echo "$url;$web_fingerprint" >> servicios/admin-web2.txt
-			if [[ ${url} != *"Listado directorio"*  &&  ${url} != *"wp-"* &&  ${url} != *".action"* &&  ${url} != *"index"* &&  ${url} != *"cpanel"* &&  ${url} != *"whm"* &&  ${url} != *"webmail"*  ]] ; then
+			if [[ ${url} != *"ListadoDirectorios"*  &&  ${url} != *"wp-"* &&  ${url} != *".action"* &&  ${url} != *"index"* &&  ${url} != *"cpanel"* &&  ${url} != *"whm"* &&  ${url} != *"webmail"*  ]] ; then
 				if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${url} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"phppgadmin"* && ${path_web} != *"controlpanel"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 					egrep -i "apache|nginx|kong|IIS" .enumeracion2/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|Always200-OK|AngularJS|BladeSystem|cisco|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Open Source Routing Machine|oracle|owa|ownCloud|Pfsense|Roundcube|Router|Taiga|webadmin|Zentyal|Zimbra" # solo el segundo egrep poner "-q"
 					greprc=$?
