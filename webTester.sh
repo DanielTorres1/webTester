@@ -482,7 +482,7 @@ function enumeracionApache () {
 	
     #  CVE-2021-4177								
     echo -e "\t\t[+] Revisando apache traversal)" 
-    $proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt &
+    $proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null &
 	
 
 	# cve-2021-41773
@@ -1721,7 +1721,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
 				cp logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt .vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt 2>/dev/null
 			fi			
-			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt | grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
+			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
 			#####
 
 			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
@@ -1904,7 +1904,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			if [[ ${fingerprint} == *"$fingerprint1"* ]]; then
 				echo "Mismo servicio corriendo "
 			else
-				if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt; then # si ya lo testeamos
+				if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt 2>/dev/null; then # si ya lo testeamos
 					if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
 					echo $url >> servicios/admin-web.txt
 				else
@@ -1929,7 +1929,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				script_instancias=$((`ps aux | grep perl | wc -l` - 1)) 		
 				if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
 				then
-					if [[ ${line} != *"Listado directorio"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
+					if [[ ${line} != *"ListadoDirectorios"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
 						proto_http=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
 						host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
 						host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
@@ -1946,7 +1946,7 @@ if [[ $webScaneado -eq 1 ]]; then
 					
 						if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"manual"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
-							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion2/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 							greprc=$?						
 							if [[ $greprc -eq 1 ]]; then	
 								waitWeb 2.5
