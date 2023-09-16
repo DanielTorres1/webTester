@@ -1636,7 +1636,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
 			grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
 			egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
@@ -2126,7 +2126,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/192.168.0.36_8080_webData.txt		
 		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"graphQL.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"* ]]; then
-			url_vulnerabilidad=`echo "$line" | grep -o 'https://[^ ]*'`
+			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'`
 		else
 			# Vulnerabilidad detectada en la raiz
 			url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
@@ -2139,7 +2139,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		
 		
 		vulnerabilidad=`echo "$line" | grep -o 'vulnerabilidad=[^ )~]*' | sed 's/vulnerabilidad=//'` #OpenPhpMyAdmin,MensajeError,etc			
-
+		echo "vulnerabilidad $vulnerabilidad url_vulnerabilidad $url_vulnerabilidad"
 		archivo_destino=$archivo_origen       
 		archivo_destino=${archivo_destino/.enumeracion2/.vulnerabilidades}   	
 		archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}   	
