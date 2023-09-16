@@ -2149,6 +2149,11 @@ if [[ $webScaneado -eq 1 ]]; then
 		archivo_destino=${archivo_destino/custom/$vulnerabilidad} 
 		
 
+		if [ $vulnerabilidad == 'backdoor' ];then				
+			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] backdoor en $url_vulnerabilidad"  ; fi
+			contenido=$url_vulnerabilidad
+		fi
+
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
 			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
 			contenido=`listDir -url=$url_vulnerabilidad`
@@ -2156,7 +2161,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then				
 			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] contenidoPrueba"  ; fi
-			contenido==$url_vulnerabilidad
+			contenido=$url_vulnerabilidad
 		fi
 
 
@@ -2173,7 +2178,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'MensajeError' ];then	
 			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
-			contenido=`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
+			contenido="$url_vulnerabilidad\n"`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
 		fi
 
 		if [[ $vulnerabilidad == 'phpinfo' ]];then	
