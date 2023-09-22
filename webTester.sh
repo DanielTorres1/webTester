@@ -1847,13 +1847,13 @@ if [[ $webScaneado -eq 1 ]]; then
 					keyword=`echo $line | cut -d ',' -f2 | tr -d '" '`
 					echo "apikey $keyword"
 					apikey=`grep -o  ".\{21\}$keyword.\{1\}" $path_file|sort|uniq | head -1`
-					if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"* ) ]];then 
+					if [[ (  ${apikey} != *"sha256"* && ${apikey} != *"sha512"*  && ${apikey} != *"recaptcha"*) ]];then 
 						echo "$apikey:$path_file" >> ../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
 					fi	
 				fi									
 			done < ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
 			
-			# # AWS Secret Access Key
+			# AWS Secret Access Key
 			# echo -e "\nAWS Secret Access Key" >> ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 			# docker run -v `pwd`:/files -it dumpster-diver -p files --min-key 40 --max-key 40 --entropy 4.3   | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" >>  ../logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt 
 
