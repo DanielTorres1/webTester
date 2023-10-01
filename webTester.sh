@@ -713,7 +713,7 @@ function enumeracionCMS () {
 		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 		if [[ "$MODE" == "total" ]]; then
-			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress "
+			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress (wpscan)"
         	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 			sleep 5
 			grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
