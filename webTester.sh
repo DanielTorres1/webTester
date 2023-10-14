@@ -1715,11 +1715,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
-			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
-			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
-			if [[ ! -s .vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt  ]] ; then
-				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt
-				cp logs/vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt .vulnerabilidades/"$host"_"$port"_pluginDesactualizado.txt 2>/dev/null
+			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
+			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
+			if [[ ! -s .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt  ]] ; then
+				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
+				cp logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt 2>/dev/null
 			fi			
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
 			#####
