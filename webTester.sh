@@ -815,8 +815,8 @@ function enumeracionCMS () {
     if [[ $greprc -eq 0 ]];then 										
         echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
         
-		echo "juumla.sh -u "$proto_http"://$host:$port/ " > logs/vulnerabilidades/"$host"_"$port"_juumla.txt
-		juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port"_juumla.txt &	
+		echo "juumla.sh -u "$proto_http"://$host:$port/ " > logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+		juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt &	
 
 		joomla_version.pl -host $host -port $port -path / > logs/enumeracion/"$host"_"$port"_joomla-version.txt &
         
@@ -1709,17 +1709,17 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
 
-			cat logs/vulnerabilidades/"$host"_"$port"_juumla.txt > .vulnerabilidades/"$host"_"$port"_joomlaVulnerabilidades.txt 2>/dev/null
+			cat logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
-			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
-			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
-			if [[ ! -s .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt  ]] ; then
-				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt
-				cp logs/vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt .vulnerabilidades/"$host"_"$port"_wordpressDesactualizado.txt 2>/dev/null
+			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then
+				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+				cp logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 			fi			
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
 			#####
