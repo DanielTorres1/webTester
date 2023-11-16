@@ -219,11 +219,12 @@ function checkRAM (){
 		python_instancias=$((`ps aux | grep get_ssl_cert | wc -l` - 1)) 
 		script_instancias=$((script_instancias + python_instancias))
 
-		if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]];then
-			break
-		else	
-			echo "Poca RAM $MIN_RAM MB ($script_instancias scripts activos)"
+		if [[ $free_ram -lt $MIN_RAM  || $script_instancias -gt $MAX_SCRIPT_INSTANCES  ]];then
+			echo "Poca RAM $free_ram MB ($script_instancias scripts activos)"
 			sleep 3 
+		else
+			break	
+			
 		fi
 	done
 }
@@ -1712,7 +1713,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			cat logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | grep -iv 'Rss Generator' | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
+			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
 			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
