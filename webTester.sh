@@ -700,7 +700,7 @@ function enumeracionCMS () {
 		xml-rpc-login -url $proto_http"://"$host":"$port > logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt &
 		
 		echo -e "\t\t[+] nuclei Wordpress ("$proto_http"://"$host":"$port")"
-		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt &
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>&1 &
 
         wpscan  --update  >/dev/null   
         echo -e "\t\t[+] Wordpress user enumeration ("$proto_http"://"$host":"$port")"
