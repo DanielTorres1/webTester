@@ -711,6 +711,9 @@ function enumeracionCMS () {
 
 		wordpress-CVE-2022-21661.py $proto_http"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt
 		
+		wordpress-version.py $proto_http"://"$host":"$port/ > logs/enumeracion/"$host"_"$port"_wordpressVersion.txt 2>/dev/null
+		cat logs/enumeracion/"$host"_"$port"_wordpressVersion.txt > .enumeracion/"$host"_"$port"_wordpressVersion.txt
+
 		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 		if [[ "$MODE" == "total" ]]; then
