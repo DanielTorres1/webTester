@@ -37,7 +37,7 @@ while (( "$#" )); do
       shift 2
       ;;
     --internet)
-      INTERNET=$2
+      INTERNET=$2 #s/n
       shift 2
       ;;
     --ipList)
@@ -117,6 +117,7 @@ Options:
 	* waf detection
 	* clone site
 	* Metadata
+	
 
 Para escanear una sola aplicacion:
 webTester.sh --url https://ypfb.com.bo --mode $MODE --hosting $HOSTING --internet $INTERNET --verbose $VERBOSE --specific 1
@@ -716,7 +717,8 @@ function enumeracionCMS () {
 
 		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
-		if [[ "$MODE" == "total" ]]; then
+		if [[ "$INTERNET" == "s" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
+		#if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then 
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress (wpscan)"
         	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 			sleep 5
