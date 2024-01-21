@@ -60,6 +60,10 @@ while (( "$#" )); do
       VERBOSE=$2
       shift 2
       ;;
+	--force)
+      FORCE=$2 # si tiene el valor "internet" (se esta escaneando redes de internet)	
+      shift 2
+      ;;
     --) # end argument parsing
       shift
       break
@@ -200,7 +204,7 @@ if [ ! -z $URL ] ; then #
 	IP_LIST_FILE="servicios/hosts.txt"
 fi
 
-echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE EXTRATEST:$EXTRATEST ESPECIFIC $ESPECIFIC SPEED $SPEED" 
+echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCHAINS IP_LIST_FILE:$IP_LIST_FILE HOSTING:$HOSTING INTERNET:$INTERNET VERBOSE:$VERBOSE EXTRATEST:$EXTRATEST ESPECIFIC $ESPECIFIC SPEED $SPEED FORCE $FORCE" 
 
 function insert_data () {
 	find .vulnerabilidades -size  0 -print0 |xargs -0 rm 2>/dev/null # delete empty files
@@ -717,8 +721,8 @@ function enumeracionCMS () {
 
 		# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
-		if [[ "$INTERNET" == "s" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
-		#if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then 
+		# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
+		if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress (wpscan)"
         	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 			sleep 5
