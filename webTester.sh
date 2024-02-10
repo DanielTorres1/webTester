@@ -132,14 +132,14 @@ EOF
 exit
 fi
 
-if [ ! -d ".vulnerabilidades" ]; then #si no existe la carpeta vulnerabilidades es un nuevo escaneo
+if [ ! -d "servicios" ]; then #si no existe la carpeta servicios es un nuevo escaneo
 	echo "creando carpetas"
-	mkdir .enumeracion
-	mkdir .enumeracion2 
-	mkdir .banners
-	mkdir .banners2
-	mkdir .vulnerabilidades	
-	mkdir .vulnerabilidades2 	
+	mkdir .enumeracion 2>/dev/null
+	mkdir .enumeracion2 2>/dev/null
+	mkdir .banners 2>/dev/null
+	mkdir .banners2 2>/dev/null
+	mkdir .vulnerabilidades	2>/dev/null
+	mkdir .vulnerabilidades2 2>/dev/null
 	mkdir reportes	
 	mkdir -p webClone/ 2>/dev/null
 	mkdir -p logs/enumeracion
@@ -1292,8 +1292,8 @@ for line in $(cat $TARGETS); do
 					echo -e "\t[+] Clonando: $URL"
 					
 					if [[ "$ESPECIFIC" == "1" ]];then					
-						echo "Descargar manualmente el sitio y guardar en $host"
-						read resp	
+						echo "Descargar manualmente el sitio y guardar en webTrack $host"
+						read resp
 					else
 						rm resultado-httrack.txt 2>/dev/null	
 						####### httrack ####
@@ -1398,7 +1398,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ###### 
-					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer" # solo el segundo egrep poner "-q"
+					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|javascriptFramework" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
