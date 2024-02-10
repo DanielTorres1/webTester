@@ -1398,7 +1398,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ###### 
-					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|javascriptFramework" # solo el segundo egrep poner "-q"
+					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|javascriptFramework" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1669,8 +1669,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			
 			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
 			
-			
-
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null		
 			egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null		
 			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
@@ -1725,6 +1723,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
+			echo "wordpress parse: logs/vulnerabilidades/"$host"_"$port"_wpscan.txt"
 			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then
@@ -1732,7 +1731,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				cp logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 			fi			
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
-			#####
+			############
 
 			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
 			do						
