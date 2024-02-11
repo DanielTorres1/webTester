@@ -269,7 +269,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do	
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|web-buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer.pl|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1))			
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|web-buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer.pl|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1))			
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then 
 			echo -e "\t[-] Aun hay instancias de nmap en segundo plano activas"
@@ -1243,7 +1243,7 @@ for line in $(cat $TARGETS); do
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
 		if [[ $greprc -eq 0 && -z "$URL" ]];then 
-			echo -e "\t[+] host $host en lista servicios/webApp.txt"
+			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner separado \n"
 			escanearConURL=1 # para que escaneo como URL a parte
 		fi
 
@@ -2287,8 +2287,14 @@ then
 		fi #404												
 	done < servicios/admin-web.txt	
 fi
+
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
+
+echo "dormir"
+sleep 600
+
 rm servicios/admin-web2.txt 2>/dev/null
+
 
 if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
