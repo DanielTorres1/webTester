@@ -288,7 +288,7 @@ function waitWeb (){
 	  while true; do
 	    free_ram=`free -m | grep -i mem | awk '{print $7}'`
 		script_instancias=$((`ps aux | egrep "web-buster.pl|webData.pl|nmap|nuclei" | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1)) 
-		#if [ "$VERBOSE" == 's' ]; then  echo "RAM=$free_ram"; date; fi
+		#if [ "$VERBOSE" == '1' ]; then  echo "RAM=$free_ram"; date; fi
 		if [[ $free_ram -lt $MIN_RAM || $script_instancias -gt $MAX_SCRIPT_INSTANCES  ]];then 
 			echo -e "\t[i] Todavia hay muchos escaneos de web-buster.pl/webData.pl activos ($script_instancias) RAM=$free_ram"  
 			sleep 5
@@ -896,7 +896,7 @@ function enumeracionIOT ()
    host=$2
    port=$3  
    
-#   if [ "$VERBOSE" == 's' ]; then  echo -e "\t\t[+]Params $proto_http : $host : $port "; fi
+#   if [ "$VERBOSE" == '1' ]; then  echo -e "\t\t[+]Params $proto_http : $host : $port "; fi
 	egrep -iq "Windows Device Portal" .enumeracion/"$host"_"$port"_webData.txt 
 	greprc=$?
 	if [[ $greprc -eq 0 && ! -f .enumeracion/"$host"_"$port"_webarchivos.txt  ]];then # si el banner es Apache y no se enumero antes				
@@ -1091,7 +1091,7 @@ for line in $(cat $TARGETS); do
 	
 	result=$(formato_ip "$host")			
 	if [[ $result -eq 1 && $HOSTING == 'n' ]] ; then
-		if [ "$VERBOSE" == 's' ]; then  echo "[+] $host es una dirección IP"; fi
+		if [ "$VERBOSE" == '1' ]; then  echo "[+] $host es una dirección IP"; fi
 
 		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $host:$port $RESET########"
 		#Certificado SSL + nmap + webdata
@@ -1106,10 +1106,10 @@ for line in $(cat $TARGETS); do
 			DOMINIOS_INTERNOS_TODOS="$DOMINIOS_SSL"$'\n'"$DOMINIO_INTERNO_NMAP"$'\n'"$DOMINIO_INTERNO_WEBDATA"
 		fi
 		
-		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_SSL $DOMINIOS_SSL"; fi
-		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_NMAP $DOMINIO_INTERNO_NMAP"; fi
-		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIO_INTERNO_WEBDATA $DOMINIO_INTERNO_WEBDATA"; fi
-		if [ "$VERBOSE" == 's' ]; then  echo "DOMINIOS_INTERNOS_TODOS $DOMINIOS_INTERNOS_TODOS"; fi
+		if [ "$VERBOSE" == '1' ]; then  echo "DOMINIOS_SSL $DOMINIOS_SSL"; fi
+		if [ "$VERBOSE" == '1' ]; then  echo "DOMINIO_INTERNO_NMAP $DOMINIO_INTERNO_NMAP"; fi
+		if [ "$VERBOSE" == '1' ]; then  echo "DOMINIO_INTERNO_WEBDATA $DOMINIO_INTERNO_WEBDATA"; fi
+		if [ "$VERBOSE" == '1' ]; then  echo "DOMINIOS_INTERNOS_TODOS $DOMINIOS_INTERNOS_TODOS"; fi
 		for DOMINIO_INTERNO in $DOMINIOS_INTERNOS_TODOS; do	
 			if [[ ${DOMINIO_INTERNO} == *"enterpriseregistration.windows.net"*  ]];then 
 				echo "$DOMINIO_INTERNO" >> .enumeracion/"$host"_"$port"_azureAD.txt 
@@ -1154,10 +1154,10 @@ for line in $(cat $TARGETS); do
 			script_instancias=$((script_instancias + python_instancias))
 			
 			if [[ $free_ram -gt $MIN_RAM && $script_instancias -lt 4  ]];then 								
-				if [ "$VERBOSE" == 's' ]; then  echo "SUBNET $SUBNET IP_LIST_FILE=$IP_LIST_FILE"; fi
+				if [ "$VERBOSE" == '1' ]; then  echo "SUBNET $SUBNET IP_LIST_FILE=$IP_LIST_FILE"; fi
 					lista_hosts=`grep --color=never $host $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`		
 								
-				if [ "$VERBOSE" == 's' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
+				if [ "$VERBOSE" == '1' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
 				for host in $lista_hosts; do
 					if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
 						echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
@@ -1225,7 +1225,7 @@ for line in $(cat $TARGETS); do
 	echo -e "\n[+] Escaneando $ip:$port ($proto_http)"
 
 												
-	if [ "$VERBOSE" == 's' ]; then  echo "IP_LIST_FILE=$IP_LIST_FILE "; fi 
+	if [ "$VERBOSE" == '1' ]; then  echo "IP_LIST_FILE=$IP_LIST_FILE "; fi 
 	lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`					
 
 			
@@ -1236,7 +1236,7 @@ for line in $(cat $TARGETS); do
 	fi
 
 	
-	if [ "$VERBOSE" == 's' ]; then  echo -e "LISTA HOST:$lista_hosts"; fi #lista de todos los dominios + ip			
+	if [ "$VERBOSE" == '1' ]; then  echo -e "LISTA HOST:$lista_hosts"; fi #lista de todos los dominios + ip			
 	for host in $lista_hosts; do
 		echo -e "\t[+] host actual: $host"
 		escanearConURL=0
@@ -1279,9 +1279,9 @@ for line in $(cat $TARGETS); do
 				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null 
 			fi
 
-			if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
 			if [[ "$only_status" == "404" || "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"302"* ]];then 
-				if [ "$VERBOSE" == 's' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
+				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 				webScaneado=1
 				mkdir -p webTrack/$host 2>/dev/null
 				mkdir -p webClone/$host 2>/dev/null			
@@ -1370,7 +1370,7 @@ for line in $(cat $TARGETS); do
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" .enumeracion/"$host"_"$port"_webData.txt
 				noFirewall=$?				
 				# 1= no coincide (no redirecciona a otro dominio o es error de proxy)							
-				if [ "$VERBOSE" == 's' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
+				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
 				
 				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 && $noFirewall -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					echo $checksumline >> webTrack/$host/checksumsEscaneados.txt	
@@ -1594,7 +1594,7 @@ for line in $(cat $TARGETS); do
 				fi														
 			
 			else
-				if [ "$VERBOSE" == 's' ]; then  echo -e "NO escanear $proto_http://$host:$port/"; fi		
+				if [ "$VERBOSE" == '1' ]; then  echo -e "NO escanear $proto_http://$host:$port/"; fi		
 			fi #hosting
 #######3
 		fi
@@ -1605,7 +1605,7 @@ done #for navegacino forzada
 
 waitFinish
 
-if [ "$VERBOSE" == 's' ]; then  echo " IP_LIST_FILE $IP_LIST_FILE"; fi 	
+if [ "$VERBOSE" == '1' ]; then  echo " IP_LIST_FILE $IP_LIST_FILE"; fi 	
 
 
 ####### PARSE ########
@@ -1735,14 +1735,14 @@ if [[ $webScaneado -eq 1 ]]; then
 
 			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
 			do						
-				if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
+				if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
 				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
 				sleep 4
 				if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
 					username="${username//-/.}" # reemplazar - con .
 					username="$username@$DOMINIO"
 					username="${username//www./}"
-					if [ "$VERBOSE" == 's' ]; then echo "probando si $username es valido"; fi 
+					if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
 					respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
 					sleep 4
 				fi				
@@ -1768,7 +1768,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep -qi "posiblemente vulnerable" logs/enumeracion/"$hosta"_"$port"_httpmethods.txt 2>/dev/null
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then
-				if [ "$VERBOSE" == 's' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi				
+				if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi				
 				curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port"_redirectContent.txt &
 			fi							
 
@@ -1899,7 +1899,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	fingerprint=''
 	list_admin=`egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | sort | cut -d ":" -f1 |  cut -d "/" -f2| cut -d "_" -f1-2` #acreditacion.sucre.bo_80
 		for line in $(echo $list_admin); do 			
-			if [ "$VERBOSE" == 's' ]; then  echo "line $line" ; fi
+			if [ "$VERBOSE" == '1' ]; then  echo "line $line" ; fi
 			host=`echo $line | cut -d "_" -f 1` # 190.129.69.107:80
 			port=`echo $line | cut -d "_" -f 2`			
 			fingerprint1=`echo $line | cut -d ":" -f 2`
@@ -1914,7 +1914,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				echo "Mismo servicio corriendo "
 			else
 				if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt 2>/dev/null; then # si ya lo testeamos
-					if [ "$VERBOSE" == 's' ]; then  echo "url $url" ; fi
+					if [ "$VERBOSE" == '1' ]; then  echo "adm url: $url" ; fi
 					echo $url >> servicios/admin-web.txt
 				else
 					echo "Ya lo testeamos"
@@ -2159,17 +2159,17 @@ if [[ $webScaneado -eq 1 ]]; then
 		
 
 		if [ $vulnerabilidad == 'backdoor' ];then				
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] backdoor en $url_vulnerabilidad"  ; fi
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] backdoor en $url_vulnerabilidad"  ; fi
 			contenido=$url_vulnerabilidad
 		fi
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then				
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
 			contenido=`listDir -url=$url_vulnerabilidad`
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then				
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] contenidoPrueba"  ; fi
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] contenidoPrueba"  ; fi
 			contenido=$url_vulnerabilidad
 		fi
 
@@ -2180,18 +2180,18 @@ if [[ $webScaneado -eq 1 ]]; then
 		fi
 			
 		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' || $vulnerabilidad == 'divulgacionInformacion' ]];then	
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
 			contenido=$url_vulnerabilidad
 		fi
 
 
 		if [ $vulnerabilidad == 'MensajeError' ];then	
-			if [ "$VERBOSE" == 's' ]; then  echo -e "[+] MensajeError \n"  ; fi		
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] MensajeError \n"  ; fi		
 			contenido="$url_vulnerabilidad\n"`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
 		fi
 
 		if [[ $vulnerabilidad == 'phpinfo' ]];then	
-			if [ "$VERBOSE" == 's' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
+			if [ "$VERBOSE" == '1' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
 			echo "archivo_origen $archivo_origen"
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/webData/phpinfo/'|sed 's/.enumeracion2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
@@ -2221,12 +2221,12 @@ fi #webScanned
 
 
 	
-if [ -f servicios/admin-web.txt ]
+if [ -f servicios/admin-web.txt ] && [ -z "$URL" ]; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
 then	
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
 	while IFS= read -r url
-	do				
+	do
 		echo -e "\n\t########### $url  #######"
 		####### Identificar tipo de panel de admin				
 		host_port=`echo $url | cut -d "/" -f 3` # 190.129.69.107:80
@@ -2289,10 +2289,6 @@ then
 fi
 
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
-
-echo "dormir"
-sleep 600
-
 rm servicios/admin-web2.txt 2>/dev/null
 
 
