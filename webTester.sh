@@ -2219,7 +2219,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 fi #webScanned
 
-
+echo "lsita: $URL"
 	
 if [ -f servicios/admin-web.txt ] && [ -z "$URL" ]; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
 then	
