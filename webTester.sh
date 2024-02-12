@@ -2222,7 +2222,6 @@ fi #webScanned
 echo "lsita: $URL"
 wc -l servicios/admin-web.txt 	
 if [ -f servicios/admin-web.txt ] && [ -z $URL ]; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
-then	
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
 	while IFS= read -r url
