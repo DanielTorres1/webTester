@@ -85,6 +85,11 @@ eval set -- "$PARAMS"
 MIN_RAM=900;
 hilos_web=10
 webScaneado=0 # para saber si escaneo algun sitio web
+source /usr/share/lanscanner/api_keys.conf
+
+TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
+
+echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
 	hilos_web=1
@@ -724,7 +729,7 @@ function enumeracionCMS () {
 		# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
 		if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
 			echo -e "\t\t[+] Revisando vulnerabilidades de wordpress (wpscan)"
-        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
+        	$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token $TOKEN_WPSCAN --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 			sleep 5
 			grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
 			greprc=$?
@@ -734,7 +739,7 @@ function enumeracionCMS () {
 				if [[ ${url} == *"$host"*  ]];then 
 					echo -e "\t\t[+] Redireccion en wordpress $url ($host: $port)"
 					$proxychains wpscan --disable-tls-checks --enumerate u  --random-user-agent --format json --url $url > logs/vulnerabilidades/"$host"_"$port"_wpUsers.json &
-					$proxychains wpscan --disable-tls-checks --random-user-agent --url $url --enumerate ap,cb,dbe --api-token vFOFqWfKPapIbUPvqQutw5E1MTwKtqdauixsjoo197U --plugins-detection aggressive > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
+					$proxychains wpscan --disable-tls-checks --random-user-agent --url $url --enumerate ap,cb,dbe --api-token $TOKEN_WPSCAN --plugins-detection aggressive > logs/vulnerabilidades/"$host"_"$port"_wpscan.txt &
 				else
 					echo -e "\t\t[+] Ya lo escaneamos por dominio" 
 				fi  
