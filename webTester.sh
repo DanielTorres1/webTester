@@ -1248,7 +1248,7 @@ for line in $(cat $TARGETS); do
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
 		if [[ $greprc -eq 0 && -z "$URL" ]];then 
-			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner separado \n"
+			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado \n"
 			escanearConURL=1 # para que escaneo como URL a parte
 		fi
 
@@ -1369,7 +1369,7 @@ for line in $(cat $TARGETS); do
 					ip2domainRedirect=0
 				fi
 
-				egrep -qi "301 Moved|302 Found|500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused" .enumeracion/"$host"_"$port"_webData.txt
+				egrep -qi "301 Moved|302 Found|500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|Dominio identificado" .enumeracion/"$host"_"$port"_webData.txt #verificar si debemos escanear
 				hostOK=$?
 				
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" .enumeracion/"$host"_"$port"_webData.txt
@@ -1403,7 +1403,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ###### 
-					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|javascriptFramework|Dominio identificado" # solo el segundo egrep poner "-q"
+					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|javascriptFramework" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1412,7 +1412,7 @@ for line in $(cat $TARGETS); do
 					####################################	
 
 					#######  if the server is SharePoint ######
-					grep -i SharePoint .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|Dominio identificado"  # no redirecciona
+					grep -i SharePoint .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint 																															
 						checkRAM
@@ -1421,7 +1421,7 @@ for line in $(cat $TARGETS); do
 					####################################
 					
 					#######  if the server is IIS ######
-					grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra|Dominio identificado"  # no redirecciona
+					grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes															
 						checkRAM
