@@ -274,7 +274,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do	
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|web-buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer.pl|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1))			
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` ))	
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then 
 			echo -e "\t[-] Aun hay instancias de nmap en segundo plano activas"
@@ -2099,17 +2099,7 @@ cd ..
 
 
 # revisar si hay scripts ejecutandose
-while true; do
-	webbuster_instancias=`ps aux | egrep 'wampServer|joomscan|wpscan|buster' | wc -l`		
-	if [ "$webbuster_instancias" -gt 1 ]
-	then
-		echo -e "\t[i] Todavia hay scripts activos ($webbuster_instancias)"				
-		sleep 10
-	else
-		break		
-	fi
-done	# done true	
-########################
+waitFinish
 
 
 if [[ $webScaneado -eq 1 ]]; then
@@ -2224,8 +2214,6 @@ if [[ $webScaneado -eq 1 ]]; then
 
 fi #webScanned
 
-echo "lsita: $URL"
-wc -l servicios/admin-web.txt 	
 if [ -f servicios/admin-web.txt ] && [ -z $URL ]; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
