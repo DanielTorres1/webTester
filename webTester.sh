@@ -1403,7 +1403,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ###### 
-					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|javascriptFramework" # solo el segundo egrep poner "-q"
+					egrep -i "apache|nginx|kong" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|javascriptFramework|Dominio identificado" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1412,7 +1412,7 @@ for line in $(cat $TARGETS); do
 					####################################	
 
 					#######  if the server is SharePoint ######
-					grep -i SharePoint .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"  # no redirecciona
+					grep -i SharePoint .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|Dominio identificado"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint 																															
 						checkRAM
@@ -1421,7 +1421,7 @@ for line in $(cat $TARGETS); do
 					####################################
 					
 					#######  if the server is IIS ######
-					grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+					grep -i IIS .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra|Dominio identificado"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes															
 						checkRAM
@@ -1722,17 +1722,16 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
 
-			cat logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
-
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
 			echo "wordpress parse: logs/vulnerabilidades/"$host"_"$port"_wpscan.txt"
-			grep "Title" logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | cut -d ":" -f2 > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
-			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "Title" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
-			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then
-				strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			wc -l logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
+			cp logs/vulnerabilidades/"$host"_"$port"_wpscan.txt /tmp/"$host"_"$port"_wpscan.txt
+			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then # if not exist
+				#strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 				cp logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 			fi			
 			strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port"_configuracionInseguraWordpress.txt 2>/dev/null
