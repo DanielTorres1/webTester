@@ -1255,7 +1255,8 @@ for line in $(cat $TARGETS); do
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
 			#Verificar que no siempre devuelve 200 OK
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
-			if [[  "$status_code_nonexist" == *"Network error"*  ]]; then # error de red
+			if [[ "$status_code_nonexist" == *"Network error"* ]] || [[ "$status_code_nonexist" == *"Error"* ]]; then  # error de red
+
 				echo "intentar una vez mas"
 				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 			fi
@@ -1727,8 +1728,8 @@ if [[ $webScaneado -eq 1 ]]; then
 
 			#####wordpress
 			echo "wordpress parse: logs/vulnerabilidades/"$host"_"$port"_wpscan.txt"
-			wc -l logs/vulnerabilidades/"$host"_"$port"_wpscan.txt
-			cp logs/vulnerabilidades/"$host"_"$port"_wpscan.txt /tmp/"$host"_"$port"_wpscan.txt
+			wc -l logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null
+			cp logs/vulnerabilidades/"$host"_"$port"_wpscan.txt /tmp/"$host"_"$port"_wpscan.txt  2>/dev/null
 			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then # if not exist
 				#strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
