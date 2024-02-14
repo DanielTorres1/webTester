@@ -277,7 +277,7 @@ function waitFinish (){
 		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` ))	
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then 
-			echo -e "\t[-] Aun hay instancias de nmap en segundo plano activas"
+			echo -e "\t[-] Aun hay scripts en segundo plano activos"
 			sleep 10	
 		else		
 			break
@@ -1727,10 +1727,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
-			echo "wordpress parse: logs/vulnerabilidades/"$host"_"$port"_wpscan.txt"
-			wc -l logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null
-			cp logs/vulnerabilidades/"$host"_"$port"_wpscan.txt /tmp/"$host"_"$port"_wpscan.txt  2>/dev/null
-			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed 's/[^[:ascii:]]//g' > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then # if not exist
 				#strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 				cp logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
@@ -1928,12 +1925,12 @@ if [[ $webScaneado -eq 1 ]]; then
 			fingerprint=$fingerprint1		
 		done
 	############
-	insert_data
+	
 
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 	if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
 		echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-		cat .enumeracion2/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
+		cat .enumeracion/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
 		while IFS= read -r line
 		do		
 			echo -e "\n\t########### $line #######"										
@@ -1960,7 +1957,7 @@ if [[ $webScaneado -eq 1 ]]; then
 					
 						if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
-							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion2_archived/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 							greprc=$?						
 							if [[ $greprc -eq 1 ]]; then	
 								waitWeb 2.5
@@ -1998,7 +1995,7 @@ fi #sitio escaneado
 
 
 ######### find services ###
-cd .enumeracion2/
+cd .enumeracion/
 	touch canary.txt # es necesario que exista al menos 2 archivos 
 	echo '' > canary_cert.txt 
 
@@ -2100,7 +2097,7 @@ cd ..
 
 # revisar si hay scripts ejecutandose
 waitFinish
-
+insert_data
 
 if [[ $webScaneado -eq 1 ]]; then
 	##########  filtrar los directorios de segundo nivel que respondieron 200 OK (llevarlos a .enumeracion) ################
@@ -2206,15 +2203,12 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo "archivo_destino $archivo_destino"
 		echo $contenido >> $archivo_destino
 	done
-
-	
 	# insertar datos 
 	insert_data
 	#################################
-
 fi #webScanned
 
-if [ -f servicios/admin-web.txt ] && [ -z $URL ]; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
+if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
 	while IFS= read -r url
@@ -2280,6 +2274,7 @@ if [ -f servicios/admin-web.txt ] && [ -z $URL ]; then # si existe paneles admin
 	done < servicios/admin-web.txt	
 fi
 
+cp servicios/admin-web2.txt /tmp/
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
 
