@@ -1727,7 +1727,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
-			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed 's/[^[:ascii:]]//g' > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
+			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 			if [[ ! -s .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt  ]] ; then # if not exist
 				#strings logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null| grep --color=never "out of date" -m1 -b3 -A19 >> logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
 				cp logs/vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
@@ -2274,7 +2274,6 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 	done < servicios/admin-web.txt	
 fi
 
-cp servicios/admin-web2.txt /tmp/
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
 
