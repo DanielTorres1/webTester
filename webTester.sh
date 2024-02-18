@@ -399,9 +399,6 @@ function enumeracionIIS () {
 	echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
 	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m webservices -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webservices.txt &
 
-	waitWeb 2.5
-	echo -e "\t\t[+] certsrv ($host - IIS)"
-	curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port"_certfnsh.txt &
 
 	if [[ "$MODE" == "total" ]]; then
 
@@ -1429,7 +1426,9 @@ for line in $(cat $TARGETS); do
 						enumeracionIIS "$proto_http" $host $port								   
 					fi							
 					####################################	
-
+						waitWeb 2.5
+					echo -e "\t\t[+] certsrv ($host - IIS)"
+					curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port"_certfnsh.txt &
 
 					#######  if the server is tomcat ######
 					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly|Payara" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found" 
