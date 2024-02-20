@@ -1752,9 +1752,8 @@ if [[ $webScaneado -eq 1 ]]; then
 				fi
 			done #wp user
 			
-			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wpVersion.txt 2>/dev/null 
+			#cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | jq -r '.version.number' > .enumeracion/"$host"_"$port"_wpVersion.txt 2>/dev/null 
 
-			
 			#heartbleed
 			egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_heartbleed.txt 2>/dev/null 
 			greprc=$?
