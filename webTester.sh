@@ -1737,17 +1737,23 @@ if [[ $webScaneado -eq 1 ]]; then
 			for username in `cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt`
 			do						
 				if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
-				respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
-				sleep 4
-				if [[ ( ${respuesta} == *"no existe"* && ${username} == *"-"* && ! -z $DOMINIO )]];then 
+				respuesta=``
+				validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid.txt
+				sleep 2
+				egrep -qi "no existe" logs/enumeracion/"$username"_valid.txt 2>/dev/null 
+				greprc=$? # $greprc -eq 0 --> no existe el usuario
+
+				if [[ ( $greprc -eq 0 && ${username} == *"-"* && ! -z $DOMINIO )]];then 
 					username="${username//-/.}" # reemplazar - con .
 					username="$username@$DOMINIO"
 					username="${username//www./}"
 					if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi 
-					respuesta=`validate-wordpress-user -url $proto_http://$host:$port/ -username $username`
-					sleep 4
-				fi				
-				if [[ ${respuesta} == *"usuario valido"*  ]] ; then
+					validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid2.txt 
+					egrep -qi "no existe" logs/enumeracion/"$username"_valid2.txt 2>/dev/null 
+					greprc=$?
+				fi	
+
+				if [[ $greprc -eq 1  ]] ; then #"no existe" no presente en log
 					echo $username >> .vulnerabilidades/"$host"_"$port"_wpUsers.txt
 				fi
 			done #wp user

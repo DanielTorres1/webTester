@@ -73,14 +73,16 @@ func main() {
 	}
 
 	bodyStr := string(body)
+	fmt.Println(bodyStr)
 	if !strings.Contains(bodyStr, "login-action-login") {
 		fmt.Println("Login error")
 		return
 	}
 
-	if strings.Contains(bodyStr, "is not registered on this site") || strings.Contains(bodyStr, "registrado en este sitio" || strings.Contains(bodyStr, "nico desconocida" || strings.Contains(bodyStr, "Unknown email address") {
+	if strings.Contains(bodyStr, "is not registered on this site") || strings.Contains(bodyStr, "registrado en este sitio") || strings.Contains(bodyStr, "nico desconocida") || strings.Contains(bodyStr, "Unknown email address") {
 		fmt.Println(*usernamePtr + " no existe")
 	} else {
 		fmt.Println(*usernamePtr + " usuario valido")
-	}
+	}	
+
 }
