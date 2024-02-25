@@ -1428,7 +1428,7 @@ for line in $(cat $TARGETS); do
 					####################################	
 						waitWeb 2.5
 					echo -e "\t\t[+] certsrv ($host - IIS)"
-					curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port"_certfnsh.txt &
+					curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port"_certsrv.txt &
 
 					#######  if the server is tomcat ######
 					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly|Payara" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "302 Found" 
@@ -1680,7 +1680,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
 			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
 			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
-			grep --color=never "401" logs/enumeracion/"$host"_"$port"_certfnsh.txt > .enumeracion/"$host"_"$port"_certfnsh. 2>/dev/null
+			grep --color=never "401" logs/enumeracion/"$host"_"$port"_certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
 
 			cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt 2>/dev/null
 			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
