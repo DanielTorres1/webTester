@@ -1,22 +1,22 @@
 // inicializar proyecto
-// go mod init example/user/hello
+// go mod init gotests/hello
 
 // instalar libreria
-// cd $HOME/hello/morestrings
+// cd hello/morestrings
 // go build
 
 // adds missing module requirements for imported packages
-// cd $HOME/hello/
+// cd hello/
 // go mod tidy
 
 // Instalar
-// go install example/user/hello
+// go install gotests/hello
 package main
 
 import (
 	"fmt"
 
-	"example/user/hello/morestrings"
+	"gotests/hello/morestrings"
 
 	"github.com/google/go-cmp/cmp"
 )
