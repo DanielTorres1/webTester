@@ -292,10 +292,10 @@ function waitWeb (){
 	sleep $1
 	  while true; do
 	    free_ram=`free -m | grep -i mem | awk '{print $7}'`
-		script_instancias=$((`ps aux | egrep "web-buster.pl|webData.pl|nmap|nuclei" | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1)) 
+		script_instancias=$((`ps aux | egrep "web-buster|webData|nmap|nuclei" | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` - 1)) 
 		#if [ "$VERBOSE" == '1' ]; then  echo "RAM=$free_ram"; date; fi
 		if [[ $free_ram -lt $MIN_RAM || $script_instancias -gt $MAX_SCRIPT_INSTANCES  ]];then 
-			echo -e "\t[i] Todavia hay muchos escaneos de web-buster.pl/webData.pl activos ($script_instancias) RAM=$free_ram"  
+			echo -e "\t[i] Todavia hay muchos escaneos de web-buster/webData activos ($script_instancias) RAM=$free_ram"  
 			sleep 5
 		else
 			break		  		 
@@ -1030,6 +1030,7 @@ for line in $(cat $TARGETS); do
 	echo -e "[+]Escaneando $ip $port ($proto_http)"
 	echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
 	$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData.txt -r 4 | grep -vi 'read timeout' > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &			             	
+	$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData2.txt -maxRedirect 4 | grep -vi 'read timeout' > .enumeracion/"$ip"_"$port"_webData2.txt 2>/dev/null &
 	if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 		echo -e "\t[+]Obteniendo dominios del certificado SSL"
 		$proxychains get_ssl_cert $ip $port  > logs/enumeracion/"$ip"_"$port"_cert.txt  2>/dev/null &
@@ -1054,7 +1055,7 @@ for line in $(cat $TARGETS); do
 		echo -e "\t[+]  Buscando hosts virtuales en $ip:$port"
 		waitWeb 2.5
 		nmap -Pn -sV -n -p $port $ip 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$ip"_"$port"_domainNmap.txt &
-		grep 'Dominio identificado' .enumeracion/"$ip"_"$port"_webData.txt | cut -d "^" -f4 | uniq > logs/enumeracion/"$ip"_web_domainWebData.txt
+		grep 'Dominio identificado' .enumeracion/"$ip"_"$port"_webData.txt | cut -d "^" -f3 | uniq > logs/enumeracion/"$ip"_web_domainWebData.txt
 	fi																											
 								
 	if [[ "$IP_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
