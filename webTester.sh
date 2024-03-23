@@ -1065,8 +1065,8 @@ for line in $(cat $TARGETS); do
 	waitWeb 0.5
 	echo -e "[+]Escaneando $ip $port ($proto_http)"
 	echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
-	$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData.txt -r 4 | grep -vi 'read timeout|Connection refused|Connection timed out'> .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &			             	
-	$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData2.txt -maxRedirect 4 | grep -vi 'read timeout|Connection refused|Connection timed out'> .enumeracion/"$ip"_"$port"_webData2.txt 2>/dev/null &
+	$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData-old.txt -r 4 | grep -vi 'read timeout|Connection refused|Connection timed out'> .enumeracion/"$ip"_"$port"_webData-old.txt 2>/dev/null &			             	
+	$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 4 > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
 	if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 		echo -e "\t[+]Obteniendo dominios del certificado SSL"
 		$proxychains get_ssl_cert $ip $port  > logs/enumeracion/"$ip"_"$port"_cert.txt  2>/dev/null &
@@ -1201,8 +1201,8 @@ for line in $(cat $TARGETS); do
 					if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
 						echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
 						# Una sola rediccion (-r 1) para evitar que escaneemos 2 veces el mismo sitio
-						$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
-						$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData2.txt -maxRedirect 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$ip"_"$port"_webData2.txt 2>/dev/null &
+						$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null &
+						$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
 					fi
 				done
 			
@@ -1317,8 +1317,8 @@ for line in $(cat $TARGETS); do
 			
 			# si no enumeramos mas antes
 			if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
-				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null 
-				$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData2.txt -maxRedirect 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$ip"_"$port"_webData2.txt 2>/dev/null &
+				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null 
+				$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
