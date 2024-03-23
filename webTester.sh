@@ -1318,7 +1318,7 @@ for line in $(cat $TARGETS); do
 			# si no enumeramos mas antes
 			if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
 				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null 
-				$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
+				$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
