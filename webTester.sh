@@ -321,8 +321,8 @@ function enumeracionDefecto () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando folders ($host - default)"						
-				$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
-				$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
+				$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios-old.txt &
+				$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 			fi
 						
 			waitWeb 2.5
@@ -361,8 +361,8 @@ function enumeracionSharePoint () {
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 			
 			echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"					
 			waitWeb 2.5
-			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -e 'something went wrong' -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &								
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
+			$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -e 'something went wrong' -q 1  >> logs/enumeracion/"$host"_"$port"_webdirectorios-old.txt &								
+			$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 		fi	
 
 	waitWeb 2.5
@@ -419,8 +419,8 @@ function enumeracionIIS () {
 			if [[ $greprc -eq 1 ]]; then	
 				echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
 				waitWeb 2.5
-				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
-				web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
+				web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios-old.txt  &
+				web-buster -target $host -port $port  -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 			fi			
 		fi
 
@@ -528,9 +528,9 @@ function enumeracionApache () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 2.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
-				echo "web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error" > logs/enumeracion/"$host"_"$port"_webdirectorios.txt
-				web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt  &
-				web-buster -target $host -port $port -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
+				echo "web-buster -target $host -port $port -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error" > logs/enumeracion/"$host"_"$port"_webdirectorios.txt
+				web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios-old.txt  &
+				web-buster -target $host -port $port -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 				sleep 1	
 			fi					
 
@@ -647,8 +647,8 @@ function enumeracionTomcat () {
     if [[ "$MODE" == "total" ]]; then 				
 			waitWeb 2.5
 			echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"								
-			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
-			web-buster -target $host -port $port -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios2.txt &
+			web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m folders -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios-old.txt &
+			web-buster -target $host -port $port -proto $proto_http -path / -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
 			sleep 1;		
 
 		if [  "$EXTRATEST" == "oscp" ]; then	
@@ -1202,7 +1202,7 @@ for line in $(cat $TARGETS); do
 						echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
 						# Una sola rediccion (-r 1) para evitar que escaneemos 2 veces el mismo sitio
 						$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null &
-						$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
+						$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
 					fi
 				done
 			
@@ -1318,7 +1318,7 @@ for line in $(cat $TARGETS); do
 			# si no enumeramos mas antes
 			if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
 				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null 
-				$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
+				$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
@@ -1337,14 +1337,23 @@ for line in $(cat $TARGETS); do
 						echo "Descargar manualmente el sitio y guardar en webTrack $host"
 						read resp
 					else
-						rm resultado-httrack.txt 2>/dev/null	
-						####### httrack ####
-						script --command "httrack $URL --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' -O webClone/$host" -O resultado-httrack.txt
-						find webClone/$host | egrep '\.html|\.js' | while read line
-						do
-							extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
-						done
-						####################					
+						# si no es CMS descargar con httrack
+						egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+						greprc=$?						
+						if [[ $greprc -eq 1 ]]; then	
+							echo -e "\t\t[+] httrack ($host )"
+							rm resultado-httrack.txt 2>/dev/null	
+							####### httrack ####
+							#script --command "httrack $URL  --depth 1  --ext-depth 0 -O webClone/$host" -O resultado-httrack.txt
+							script --command "httrack --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' --mirror --depth=3 --max-rate=0 --sockets=unlimited --robots=0 --stay-on-same-domain '+*.html' '+*.js' '+*.json' '+*.php' '+mime:application/json' '-*.css' '-*.png' '-*.gif' '-*.jpg' '-*.jpeg' '-*.webp' '-*.tmp' '${URL}' -O 'webClone/${host}'" -O resultado-httrack.txt
+							find webClone/$host | egrep '\.html|\.js' | while read line
+							do
+								extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
+							done
+							####################	
+						fi	
+				
+									
 					fi											
 				fi	#total && URL
 
@@ -1358,18 +1367,17 @@ for line in $(cat $TARGETS); do
 				done
 				##################
 
-				### fuzz directorios personalizados ###
+				###### fuzz directorios personalizados ###
 				sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
 				sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
 							
 				if [ -f webTrack/directorios-personalizado.txt ]; then
 					checkRAM
 					echo -e "\t[+] directorios personalizado"				
-					web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom.txt &
-					web-buster -target $host -port $port -proto $proto_http -path / -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port"_custom2.txt &
-					rm webTrack/directorios-personalizado2.txt 2>/dev/null
+					web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom-old.txt &
+					web-buster -target $host -port $port -proto $proto_http -path / -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port"_custom.txt &
+					#rm webTrack/directorios-personalizado2.txt 2>/dev/null
 				fi
-
 				####################################
 
 				echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
@@ -1701,6 +1709,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_jsp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
@@ -2005,8 +2015,8 @@ if [[ $webScaneado -eq 1 ]]; then
 							if [[ $greprc -eq 1 ]]; then	
 								waitWeb 2.5
 								echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web)" 
-								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m folders $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios22.txt &
+								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m folders $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2-old.txt &
+								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
 
 								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m archivosPeligrosos $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos2.txt &
@@ -2277,8 +2287,8 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 		echo -e "\t[+] Identificando "
 		echo "webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null"
 		web_fingerprint=`webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
-		echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$ip"_"$port"_webFingerprint.txt
-		webData -proto $proto_http -target $ip -port $port -path / -logFile /dev/null -maxRedirect 4 > .enumeracion/"$ip"_"$port"_webFingerprint2.txt
+		echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$host"_"$port"_webFingerprint.txt
+		webData -proto $proto_http -target $host -port $port -path / -logFile /dev/null -maxRedirect 4 > .enumeracion/"$host"_"$port"_webFingerprint2.txt
 		
 		web_fingerprint=`echo "$web_fingerprint" | tr '[:upper:]' '[:lower:]' | tr -d ";"` # a minusculas y eliminar  ;		
 		#echo "web_fingerprint ($web_fingerprint)"
