@@ -274,7 +274,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do	
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E' | wc -l` ))	
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods.py|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E|grep --color' | wc -l` ))	
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then 
 			echo -e "\t[-] Aun hay scripts en segundo plano activos"
