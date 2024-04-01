@@ -1083,7 +1083,9 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' > .enumeracion/"$ip"_"$port"_webLinks.txt
+	#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
+	gourlex -t $proto_http://$ip:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
+	egrep -v '\.png|\.jpg|\.js|css|facebook|linkedin|youtube|instagram' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1542,13 +1544,13 @@ for line in $(cat $TARGETS); do
 						egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 						greprc=$?						
 						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then	
-							
 							##########################################
 							checkRAM
 							echo -e "\t[+] Crawling ($proto_http://$host:$port )"
 							echo -e "\t\t[+] katana"
 							katana -u $proto_http://$host:$port -no-scope -no-color -silent -output logs/enumeracion/"$host"_"$port"_webCrawledKatana.txt >/dev/null 2>/dev/null
 							echo -e "\t\t[+] blackwidow"
+							
 							blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt
 							head -30 logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_CS-01.txt
 							grep 'Telephone' logs/enumeracion/"$host"_"$port"_webCrawledBlackwidow.txt | sort | uniq > .enumeracion/"$host"_"$port"_telephones.txt
