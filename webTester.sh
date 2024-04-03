@@ -777,8 +777,7 @@ function enumeracionCMS () {
 					echo -e "\t\t[+] Ya lo escaneamos por dominio" 
 				fi  
 			fi #redirect			
-		fi #total
-        	       
+		fi #total       
     fi
 	# curl -k https://$DOMINIO/wp-json/wp/v2/users
 	# curl -k https://$DOMINIO/wp-json/akismet/v1
@@ -1085,7 +1084,7 @@ for line in $(cat $TARGETS); do
 
 	#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
 	gourlex -t $proto_http://$ip:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
-	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|microsoft|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
+	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|microsoft|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF 	' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1292,9 +1291,15 @@ for line in $(cat $TARGETS); do
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
 			#Verificar que no siempre devuelve 200 OK
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
-			if [[ "$status_code_nonexist" == *"Network error"* ]] || [[ "$status_code_nonexist" == *"Error"* ]]; then  # error de red
-
+			if [[ "${status_code_nonexist,,}" == *"error"* ]]; then # error de red
 				echo "intentar una vez mas"
+				sleep 1
+				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+			fi
+
+			if [[ "${status_code_nonexist,,}" == *"error"* ]]; then # error de red
+				echo "intentar ultima vez"
+				sleep 1
 				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 			fi
 			
