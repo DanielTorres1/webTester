@@ -347,8 +347,8 @@ function enumeracionDefecto () {
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando archivos peligrosos ($host - default)"
-    	$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-		web-buster -target $host -port $port  -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos2.txt &
+    	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos-old.txt &
+		web-buster -target $host -port $port  -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos.txt &
 	fi		
 }
 
@@ -387,13 +387,13 @@ function enumeracionIIS () {
     fi
    
     echo -e "\t\t[+] Revisando paneles administrativos ($host - IIS)"						
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &	
-	$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin2.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin-old.txt &	
+	$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-	$proxychains web-buster -target $host -port $port  -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos2.txt &
+    web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos-old.txt &
+	web-buster -target $host -port $port  -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos.txt &
 
 	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
@@ -477,21 +477,21 @@ function enumeracionApache () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-	echo "$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error"  >> logs/enumeracion/"$host"_"$port"_webadmin.txt
-	$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
-	web-buster -target $host -port $port  -proto $proto_http -path / -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin2.txt &
+	echo "web-buster -target $host -port $port  -proto $proto_http -path / -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"  >> logs/enumeracion/"$host"_"$port"_webadmin.txt
+	$proxychains web-buster.pl -r 0 -t $host  -p $port -h $hilos_web -d / -m admin -s $proto_http -q 1 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin-old.txt &
+	web-buster -target $host -port $port  -proto $proto_http -path / -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webadmin.txt &
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
 	echo "web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error" >  logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
-	web-buster -target $host -port $port  -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_divulgacionInformacion2.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion-old.txt 2>/dev/null & 
+	web-buster -target $host -port $port  -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_divulgacionInformacion.txt &
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
 	echo "$proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error" >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-	$proxychains web-buster -target $host -port $port -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos2.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos-old.txt &
+	$proxychains web-buster -target $host -port $port -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos.txt &
 
   	waitWeb 2.5
    	echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
@@ -636,13 +636,13 @@ function enumeracionTomcat () {
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
 	echo "web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error" > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt
-	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null & 
-	web-buster -target $host -port $port -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_divulgacionInformacion2.txt &
+	web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m information -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion-old.txt 2>/dev/null & 
+	web-buster -target $host -port $port -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_divulgacionInformacion.txt &
     
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
-    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-    web-buster -target $host -port $port -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos2.txt &
+    $proxychains web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m archivosPeligrosos -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos-old.txt &
+    web-buster -target $host -port $port -proto $proto_http -path / -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_archivosPeligrosos.txt &
 
     if [[ "$MODE" == "total" ]]; then 				
 			waitWeb 2.5
@@ -2025,8 +2025,8 @@ if [[ $webScaneado -eq 1 ]]; then
 								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m folders $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2-old.txt &
 								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
 
-								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m archivosPeligrosos $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos2.txt &
+								web-buster.pl -r 0 -t $host -p $port -s $proto_http -h $hilos_web -d "/$path_web/" -m archivosPeligrosos $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos-old.txt &
+								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt &
 							fi		
 							
 							#TODO
@@ -2292,11 +2292,11 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 		path_web=`echo $url | cut -d "/" -f 4-5`		
 
 		echo -e "\t[+] Identificando "
-		echo "webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null"
-		web_fingerprint=`webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
-		echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$host"_"$port"_webFingerprint.txt
-		webData -proto $proto_http -target $host -port $port -path / -logFile /dev/null -maxRedirect 4 > .enumeracion/"$host"_"$port"_webFingerprint2.txt
-		
+		#echo "webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null"
+		#web_fingerprint=`webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
+		web_fingerprint=`webData -proto $proto_http -target $host -port $port -path / -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g'`
+		#echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$host"_"$port"_webFingerprint.txt
+	
 		web_fingerprint=`echo "$web_fingerprint" | tr '[:upper:]' '[:lower:]' | tr -d ";"` # a minusculas y eliminar  ;		
 		#echo "web_fingerprint ($web_fingerprint)"
 		#############
