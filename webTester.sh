@@ -1061,15 +1061,22 @@ for line in $(cat $TARGETS); do
 	ip=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
-	waitWeb 0.5
-	echo -e "[+]Escaneando $ip $port ($proto_http)"
-	echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
-	$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData-old.txt -r 4 | grep -vi 'read timeout|Connection refused|Connection timed out'> .enumeracion/"$ip"_"$port"_webData-old.txt 2>/dev/null &			             	
-	$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 4 > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
-	if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
-		echo -e "\t[+]Obteniendo dominios del certificado SSL"
-		$proxychains get_ssl_cert $ip $port  > logs/enumeracion/"$ip"_"$port"_cert.txt  2>/dev/null &
-	fi  ##### extract domains certificate		
+
+	egrep -iq "//$ip" servicios/webApp.txt 2>/dev/null
+	greprc=$?		
+	if [[ $greprc -eq 0 ]];then 
+		echo -e "\t[+] host $ip esta en la lista servicios/webApp.txt escaner por separado1 \n"
+	else
+		waitWeb 0.5
+		echo -e "[+]Escaneando $ip $port ($proto_http)"
+		echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
+		$proxychains webData.pl -t $ip -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$ip"_"$port"_webData-old.txt -r 4 | grep -vi 'read timeout|Connection refused|Connection timed out'> .enumeracion/"$ip"_"$port"_webData-old.txt 2>/dev/null &			             	
+		$proxychains webData -proto $proto_http -target $ip -port $port -path / -logFile logs/enumeracion/"$ip"_"$port"_webData.txt -maxRedirect 4 > .enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null &
+		if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
+			echo -e "\t[+]Obteniendo dominios del certificado SSL"
+			$proxychains get_ssl_cert $ip $port  > logs/enumeracion/"$ip"_"$port"_cert.txt  2>/dev/null &
+		fi  ##### extract domains certificate	
+	fi	
 done
 
 waitFinish
@@ -1084,7 +1091,7 @@ for line in $(cat $TARGETS); do
 
 	#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
 	gourlex -t $proto_http://$ip:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
-	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF 	' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
+	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
