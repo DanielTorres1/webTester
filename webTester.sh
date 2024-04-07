@@ -1084,7 +1084,7 @@ for line in $(cat $TARGETS); do
 
 	#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
 	gourlex -t $proto_http://$ip:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
-	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|microsoft|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF 	' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
+	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF 	' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
