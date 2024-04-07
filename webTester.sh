@@ -1089,9 +1089,6 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
-	gourlex -t $proto_http://$ip:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
-	egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$ip"_"$port"_webLinks.txt
 	
 	egrep -iq "apache|nginx|kong|IIS" .enumeracion/"$ip"_"$port"_webData.txt
 	greprc=$?						
@@ -1207,10 +1204,15 @@ for line in $(cat $TARGETS); do
 				if [ "$VERBOSE" == '1' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
 				for host in $lista_hosts; do
 					if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
-						echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
-						# Una sola rediccion (-r 1) para evitar que escaneemos 2 veces el mismo sitio
-						$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null &
-						$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
+						egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
+						greprc=$?		
+						if [[ $greprc -eq 0 ]];then 
+							echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado2 \n"
+						else
+							echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
+							$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null &
+							$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 2  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
+						fi
 					fi
 				done
 			
@@ -1291,7 +1293,7 @@ for line in $(cat $TARGETS); do
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
 		if [[ $greprc -eq 0 && -z "$URL" ]];then 
-			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado \n"
+			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado3 \n"
 			escanearConURL=1 # para que escaneo como URL a parte
 		fi
 
@@ -1332,7 +1334,7 @@ for line in $(cat $TARGETS); do
 			# si no enumeramos mas antes
 			if [ ! -f "logs/enumeracion/"$host"_"$port"_webData.txt" ];then
 				$proxychains webData.pl -t $host -p $port -s $proto_http -e todo -d / -l logs/enumeracion/"$host"_"$port"_webData-old.txt -r 1 | grep -vi 'read timeout|Connection refused|Connection timed out' > .enumeracion/"$host"_"$port"_webData-old.txt 2>/dev/null 
-				$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 1  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
+				$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 2  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
@@ -1371,28 +1373,7 @@ for line in $(cat $TARGETS); do
 					fi											
 				fi	#total && URL
 
-				####### wget ##### (usado para control si es un mismo sitio web es el mismo)
-				cd webTrack/$host
-					wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico,pdf,docx,xls,doc,ppt,pps,pptx,xlsx --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
-				cd ../../
-				find webTrack/$host | egrep '\.html|\.js' | while read line
-				do
-					extractLinks.py "$line" 2>/dev/null | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
-				done
-				##################
-
-				###### fuzz directorios personalizados ###
-				sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
-				sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
-							
-				if [ -f webTrack/directorios-personalizado.txt ]; then
-					checkRAM
-					echo -e "\t[+] directorios personalizado"				
-					web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom-old.txt &
-					web-buster -target $host -port $port -proto $proto_http -path / -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port"_custom.txt &
-					#rm webTrack/directorios-personalizado2.txt 2>/dev/null
-				fi
-				####################################
+				
 
 				echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
 				checkRAM		
@@ -1438,11 +1419,38 @@ for line in $(cat $TARGETS); do
 				
 				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 && $noFirewall -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					echo $checksumline >> webTrack/$host/checksumsEscaneados.txt	
+
+					####### wget ##### (usado para control si es un mismo sitio web es el mismo)
+					###### fuzz directorios personalizados ###
+					cd webTrack/$host
+						wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico,pdf,docx,xls,doc,ppt,pps,pptx,xlsx --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
+					cd ../../
+					find webTrack/$host | egrep '\.html|\.js' | while read line
+					do
+						extractLinks.py "$line" 2>/dev/null | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
+					done
+				
+					sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
+					sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
+								
+					if [ -f webTrack/directorios-personalizado.txt ]; then
+						checkRAM
+						echo -e "\t[+] directorios personalizado"				
+						web-buster.pl -r 0 -t $host  -p $port -h 2 -d / -m custom -i 120 -u webTrack/directorios-personalizado.txt -s $proto_http $param_msg_error > logs/enumeracion/"$host"_"$port"_custom-old.txt &
+						web-buster -target $host -port $port -proto $proto_http -path / -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port"_custom.txt &
+						#rm webTrack/directorios-personalizado2.txt 2>/dev/null
+					fi
+					####################################
 																	
 					########### check methods ###	
 					waitWeb 2.5	
 					echo -e "\t[+] HTTP methods ($proto_http://$host:$port) "			
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_httpmethods.txt  2>/dev/null &
+
+					#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
+					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port"_gourlex.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic' logs/enumeracion/"$host"_"$port"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+					
 								
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then 
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
