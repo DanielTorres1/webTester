@@ -1064,7 +1064,7 @@ for line in $(cat $TARGETS); do
 
 	egrep -iq "//$ip" servicios/webApp.txt 2>/dev/null
 	greprc=$?		
-	if [[ $greprc -eq 0 ]];then 
+	if [[ $greprc -eq 0 && -z "$URL" ]];then 
 		echo -e "\t[+] host $ip esta en la lista servicios/webApp.txt escaner por separado1 \n"
 	else
 		waitWeb 0.5
@@ -1206,7 +1206,7 @@ for line in $(cat $TARGETS); do
 					if [[  ${host} != *"localhost"*  &&  ${host} != *"cpcalendars."* && ${host} != *"cpcontacts."*  && ${host} != *"webdisk."* ]];then    
 						egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 						greprc=$?		
-						if [[ $greprc -eq 0 ]];then 
+						if [[ $greprc -eq 0 && -z "$URL" ]];then 
 							echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado2 \n"
 						else
 							echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
