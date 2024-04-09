@@ -399,7 +399,7 @@ function enumeracionIIS () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
-	web-buster -target $host -port $port  -proto $proto_http -path / -module webservices -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webservices.txt &
+	web-buster -target $host -port $port  -proto $proto_http -path / -module webservices -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_openWebservice.txt &
 
 	if [[ "$MODE" == "total" ]]; then
 
@@ -673,6 +673,15 @@ function enumeracionCMS () {
 		fi            																																	
     fi
 
+	#######  API  ######
+    grep -qi api-endpoint .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 
+		echo -e "\t\t[+] API test ("$proto_http"://"$host":"$port")"
+		web-buster -target $host -port $port  -proto $proto_http -path / -module api -threads $hilos_web -redirects 0 -show404 >> logs/vulnerabilidades/"$host"_"$port"_openWebservice.txt &           																																	
+    fi
+
+	
 	#######  yii  ######
     grep -qi yii .enumeracion/"$host"_"$port"_webData.txt
     greprc=$?
@@ -680,6 +689,7 @@ function enumeracionCMS () {
 
 		echo -e "\t\t[+] nuclei yii ("$proto_http"://"$host":"$port")"
 		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt &
+		#peticiones get especificas para yii
 		checkerWeb.py --tipo yii --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt																																
     fi
 
@@ -1692,7 +1702,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null	
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
@@ -1705,7 +1714,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt > .enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null 		
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port"_archivosDefecto.txt 2>/dev/null 		
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt 2>/dev/null
-			
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port"_openWebservice.txt 2>/dev/null		
 			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
 			
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null		
