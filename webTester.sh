@@ -241,11 +241,13 @@ function checkRAM (){
 
 function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
+
+	cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null	
+	rm servicios/admin-web-url.txt 2>/dev/null
+
 	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint-inserted.txt 2>/dev/null
 	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 
-	cat servicios/admin-web.txt >> servicios/admin-web-inserted.txt 2>/dev/null	
-	rm servicios/admin-web.txt 2>/dev/null
 	}
 
 function formato_ip {
@@ -1031,7 +1033,7 @@ for line in $(cat $TARGETS); do
 	egrep -iq "//$ip" servicios/webApp.txt 2>/dev/null
 	greprc=$?		
 	if [[ $greprc -eq 0 && -z "$URL" ]];then 
-		echo -e "\t[+] host $ip esta en la lista servicios/webApp.txt escaner por separado1 \n"
+		echo -e "\t[+] host $ip esta en la lista webApp.txt escaner por separado1 \n"
 	else
 		waitWeb 0.5
 		echo -e "[+]Escaneando $ip $port ($proto_http)"
@@ -1126,7 +1128,7 @@ for line in $(cat $TARGETS); do
 				echo -e "[+] DOMINIO_INTERNO $DOMINIO_INTERNO"
 				
 				grep -q "$DOMINIO_INTERNO" servicios/webApp.txt 2>/dev/null # Verficar si ya identificamos esa app
-				greprc=$? # greprc=1 dominio no en lista, greprc=2 servicios/webApp.txt no existe
+				greprc=$? # greprc=1 dominio no en lista, greprc=2 webApp.txt no existe
 				
 				if [ "$DOMINIO_INTERNO" != NULL ] && [ "$DOMINIO_INTERNO" != "localhost" ] && [ "$DOMINIO_INTERNO" != "" ] && [ "$DOMINIO_INTERNO" != *"*"* ] && ([ "$greprc" -eq 1 ] || [ "$greprc" -eq 2 ]); then
 						
@@ -1172,7 +1174,7 @@ for line in $(cat $TARGETS); do
 						egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 						greprc=$?		
 						if [[ $greprc -eq 0 && -z "$URL" ]];then 
-							echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado2 \n"
+							echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado2 \n"
 						else
 							echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
 							$proxychains webData -proto $proto_http -target $host -port $port -path / -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 2  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
@@ -1257,7 +1259,7 @@ for line in $(cat $TARGETS); do
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?		
 		if [[ $greprc -eq 0 && -z "$URL" ]];then 
-			echo -e "\t[+] host $host esta en la lista servicios/webApp.txt escaner por separado3 \n"
+			echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado3 \n"
 			escanearConURL=1 # para que escaneo como URL a parte
 		fi
 
@@ -1682,20 +1684,18 @@ if [[ $webScaneado -eq 1 ]]; then
 			cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
 			grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt > .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null	
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webadmin.txt > .enumeracion/"$host"_"$port"_webadmin.txt  2>/dev/null		
 			egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port"_webdirectorios.txt	> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
-
-			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null	
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-			
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_jsp-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_aspx-files.txt > .enumeracion/"$host"_"$port"_aspx-files.txt 2>/dev/null
@@ -1936,8 +1936,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	##### Identificar paneles administrativos #####
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
-	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py > servicios/admin-web.txt #extraer url
-	cat servicios/admin-web.txt >> servicios/webApp.txt
+	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py >> servicios/admin-web-url.txt #extraer url
 	
 
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
@@ -2032,10 +2031,10 @@ cd .enumeracion/
 	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $2}' | sort | uniq -i | uniq >> ../servicios/web401.txt
 	
 	#responde con 200 OK
-	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $2}' | sort | uniq -i | uniq >> ../servicios/admin-web.txt
+	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $2}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 	
 	#tomcat
-	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $2}' | sort | uniq -i | uniq >> ../servicios/admin-web.txt
+	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $2}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 	# 
 
 	#Fortigate
@@ -2220,7 +2219,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	#################################
 fi #webScanned
 
-if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
+if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
 	while IFS= read -r url
@@ -2285,7 +2284,7 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 		# 		fi
 		# 	fi # Es directorio	
 		fi #404												
-	done < servicios/admin-web.txt	
+	done < servicios/admin-web-url.txt	
 fi
 
 
