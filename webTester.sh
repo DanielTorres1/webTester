@@ -339,6 +339,7 @@ function enumeracionDefecto () {
 
 		waitWeb 2.5
 		echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
+		checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt
 		web-buster -target $host -port $port  -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt &
 
 		waitWeb 2.5
@@ -465,6 +466,7 @@ function enumeracionApache () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
+	checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt
 	web-buster -target $host -port $port  -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt &
     
 	waitWeb 2.5
@@ -480,11 +482,6 @@ function enumeracionApache () {
 	echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
 	web-buster -target $host -port $port -proto $proto_http -path / -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_webserver.txt &
 
-	# waitWeb 2.5	
-	# echo -e "\t\t[+] Revisando si el registro de usuarios esta habilitado ($host - Apache/nginx)"
-	# web-buster.pl -r 0 -t $host -p $port -h $hilos_web -d / -m registroHabilitado -s $proto_http -q 1 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt &
-	# web-buster -target $host -port $port -proto $proto_http -path / -module registroHabilitado -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port"_registroHabilitado2.txt &
-	
     #  CVE-2021-4177								
     echo -e "\t\t[+] Revisando apache traversal)" 
     $proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null &
@@ -601,6 +598,7 @@ function enumeracionTomcat () {
 
 	waitWeb 2.5
 	echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
+	checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt
 	web-buster -target $host -port $port -proto $proto_http -path / -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt &
     
 	waitWeb 2.5
@@ -671,6 +669,16 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
         	$proxychains droopescan scan drupal -u  "$proto_http"://$host --output json > logs/vulnerabilidades/"$host"_"$port"_droopescan.txt 2>/dev/null &
 		fi            																																	
+    fi
+
+	#######  yii  ######
+    grep -qi yii .enumeracion/"$host"_"$port"_webData.txt
+    greprc=$?
+    if [[ $greprc -eq 0 ]];then 
+
+		echo -e "\t\t[+] nuclei yii ("$proto_http"://"$host":"$port")"
+		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt &
+		checkerWeb.py --tipo yii --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt																																
     fi
 
 	#######  laravel  ######
@@ -832,10 +840,8 @@ function enumeracionCMS () {
 		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt &
 
 		echo -e "\t\t[+] Revisando si el registro esta habilitado"
-		status_code=`curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "$proto_http://$host:$port/index.php/component/users/?view=registration"`
-		if [ "$status_code" == '200' ]; then 
-			echo "$proto_http://$host:$port/index.php/component/users/?view=registration" > .vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt
-		fi
+		checkerWeb.py --tipo registro --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt
+		grep 200 logs/vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt > .vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt
     fi
     ###################################	
 
@@ -1675,6 +1681,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			echo -e "Parse $host:$port"
 			cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
 			grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
+			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt > .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt
 			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webarchivos.txt  >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt  2>/dev/null		
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
@@ -1683,16 +1690,16 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null		
 
 			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null		
-
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webserver.txt > .enumeracion/"$host"_"$port"_webarchivos.txt  2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_jsp-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_webservices.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_graphQL.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null		     
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_php-files.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosTomcat.txt > .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_asp-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_jsp-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_aspx-files.txt > .enumeracion/"$host"_"$port"_aspx-files.txt 2>/dev/null
+			
 
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
 			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_archivosCGI.txt > .enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null 		
@@ -1718,7 +1725,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
 
 			egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
-			egrep --color=never "Registro habilitado" logs/vulnerabilidades/"$host"_"$port"_registroHabilitado.txt  >> .vulnerabilidades/"$host"_"$port"_registroHabilitado.txt	2>/dev/null
 			egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt 		
 			egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
 			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt  > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
@@ -1747,6 +1753,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
+			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt > .vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2>/dev/null
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
 			grep root logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
 			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
@@ -1798,7 +1805,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			fi	
 
 			#Redirect con contenido
-			egrep -qi "posiblemente vulnerable" logs/enumeracion/"$hosta"_"$port"_httpmethods.txt 2>/dev/null
+			egrep -qi "posiblemente vulnerable" logs/enumeracion/"$host"_"$port"_httpmethods.txt 2>/dev/null
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi				
@@ -1930,6 +1937,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|inicio|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py > servicios/admin-web.txt #extraer url
+	cat servicios/admin-web.txt >> servicios/webApp.txt
 	
 
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
@@ -2245,7 +2253,6 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 			echo -e "\t[+] Falso positivo (404) "
 		else
 			echo "$url;$web_fingerprint" >> servicios/admin-web2.txt
-			echo "$url" >> servicios/webApp.txt
 		# 	if [[ ${url} != *"ListadoDirectorios"*  &&  ${url} != *"wp-"* &&  ${url} != *".action"* &&  ${url} != *"index"* &&  ${url} != *"cpanel"* &&  ${url} != *"whm"* &&  ${url} != *"webmail"*  ]] ; then
 		# 		if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${url} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"phppgadmin"* && ${path_web} != *"controlpanel"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 		# 			egrep -i "apache|nginx|kong|IIS" .enumeracion2/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|Always200-OK|AngularJS|BladeSystem|cisco|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Open Source Routing Machine|oracle|owa|ownCloud|Pfsense|Roundcube|Router|Taiga|webadmin|Zentyal|Zimbra" # solo el segundo egrep poner "-q"
@@ -2281,8 +2288,6 @@ if [[ -f servicios/admin-web.txt ]] ; then # si existe paneles administrativos y
 	done < servicios/admin-web.txt	
 fi
 
-#to Database
-sort servicios/webApp.txt | uniq > .enumeracion/dominio_web_app.txt
 
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
