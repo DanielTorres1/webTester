@@ -360,7 +360,7 @@ function enumeracionSharePoint () {
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 			
 			echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"					
 			waitWeb 1.5
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong' >> logs/enumeracion/"$host"_"$port"_webdirectorios.txt &
+			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong' >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
 		fi	
 
 	waitWeb 1.5
@@ -516,7 +516,7 @@ function enumeracionApache () {
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 1.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
-				echo "web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error" > logs/enumeracion/"$host"_"$port"_webdirectorios.txt
+				echo "web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
 				web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
 				sleep 1	
 
@@ -1690,7 +1690,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_backupweb.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webadmin.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webdirectorios.txt" ] && egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webdirectorios.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_archivosSAP.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
