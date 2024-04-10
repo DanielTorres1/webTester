@@ -184,6 +184,8 @@ if [ ! -z $URL ] ; then #
 
 	# Extraer ruta
 	path_web="/"$(echo ${URL} | cut -d'/' -f4-)"/"
+	# Reemplazar '//' con '/'
+	path_web=${path_web//\/\//\/}
 
 	if [[ "$URL" == *"localhost"* ]] || [[ "$URL" == *"127.0.0.1"* ]]; then
 		echo "La URL contiene 'localhost'. Saliendo del programa."
@@ -461,9 +463,8 @@ function enumeracionApache () {
 	# else
 
 	# fi
-   
 
-    echo -e "\t[+] Enumerar Apache ($proto_http : $host : $port)"	 
+    echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port)"	 
 
 	waitWeb 1.5
     echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"	
@@ -1333,7 +1334,7 @@ for line in $(cat $TARGETS); do
 								
 					if [ -f webTrack/directorios-personalizado.txt ]; then
 						checkRAM
-						echo -e "\t[+] directorios personalizado"				
+						echo -e "\t\t[+] directorios personalizado"				
 						web-buster -target $host -port $port -proto $proto_http -path $path_web -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt &
 						#rm webTrack/directorios-personalizado2.txt 2>/dev/null
 					fi
@@ -1341,7 +1342,7 @@ for line in $(cat $TARGETS); do
 																	
 					########### check methods ###	
 					waitWeb 1.5	
-					echo -e "\t[+] HTTP methods ($proto_http://$host:$port) "			
+					echo -e "\t\t[+] HTTP methods ($proto_http://$host:$port) "			
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_httpmethods.txt  2>/dev/null &
 
 					#extractLinks.py logs/enumeracion/"$ip"_"$port"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
@@ -1459,7 +1460,7 @@ for line in $(cat $TARGETS); do
 						#grep -iv error logs/vulnerabilidades/"$host"_"$port"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port"_check-blank-target.txt 						
 						checkRAM
 						egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-						greprc=$?						
+						greprc=$?					
 						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then	
 							##########################################
 							checkRAM
@@ -1614,82 +1615,143 @@ if [[ $webScaneado -eq 1 ]]; then
 		
 		for host in $lista_hosts; do
 			echo -e "Parse $host:$port"
-			cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
-			grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt > .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt 2>/dev/null	
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null	
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt  2>/dev/null		
-			egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt	> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null		
-			egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null	
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  2>/dev/null		
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null		     
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_asp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt 2>/dev/null
-			grep commonName logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2>dev.null
+			# cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
+			# grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt > .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt 2>/dev/null	
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null	
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null				
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt  2>/dev/null		
+			# egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt	> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null		
+			# egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null	
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  2>/dev/null		
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  2>/dev/null		
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null		     
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_asp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			# grep commonName logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2>dev.null
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
+			# egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null 		
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null 		
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null		
+			# cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
+			# egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null		
+			# egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null		
+			# grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
+			# grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
+			# grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
+			# grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
+			# grep --color=never "401" logs/enumeracion/"$host"_"$port"_certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
+			# cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt 2>/dev/null
+			# grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			# grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
+			# grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			# grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 
+			# grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			# egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
+			# egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt 		
 
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
-			egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null 		
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null 		
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt  >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null		
-			cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
-			
-			egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null		
-			egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null		
-			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
-			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
-			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
-			grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
-			grep --color=never "401" logs/enumeracion/"$host"_"$port"_certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
+			# egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
+			# egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt  > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
+			# egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
+			# egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
+			# egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
+			# egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
+			# egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
+			# egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
+			# egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
+			# egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
+			# egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
+			# egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
+			# grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt > .vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt 2>/dev/null
+			# grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
+			# grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
+			# grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
+			# grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt 2>/dev/null
+			# grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt > .vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2>/dev/null
+			# egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
+			# grep root logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
+			# cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
+			# cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
-			cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt 2>/dev/null
-			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
-			grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null		
-			grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
-			#grep -i --color=never "ofrecido" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
-			grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 
-			grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
 
-			egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt  >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
-			egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt 		
-			egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
-			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt  > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
-			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
-			egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
-			egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
-			egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
-			egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
-			egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
-			egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
-			egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
-			egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port"_joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${ip}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_configuracionInseguraYii.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port"_yiiTest.txt > .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_backupweb.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port"_SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webadmin.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webdirectorios.txt" ] && egrep --color=never "^200|^401|^403" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_archivosSAP.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_asp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_cert.txt" ] && grep commonName logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2>dev.null
+			[ ! -e "servicios/cgi.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_archivosCGI.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_archivosDefecto.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_archivosPeligrosos.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_openWebservice.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port"_CS-39.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_webshell.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_IISwebdavVulnerable.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_nmapHTTPvuln.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_nmapHTTPvuln.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_sapNetweaverLeak.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
+			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port"_certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}_CS-45.txt" ] && cp logs/vulnerabilidades/"$host"_"$port"_testSSL.txt logs/vulnerabilidades/"$host"_"$port"_CS-45.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}_confTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}_vulTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_confTLS.txt" ] && grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port"_confTLS.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_vulTLS.txt" ] && grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt && grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port"_vulTLS.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_sap-scan.txt" ] && egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port"_sap-scan.txt >> .vulnerabilidades/"$host"_"$port"_sap-scan.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_citrixVul.txt" ] && egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port"_citrixVul.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_CVE-2020-0688.txt" ] && egrep --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt > .vulnerabilidades/"$host"_"$port"_CVE-2020-0688.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_apacheTraversal.txt" ] && egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_apacheTraversal.txt > .vulnerabilidades/"$host"_"$port"_apacheTraversal.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_bigIPVul.txt" ] && egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port"_bigIPVul.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_pulseVul.txt" ] && egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port"_pulseVul.txt > .vulnerabilidades/"$host"_"$port"_pulseVul.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_apacheStruts.txt" ] && egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port"_apacheStruts.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_shortname.txt" ] && egrep '\[+\]' logs/enumeracion/"$host"_"$port"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port"_shortname.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_cve-2021-41773.txt" ] && egrep uid logs/vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port"_cve-2021-41773.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_CGIServlet.txt" ] && egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port"_CGIServlet.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_proxynoshell.txt" ] && egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port"_proxynoshell.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_proxyshell.txt" ] && egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_proxyshell.txt > .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_cve2020-3452.txt" ] && egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_cve2020-3452.txt > .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressGhost.txt" ] && egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressCVE~2022~21661.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt > .vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressPlugins.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_xml-rpc-habilitado.txt" ] && grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_xml-rpc-login.txt" ] && grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_chamilo-CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_apacheNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_tomcatNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_joomlaNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_drupalNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_yiiNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt > .vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_laravelNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_laravel-rce-CVE-2021-3129.txt" ] && grep root logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
-			egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
-			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt > .vulnerabilidades/"$host"_"$port"_wordpressCVE~2022~21661.txt 2>/dev/null
-			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt > .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
-			grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-habilitado.txt 2>/dev/null
-			grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
-			grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt 2>/dev/null
 
-			grep --color=never "|" logs/enumeracion/"$host"_"$port"_hadoopNamenode.txt  2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt 
 
-			#nuclei
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port"_joomlaNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port"_wordpressNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port"_drupalNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_yiiNuclei.txt > .vulnerabilidades/"$host"_"$port"_yiiNuclei.txt 2>/dev/null
-			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port"_laravelNuclei.txt 2>/dev/null
-			grep root logs/vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
-			cat logs/vulnerabilidades/"$host"_"$port"_droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt	2>/dev/null 		
-			cat logs/vulnerabilidades/"$host"_"$port"_wpUsers.json 2>/dev/null  | wpscan-parser.py   2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_wpUsers.txt 2>/dev/null
 
 			#####wordpress
 			grep '!' logs/vulnerabilidades/"$host"_"$port"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt
@@ -1889,7 +1951,7 @@ if [[ $webScaneado -eq 1 ]]; then
 						host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
 						host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
 						port=`echo $host_port | cut -d ":" -f 2`		
-						path_web=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
+						path_web2=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
 								
 						if [[  ${port} == *"."* ]]; then
 							if [[ ${proto_http} == *"https"*  ]]; then
@@ -1899,15 +1961,15 @@ if [[ $webScaneado -eq 1 ]]; then
 							fi
 						fi
 					
-						if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${path_web} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
+						if [[ ${path_web2} != *"."* && ${path_web2} != *"manual"* && ${path_web2} != *"dashboard"* && ${path_web2} != *"docs"* && ${path_web2} != *"license"* && ${path_web2} != *"wp"* && ${path_web2} != *"aspnet_client"*  && ${path_web2} != *"autodiscover"*  && ${path_web2} != *"manager/html"* && ${path_web2} != *"manual"* && ${path_web2} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
 							egrep -i "drupal|wordpress|joomla|moodle" .enumeracion/"$host"_"$port"_webData.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 							greprc=$?						
 							if [[ $greprc -eq 1 ]]; then	
 								waitWeb 1.5
-								echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web)" 
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos2.txt &
+								echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web2)" 
+								web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port"_webdirectorios2.txt &
+								web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port"_archivosPeligrosos2.txt &
 							fi		
 							
 							#TODO
@@ -2170,11 +2232,11 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 			fi
 		fi
 		host=`echo $host_port | cut -d ":" -f 1`				
-		path_web=`echo $url | cut -d "/" -f 4-5`		
+		path_web2=`echo $url | cut -d "/" -f 4-5`		
 
 		echo -e "\t[+] Identificando "
-		#web_fingerprint=`webData.pl -t $host -d "/$path_web" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
-		web_fingerprint=`webData -proto $proto_http -target $host -port $port -path "/$path_web" -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g'`
+		#web_fingerprint=`webData.pl -t $host -d "/$path_web2" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
+		web_fingerprint=`webData -proto $proto_http -target $host -port $port -path "/$path_web2" -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g'`
 		#echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$host"_"$port"_webFingerprint.txt
 	
 		web_fingerprint=`echo "$web_fingerprint" | tr '[:upper:]' '[:lower:]' | tr -d ";"` # a minusculas y eliminar  ;		
