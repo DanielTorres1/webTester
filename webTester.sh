@@ -954,7 +954,7 @@ for line in $(cat $TARGETS); do
 
 	#Verificar que no se obtuvo ese dato
 	if [ -e logs/enumeracion/"$ip"_"$port"_webData.txt ]; then
-		echo "ya se reviso"
+		echo "ya se reviso1"
 	else
 		egrep -iq "//$ip" servicios/webApp.txt 2>/dev/null
 		greprc=$?
@@ -1108,7 +1108,7 @@ for line in $(cat $TARGETS); do
 						else
 							#Verificar que no se obtuvo ese dato
 							if [ -e logs/enumeracion/"$host"_"$port"_webData.txt  ]; then
-								echo "ya se reviso"
+								echo "ya se reviso3"
 							else
 								echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
 								$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_webData.txt -maxRedirect 2  > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null &
@@ -1700,7 +1700,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_asp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_cert.txt" ] && grep commonName logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2>dev.null
+			[ ! -e ".enumeracion2/${host}_${port}_cert.txt" ] && grep commonName logs/enumeracion/"$host"_"$port"_cert.txt > .enumeracion/"$host"_"$port"_cert.txt 2> /dev/null
 			[ ! -e "servicios/cgi.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web%/}_archivosCGI.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web%/}_archivosDefecto.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null
