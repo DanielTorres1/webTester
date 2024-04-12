@@ -87,6 +87,7 @@ MAX_SCRIPTS=4
 hilos_web=10
 webScaneado=0 # para saber si escaneo algun sitio web
 path_web='/'
+webservers_defaultTitles=("IIS Windows Server" "Apache2 Ubuntu Default Page: It works" "Apache default page" "Apache2 Debian Default Page: It works")
 source /usr/share/lanscanner/api_keys.conf
 
 TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
@@ -316,7 +317,7 @@ function enumeracionDefecto () {
 
    echo -e "\t[+] Default enumeration ($proto_http : $host : $port)"
    waitWeb 1.5
-   egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt 
+   egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 
    greprc=$?
 	if [[ $greprc -eq 0  ]];then
 
@@ -339,7 +340,7 @@ function enumeracionDefecto () {
 				
 		if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
 
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 			greprc=$?						
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 1.5
@@ -390,7 +391,7 @@ function enumeracionIIS () {
   	#1: si no existe log 
    	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt"  ]]; then
 		echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port)"	
-		egrep -iq "IIS/6.0|IIS/5.1" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		egrep -iq "IIS/6.0|IIS/5.1" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		IIS6=$?
 		if [[ $IIS6 -eq 0 ]];then
 			echo -e "\t\t[+] Detectado IIS/6.0|IIS/5.1 - Revisando vulnerabilidad web-dav ($host - IIS)"
@@ -424,7 +425,7 @@ function enumeracionIIS () {
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
 
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 			greprc=$?						
 			if [[ $greprc -eq 1 ]]; then	
 				echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
@@ -452,7 +453,7 @@ function enumeracionIIS () {
 
 		if [  "$EXTRATEST" == "oscp" ]; then	
 			
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then #		
 				echo "CMS detected ($url)"
@@ -524,7 +525,7 @@ function enumeracionApache () {
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
 
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 			greprc=$?						
 			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 1.5
@@ -545,12 +546,12 @@ function enumeracionApache () {
 				echo -e "\t\t[+] Revisando la existencia de backdoors ($host - Apache/nginx)"
 				web-buster -target $host -port $port -proto $proto_http -path $path_web -module backdoorApache -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
 				
-				echo -e "\t[+] multiviews check ($proto_http://$host:$port)  " 
+				echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)  " 
 				multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt 
 				grep vulnerable logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt 
 
 				if [ "$EXTRATEST" == "oscp" ]; then	
-					egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+					egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then #		
 						echo "CMS detected ($url)"
@@ -610,7 +611,7 @@ function enumeracionTomcat () {
 		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
 		waitWeb 1.5
-		echo -e "\t\t[+] Nuclei tomcat $proto_http $ip:$port"	
+		echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"	
 		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/tomcat_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt &
 			
 		waitWeb 1.5
@@ -640,7 +641,7 @@ function enumeracionTomcat () {
 			sleep 1;		
 
 		if [  "$EXTRATEST" == "oscp" ]; then	
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 			greprc=$?
 			if [[ $greprc -eq 0  ]];then #		
 				echo "CMS detected ($url)"
@@ -667,7 +668,7 @@ function enumeracionSAP () {
 		SAP-scan -url=$proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt &
 
 		waitWeb 1.5
-		echo -e "\t\t[+] Nuclei SAP $proto_http $ip:$port"	
+		echo -e "\t\t[+] Nuclei SAP $proto_http $host:$port"	
 		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-nuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-nuclei.txt &
 		
 		waitWeb 1.5
@@ -692,7 +693,7 @@ function enumeracionCMS () {
    	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"  ]]; then
 		touch "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"
 		 #######  drupal  ######
-		grep -qi drupal logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi drupal logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 
@@ -706,7 +707,7 @@ function enumeracionCMS () {
 		fi
 
 		#######  API  ######
-		egrep -qi 'api-endpoint|Express' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		egrep -qi 'api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 			echo -e "\t\t[+] API test ("$proto_http"://"$host":"$port")"
@@ -715,7 +716,7 @@ function enumeracionCMS () {
 
 		
 		#######  yii  ######
-		grep -qi yii logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi yii logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 
@@ -726,7 +727,7 @@ function enumeracionCMS () {
 		fi
 
 		#######  laravel  ######
-		grep -qi laravel logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi laravel logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 
@@ -736,7 +737,7 @@ function enumeracionCMS () {
 		fi
 
 		#######  chamilo  ######
-		grep -qi Chamilo logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi Chamilo logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 			echo -e "\t[+] Revisando vulnerabilidades de Chamilo ($host)"		
@@ -746,7 +747,7 @@ function enumeracionCMS () {
 		fi
 
 		#######  wordpress  ######
-		grep -qi wordpress logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi wordpress logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"		
@@ -799,7 +800,7 @@ function enumeracionCMS () {
 		###################################	 
 
 		#######  citrix  ######
-		grep -qi citrix logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi citrix logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 								
 			echo -e "\t\t[+] Revisando vulnerabilidades de citrix ($host)"        
@@ -808,7 +809,7 @@ function enumeracionCMS () {
 		###################################	
 
 		#######  hadoop  ######
-		grep -qi 'Hadoop Administration' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi 'Hadoop Administration' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 								
 			echo -e "\t\t[+] Revisando vulnerabilidades de Hadoop ($host)"        
@@ -821,7 +822,7 @@ function enumeracionCMS () {
 		###################################	
 
 		#######  Hadoop YARN ResourceManager  ######
-		grep -qi 'YARN' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi 'YARN' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 								
 			echo -e "\t\t[+] Revisando vulnerabilidades de Hadoop YARN ResourceManager ($host)"        
@@ -831,7 +832,7 @@ function enumeracionCMS () {
 
 
 		#######  Pulse secure  ######
-		grep -qi pulse logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi pulse logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 								
 			echo -e "\t\t[+] Revisando vulnerabilidades de Pulse Secure ($host)"        
@@ -842,7 +843,7 @@ function enumeracionCMS () {
 
 
 		#######  OWA  ######
-		egrep -qi "Outlook|owa" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		egrep -qi "Outlook|owa" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 		
 			echo -e "\t\t[+] Revisando vulnerabilidades de OWA($host)"
@@ -869,7 +870,7 @@ function enumeracionCMS () {
 
 
 		#######  joomla  ######
-		grep -qi joomla logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi joomla logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 										
 			echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
@@ -890,7 +891,7 @@ function enumeracionCMS () {
 		###################################	
 
 		#######  WAMPSERVER  ######
-		grep -qi WAMPSERVER logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi WAMPSERVER logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 										
 			echo -e "\t\t[+] Enumerando WAMPSERVER ($host)"
@@ -900,7 +901,7 @@ function enumeracionCMS () {
 
 
 		#######  BIG-IP F5  ######
-		grep -qi "BIG-IP" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		grep -qi "BIG-IP" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 		
 			echo -e "\t\t[+] Revisando vulnerabilidades de BIG-IP F5  ($host)"        
@@ -947,7 +948,7 @@ function enumeracionIOT ()
 
    #1: si no existe log 
    	if [[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_SirepRAT.txt"  ]]; then
-		egrep -iq "Windows Device Portal" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt 
+		egrep -iq "Windows Device Portal" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 
 		greprc=$?
 		if [[ $greprc -eq 0 && ! -f .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  ]];then # si el banner es Apache y no se enumero antes				
 			echo -e "\t\t[+] Revisando SirepRAT ($host)"
@@ -960,7 +961,7 @@ function enumeracionIOT ()
 
 	if [[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_backdoorFabrica.txt"  ]]; then
 		#######  DLINK backdoor ######
-		respuesta=`grep -i alphanetworks logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt`
+		respuesta=`grep -i alphanetworks logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt`
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then 		
 			echo -e "\t\t$OKRED[!] DLINK Vulnerable detectado \n $RESET"						
@@ -982,25 +983,25 @@ echo "URL:$URL TARGETS:$TARGETS MODE:$MODE DOMINIO:$DOMINIO PROXYCHAINS:$PROXYCH
 # 192.168.0.1:80:http
 # www.ejemplo.com:443:https
 for line in $(cat $TARGETS); do    	
-	ip=`echo $line | cut -f1 -d":"`
+	host=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
 	#Si no existe log (primera corrida por IP)
-	if [[ ! -e "logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData.txt"  ]]; then
-		egrep -iq "//$ip" servicios/webApp.txt 2>/dev/null
+	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt"  ]]; then
+		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?
 		if [[ $greprc -eq 0 && -z "$URL" ]];then 
-			echo -e "\t[+] host $ip esta en la lista webApp.txt escaner por separado1 \n"
+			echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado1 \n"
 		else
 			waitWeb 0.5
-			echo -e "[+]Escaneando $ip $port ($proto_http)"
-			if [[ ! -e "logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData.txt" ]]; then
+			echo -e "[+]Escaneando $host $port ($proto_http)"
+			if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt" ]]; then
 				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
-				$proxychains webData -proto $proto_http -target $ip -port $port -path $path_web -logFile logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 4 > logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt 2>/dev/null &
+				$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 4 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 					echo -e "\t[+]Obteniendo dominios del certificado SSL"
-					$proxychains get_ssl_cert $ip $port  > logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_cert.txt  2>/dev/null &
+					$proxychains get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  2>/dev/null &
 				fi  ##### extract domains certificate	
 			fi
 		fi	
@@ -1009,49 +1010,50 @@ done
 
 waitFinish
 
+
 ################ buscar dominios y host virtuales
 for line in $(cat $TARGETS); do  	
-	ip=`echo $line | cut -f1 -d":"`
+	host=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`	
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
 	#Verificar que no se obtuvo ese dato
-	if [ -e logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_vhosts.txt ]; then
+	if [ -e logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt ]; then
 		echo "ya se reviso2"
 	else
-		egrep -iq "apache|nginx|kong|IIS" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+		egrep -iq "apache|nginx|kong|IIS" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?		
 		if [[ "$HOSTING" == 'n' ]] && [[ $greprc -eq 0 ]]; then
-			echo -e "\t[+]  Buscando hosts virtuales en $ip:$port"
+			echo -e "\t[+]  Buscando hosts virtuales en $host:$port"
 			waitWeb 1.5
-			nmap -Pn -sV -n -p $port $ip 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_domainNmap.txt &
-			grep 'Dominio identificado' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | cut -d "^" -f3 | uniq > logs/enumeracion/"$ip"_web_domainWebData.txt
+			nmap -Pn -sV -n -p $port $host 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_domainNmap.txt &
+			grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "^" -f3 | uniq > logs/enumeracion/"$host"_web_domainWebData.txt
 		fi																											
 									
-		if [[ "$IP_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
-			echo -e "\t[+] Fuzzing DOMINIO: $DOMINIO en busca de vhost ($proto_http://$ip )"
+		if [[ "$host_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
+			echo -e "\t[+] Fuzzing DOMINIO: $DOMINIO en busca de vhost ($proto_http://$host )"
 			echo -e "\t[+] baseline"
-			wfuzz -c -w /usr/share/lanscanner/vhost-non-exist.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$ip -t 100 -f logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_vhosts~baseline.txt	2>/dev/null
-			words=`cat logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_vhosts~baseline.txt | grep 'C=' | awk '{print $5}'`
+			wfuzz -c -w /usr/share/lanscanner/vhost-non-exist.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$host -t 100 -f logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts~baseline.txt	2>/dev/null
+			words=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts~baseline.txt | grep 'C=' | awk '{print $5}'`
 			echo "words $words"
 
 			cat importarMaltego/subdominios.csv | cut -d ',' -f2 | cut -d '.' -f1 | sort |uniq > subdominios.txt
 			cat /usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt >> subdominios.txt
 			
 			echo -e "\t[+] Fuzz"
-			wfuzz -c -w subdominios.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$ip -t 100 --hw $words --hc 401,400 -f logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_vhosts.txt	2>&1 >/dev/null
-			grep 'Ch' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_vhosts.txt | grep -v 'Word' | awk '{print $9}' | tr -d '"' > .enumeracion/"$ip"_"$port"_vhosts.txt
-			vhosts=`cat .enumeracion/"$ip"_"$port"_vhosts.txt`
+			wfuzz -c -w subdominios.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$host -t 100 --hw $words --hc 401,400 -f logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt	2>&1 >/dev/null
+			grep 'Ch' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt | grep -v 'Word' | awk '{print $9}' | tr -d '"' > .enumeracion/"$host"_"$port"_vhosts.txt
+			vhosts=`cat .enumeracion/"$host"_"$port"_vhosts.txt`
 			vhosts=$(echo $vhosts | sed 's/_/-/g')
 
 			for vhost in $vhosts; do					
 				echo -e "\t\t[+] Adicionando vhost $vhost a los targets"	
-				echo "$ip $vhost.$DOMINIO" >> /etc/hosts
-				echo "$ip,$vhost.$DOMINIO,vhost" >> $IP_LIST_FILE
+				echo "$host $vhost.$DOMINIO" >> /etc/hosts
+				echo "$host,$vhost.$DOMINIO,vhost" >> $host_LIST_FILE
 			done
 		fi	#importarMaltego
 	fi					
-done #ip
+done #host
 ######################
 
 waitFinish
@@ -1070,8 +1072,7 @@ for line in $(cat $TARGETS); do
 
 		echo -e "\n$OKGREEN[+] ############## IDENTIFICAR DOMINIOS ASOCIADOS AL IP $host:$port $RESET########"
 		#Certificado SSL + nmap + webdata
-		grep -v 'failed' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null
-		DOMINIOS_SSL=`cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
+		DOMINIOS_SSL=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null| tr "'" '"'| jq -r '.subdomains[]' 2>/dev/null | uniq` #Lista un dominio por linea
 		DOMINIO_INTERNO_NMAP=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_domainNmap.txt 2>/dev/null`
 		DOMINIO_INTERNO_WEBDATA=`cat logs/enumeracion/"$host"_web_domainWebData.txt 2>/dev/null`
 
@@ -1141,9 +1142,9 @@ for line in $(cat $TARGETS); do
 							echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado2 \n"
 						else
 							#Verificar que no se obtuvo ese dato ya
-							if [ ! -e "logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData.txt"  ]; then
+							if [ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt"  ]; then
 								echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
-								$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt  2>/dev/null &
+								$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt  2>/dev/null &
 							fi
 						fi
 					fi
@@ -1235,13 +1236,14 @@ for line in $(cat $TARGETS); do
 			
 			#Verificar que no siempre devuelve 200 OK
 			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
-			if [[ "${status_code_nonexist,,}" == *"error"* ]]; then # error de red
+			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
+
 				echo "intentar una vez mas"
 				sleep 1
 				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
 			fi
 
-			if [[ "${status_code_nonexist,,}" == *"error"* ]]; then # error de red
+			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
 				echo "intentar ultima vez"
 				sleep 1
 				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
@@ -1253,26 +1255,26 @@ for line in $(cat $TARGETS); do
 				msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
 			fi
 
-			only_status=`echo $status_code_nonexist | cut -d ':' -f1`
+			only_status_code_nonexist=`echo $status_code_nonexist | cut -d ':' -f1`
 
-			if [[ "$only_status" == '200' &&  -z "$msg_error_404" ]]; then 
-				echo -n "~Always200-OK" >> logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
-				sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt #borrar salto de linea
+			if [[ "$only_status_code_nonexist" == '200' &&  -z "$msg_error_404" ]]; then 
+				echo -n "~Always200-OK" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+				sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
 			fi
 			
 			if [ ! -z "$msg_error_404" ];then
 				param_msg_error="-error404 $msg_error_404" #parametro para web-buster
-				only_status=404
-				echo "only_status $only_status"
+				only_status_code_nonexist=404
+				echo "only_status_code_nonexist $only_status_code_nonexist"
 			fi
 			
 			# si no enumeramos mas antes
 			if [ ! -f "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt" ];then
-				$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt 2>/dev/null &
+				$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
-			if [[ "$only_status" == "404"  ||  "$status_code_nonexist" == *"303"*  ]];then 
+			if [[ "$only_status_code_nonexist" == "404"  ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"302"*  ]];then 
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 				webScaneado=1
 				mkdir -p webTrack/$host 2>/dev/null
@@ -1288,7 +1290,7 @@ for line in $(cat $TARGETS); do
 						read resp
 					else
 						# si no es CMS descargar con httrack
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 						greprc=$?						
 						if [[ $greprc -eq 1 ]]; then	
 							echo -e "\t\t[+] httrack ($host )"
@@ -1301,9 +1303,7 @@ for line in $(cat $TARGETS); do
 								extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
 							done
 							####################	
-						fi	
-				
-									
+						fi						
 					fi											
 				fi	#total && URL
 
@@ -1317,23 +1317,39 @@ for line in $(cat $TARGETS); do
 					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port".html 
 				fi
 
-				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port".html` 							
-				md5=`echo $checksumline | awk {'print $1'}` 													
+																
+				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port".html`
+				md5=`echo $checksumline | awk {'print $1'}`
 				egrep -iq $md5 webTrack/$host/checksumsEscaneados.txt
-				noEscaneado=$?
+				md5found=$?
+				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
 
-				if [[ $noEscaneado -eq 0 ]];then 
-					echo -n "~sameHOST" >> logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
-					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt #borrar salto de linea
+				if [ $md5found -eq 0 ]; then
+					noEscaneado=0
+				else
+					noEscaneado=1
 				fi
 
-				egrep -iq "no Route matched with those values" webTrack/$host/"$proto_http"-"$host"-"$port".html
-				greprc=$?
-				if [[ $greprc -eq 0  ]];then 
-					noEscaneado=1
-				fi	
+				for webserver_title in "${webservers_defaultTitles[@]}"; do
+					if [[ "$title" == *"$webserver_title"* ]]; then
+						noEscaneado=1
+						break
+					fi
+				done
+
+				#mismo host
+				if [[ $md5found -eq 0 ]];then  
+					echo -n "~sameHOST" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
+				fi
+
+				# egrep -iq "no Route matched with those values" webTrack/$host/"$proto_http"-"$host"-"$port".html
+				# greprc=$?
+				# if [[ $greprc -eq 0  ]];then 
+				# 	noEscaneado=1
+				# fi	
 							
-				grep "Dominio identificado" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+				grep "Dominio identificado" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 				
 				greprc=$? 	# 1= no coincide 		
 				result=$(formato_ip "$host")			
@@ -1343,10 +1359,10 @@ for line in $(cat $TARGETS); do
 					ip2domainRedirect=0
 				fi
 
-				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|Dominio identificado" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt #verificar si debemos escanear
+				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|Dominio identificado" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #verificar si debemos escanear
 				hostOK=$?
 				
-				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 				noFirewall=$?				
 				# 1= no coincide (no redirecciona a otro dominio o es error de proxy)							
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
@@ -1380,7 +1396,6 @@ for line in $(cat $TARGETS); do
 					echo -e "\t\t[+] HTTP methods ($proto_http://$host:$port) "			
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
-					#extractLinks.py logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null | egrep -v 'microsoft|verisign.com|certisur.com|internic.net|paessler.com|localhost|youtube|facebook|linkedin|instagram|redhat|unpkg|browser-update|ibm.com|cpanel.net|macromedia.com' 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
 					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 					
@@ -1390,10 +1405,10 @@ for line in $(cat $TARGETS); do
 						wafw00f $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt &							
 					fi	
 					
-					egrep -i "httpfileserver" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs" # solo el segundo egrep poner "-q"
+					egrep -i "httpfileserver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then #															
-						echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " > .vulnerabilidades/"$ip"_"$port"_ProFTPD-RCE.txt
+						echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " > .vulnerabilidades/"$host"_"$port"_ProFTPD-RCE.txt
 					fi
 
 					enumeracionCMS "$proto_http" $host $port
@@ -1403,8 +1418,8 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ###### 
-					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt"
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs" # solo el segundo egrep poner "-q"
+					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1413,7 +1428,7 @@ for line in $(cat $TARGETS); do
 					####################################	
 
 					#######  if the server is SharePoint ######
-					grep -i SharePoint logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"  # no redirecciona
+					grep -i SharePoint logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint 																															
 						checkRAM
@@ -1422,7 +1437,7 @@ for line in $(cat $TARGETS); do
 					####################################
 					
 					#######  if the server is IIS ######
-					grep -i IIS logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes															
 						checkRAM
@@ -1434,7 +1449,7 @@ for line in $(cat $TARGETS); do
 					curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt &
 
 					#######  if the server is tomcat ######
-					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly|Payara" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt| egrep -qiv "302 Found" 
+					egrep -i "GlassFish|Coyote|Tomcat|Resin|JBoss|WildFly|Payara" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt| egrep -qiv "302 Found" 
 					greprc=$?				
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 						checkRAM
@@ -1444,16 +1459,16 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					#######  if the server is SAP ######
-					egrep -i "SAP NetWeaver" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "302 Found" 
+					egrep -i "SAP NetWeaver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found" 
 					greprc=$?				
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes								
 						checkRAM
 						enumeracionSAP "$proto_http" $host $port
 						echo -e "\t\t[+] http-sap-netweaver-leak"
-						$proxychains nmap -n -Pn -sT -p $port --script http-sap-netweaver-leak  $ip > logs/vulnerabilidades/"$ip"_"$port"_sapNetweaverLeak.txt
+						$proxychains nmap -n -Pn -sT -p $port --script http-sap-netweaver-leak  $host > logs/vulnerabilidades/"$host"_"$port"_sapNetweaverLeak.txt
 
 						echo -e "\t\t[+] Test default passwords" 
-						$proxychains msfconsole -x "use auxiliary/scanner/sap/sap_soap_rfc_brute_login;set RHOSTS $ip;set RPORT $port;exploit;exit" > logs/vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt 2>/dev/null &	
+						$proxychains msfconsole -x "use auxiliary/scanner/sap/sap_soap_rfc_brute_login;set RHOSTS $host;set RPORT $port;exploit;exit" > logs/vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null &	
 						#auxiliary/scanner/sap/sap_soap_rfc_read_table 
 						#set FIELDS MANDT, BNAME, UFLAG, BCODE, PASSCODE, PWDSALTEDHASH
 					fi									
@@ -1461,13 +1476,13 @@ for line in $(cat $TARGETS); do
 														
 
 					# if not technology not reconigzed	
-					egrep -qi "unsafe legacy renegotiation disabled" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt  2>/dev/null 
+					egrep -qi "unsafe legacy renegotiation disabled" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt  2>/dev/null 
 					greprc=$?
 					if [[ $greprc -eq 0 ]] ; then
-						cp .enumeracion/"$host"_80_webData.txt logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt
+						cp .enumeracion/"$host"_80_webData.txt logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 					fi
 
-					serverType=`cat logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | cut -d "~" -f2`
+					serverType=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "~" -f2`
 					echo -e "\t\t[+] serverType $serverType"
 					if [  -z "$serverType" ]; then
 						checkRAM
@@ -1495,7 +1510,7 @@ for line in $(cat $TARGETS); do
 						#check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt 
 						#grep -iv error logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt 						
 						checkRAM
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 						greprc=$?					
 						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then	
 							##########################################
@@ -1653,9 +1668,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			echo -e "Parse $host:$port"
 			
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt .enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${ip}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$ip"_"$port"_passwordDefecto.txt
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_configuracionInseguraYii.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiTest.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraYii.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_backupweb.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webadmin.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webdirectorios.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
@@ -1669,22 +1681,25 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_asp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_cert.txt" ] && grep commonName logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2> /dev/null
-			[ ! -e "servicios/cgi.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
+			[ ! -e ".enumeracion2/${host}_${port}_shortname.txt" ] && egrep '\[+\]' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_archivosCGI.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
+			
+			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_configuracionInseguraYii.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiTest.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraYii.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_backupweb.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosDefecto.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosPeligrosos.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
-			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webshell.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_IISwebdavVulnerable.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_nmapHTTPvuln.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_nmapHTTPvuln.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_sapNetweaverLeak.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sapNetweaverLeak.txt
-			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt 2>/dev/null
-			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-45.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-45.txt 2>/dev/null
-			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_confTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt 2>/dev/null
-			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_vulTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_confTLS.txt" ] && grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_vulTLS.txt" ] && grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt && grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_sap-scan.txt" ] && egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt 2>/dev/null
@@ -1694,7 +1709,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_bigIPVul.txt" ] && egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_bigIPVul.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_bigIPVul.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_pulseVul.txt" ] && egrep --color=never ":x:" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_pulseVul.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_pulseVul.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_apacheStruts.txt" ] && egrep -i "Apache Struts Vulnerable" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_shortname.txt" ] && egrep '\[+\]' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_cve-2021-41773.txt" ] && egrep uid logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cve-2021-41773.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cve-2021-41773.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_CGIServlet.txt" ] && egrep 'WEB-INF' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_proxynoshell.txt" ] && egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_proxynoshell.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_proxynoshell.txt 2>/dev/null
@@ -1706,7 +1720,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_xml-rpc-habilitado.txt" ] && grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-habilitado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-habilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_xml-rpc-login.txt" ] && grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_chamilo-CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_chamilo-CVE~2023~34960.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_tomcatNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_joomlaNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomlaNuclei.txt 2>/dev/null
@@ -1715,10 +1728,14 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_yiiNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_laravelNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_laravelNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_laravelNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_laravel-rce-CVE-2021-3129.txt" ] && grep root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_laravel-rce-CVE-2021-3129.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_laravel-rce-CVE-2021-3129.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData2.txt .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt
+			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-45.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-45.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_confTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt 2>/dev/null
+			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_vulTLS.txt" ] && grep --color=never 'Grade cap ' -m1 -b1 -A20 logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null
 
+			[ ! -e "servicios/cgi.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
+			
 
 		if [ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_configuracionInseguraWordpress.txt" ]; then
 			#####wordpress
@@ -1791,7 +1808,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				fi
 				#exploit cadaver
 
-				grep -i IIS logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+				grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
 				greprc=$?
 				if [[ $greprc -eq 0  ]];then 															
 					explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt &
@@ -1908,67 +1925,65 @@ if [[ $webScaneado -eq 1 ]]; then
 	#grep panales admins que no esten en servicios/webApp.txt
 	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py | grep -vFf servicios/webApp.txt >> servicios/admin-web-url.txt #extraer url
 
-
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
-	if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
-		echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-		cat .enumeracion/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq > logs/enumeracion/webdirectorios_web_uniq.txt
-		while IFS= read -r line
-		do		
-			echo -e "\n\t########### $line #######"										
-			#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
-			while true; do
-				free_ram=`free -m | grep -i mem | awk '{print $7}'`		
-				script_instancias=$((`ps aux | grep perl | wc -l` - 1)) 		
-				if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
-				then
-					if [[ ${line} != *"ListadoDirectorios"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
-						proto_http=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
-						host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
-						host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
-						port=`echo $host_port | cut -d ":" -f 2`		
-						path_web2=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
+	# if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
+	# 	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
+	# 	cat .enumeracion/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq >> logs/enumeracion/webdirectorios_web_uniq.txt
+	# 	while IFS= read -r line
+	# 	do		
+	# 		echo -e "\n\t########### $line #######"										
+	# 		#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
+	# 		while true; do
+	# 			free_ram=`free -m | grep -i mem | awk '{print $7}'`		
+	# 			script_instancias=$((`ps aux | grep perl | wc -l` - 1)) 		
+	# 			if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
+	# 			then
+	# 				if [[ ${line} != *"ListadoDirectorios"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
+	# 					proto_http=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
+	# 					host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80							
+	# 					host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
+	# 					port=`echo $host_port | cut -d ":" -f 2`		
+	# 					path_web2=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
 								
-						if [[  ${port} == *"."* ]]; then
-							if [[ ${proto_http} == *"https"*  ]]; then
-								port="443"
-							else
-								port="80"
-							fi
-						fi
+	# 					if [[  ${port} == *"."* ]]; then
+	# 						if [[ ${proto_http} == *"https"*  ]]; then
+	# 							port="443"
+	# 						else
+	# 							port="80"
+	# 						fi
+	# 					fi
 					
-						if [[ ${path_web2} != *"."* && ${path_web2} != *"manual"* && ${path_web2} != *"dashboard"* && ${path_web2} != *"docs"* && ${path_web2} != *"license"* && ${path_web2} != *"wp"* && ${path_web2} != *"aspnet_client"*  && ${path_web2} != *"autodiscover"*  && ${path_web2} != *"manager/html"* && ${path_web2} != *"manual"* && ${path_web2} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
+	# 					if [[ ${path_web2} != *"."* && ${path_web2} != *"manual"* && ${path_web2} != *"dashboard"* && ${path_web2} != *"docs"* && ${path_web2} != *"license"* && ${path_web2} != *"wp"* && ${path_web2} != *"aspnet_client"*  && ${path_web2} != *"autodiscover"*  && ${path_web2} != *"manager/html"* && ${path_web2} != *"manual"* && ${path_web2} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
 
-							egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$ip"_"$port-$path_web_sin_slash"_webData2.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-							greprc=$?						
-							if [[ $greprc -eq 1 ]]; then	
-								waitWeb 1.5
-								echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web2)" 
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios2.txt &
-								web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos2.txt &
-							fi		
+	# 						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+	# 						greprc=$?						
+	# 						if [[ $greprc -eq 1 ]]; then	
+	# 							waitWeb 1.5
+	# 							echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web2)" 
+	# 							web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios2.txt &
+	# 							web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos2.txt &
+	# 						fi		
 							
-							#TODO
-							#curl -F "files=@/usr/share/lanscanner/info.php" http://10.11.1.123/books/apps/jquery-file-upload/server/php/index.php > logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
-							#grep "info.php" logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt > .vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt		
-						else
-							echo -e "\t[-] No vale la pena escanear este directorio "
-						fi				
-						sleep 1
-					else
-						echo -e "\t[-] El listado de directorios esta activo o es un directorio de wordpress "
-					fi #revisar q el listado de directorio esta habilitado
+	# 						#TODO
+	# 						#curl -F "files=@/usr/share/lanscanner/info.php" http://10.11.1.123/books/apps/jquery-file-upload/server/php/index.php > logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
+	# 						#grep "info.php" logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt > .vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt		
+	# 					else
+	# 						echo -e "\t[-] No vale la pena escanear este directorio "
+	# 					fi				
+	# 					sleep 1
+	# 				else
+	# 					echo -e "\t[-] El listado de directorios esta activo o es un directorio de wordpress "
+	# 				fi #revisar q el listado de directorio esta habilitado
 					
-					break		
-				else				
-					script_instancias=`ps aux | grep perl | wc -l`
-					echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb"
-					sleep 3									
-				fi	
-			done #while				
-		done < logs/enumeracion/webdirectorios_web_uniq.txt
-			
-	fi  
+	# 				break		
+	# 			else				
+	# 				script_instancias=`ps aux | grep perl | wc -l`
+	# 				echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb"
+	# 				sleep 3									
+	# 			fi	
+	# 		done #while				
+	# 	done < logs/enumeracion/webdirectorios_web_uniq.txt	
+	# fi  
 
 fi #sitio escaneado
 
