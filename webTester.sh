@@ -996,7 +996,7 @@ for line in $(cat $TARGETS); do
 		else
 			waitWeb 0.5
 			echo -e "[+]Escaneando $host $port ($proto_http)"
-			if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt" ]]; then
+			if [[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ]]; then
 				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"	
 				$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 4 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
@@ -1142,7 +1142,7 @@ for line in $(cat $TARGETS); do
 							echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado2 \n"
 						else
 							#Verificar que no se obtuvo ese dato ya
-							if [ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt"  ]; then
+							if [ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt"  ]; then
 								echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
 								$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt  2>/dev/null &
 							fi
@@ -1206,7 +1206,7 @@ for line in $(cat $TARGETS); do
 	ip=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`
 	proto_http=`echo $line | cut -f3 -d":"`
-	echo -e "\n[+] Escaneando $ip:$port ($proto_http)"
+	echo -e "\n[+] Escaneando ($proto_http $ip:$port $path_web)"
 
 												
 	if [ "$VERBOSE" == '1' ]; then  echo "IP_LIST_FILE=$IP_LIST_FILE "; fi 
@@ -1235,18 +1235,18 @@ for line in $(cat $TARGETS); do
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then 
 			
 			#Verificar que no siempre devuelve 200 OK
-			status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+			status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
 			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
 
 				echo "intentar una vez mas"
 				sleep 1
-				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+				status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
 			fi
 
 			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
 				echo "intentar ultima vez"
 				sleep 1
-				status_code_nonexist=`getStatus -url $proto_http://$host:$port/nonexisten45s/`
+				status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
 			fi
 			
 			msg_error_404=''
@@ -1269,18 +1269,18 @@ for line in $(cat $TARGETS); do
 			fi
 			
 			# si no enumeramos mas antes
-			if [ ! -f "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt" ];then
+			if [ ! -f ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ];then
 				$proxychains webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2  > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
 			fi
 
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://$host:$port/nonexisten45s/ status_code $status_code_nonexist "; fi		
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_code $status_code_nonexist "; fi		
 			if [[ "$only_status_code_nonexist" == "404"  ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"302"*  ]];then 
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi		
 				webScaneado=1
 				mkdir -p webTrack/$host 2>/dev/null
 				mkdir -p webClone/$host 2>/dev/null			
 				mkdir -p archivos/$host 2>/dev/null
-				touch webTrack/$host/checksumsEscaneados.txt
+				touch webTrack/checksumsEscaneados.txt
 
 				if [[ "$MODE" == "total" &&  ! -z "$URL" ]];then
 					echo -e "\t[+] Clonando: $URL"
@@ -1308,19 +1308,19 @@ for line in $(cat $TARGETS); do
 				fi	#total && URL
 
 				
-				echo -e "\t[+] Navegacion forzada en host: $proto_http://$host:$port"
+				echo -e "\t[+] Navegacion forzada en host: $proto_http://${host}:${port}${path_web}"
 				checkRAM		
 				#Borrar lineas que cambian en cada peticion						
-				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port".html
+				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 							
-				if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port".html ]];then
-					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port".html 
+				if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
+					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html 
 				fi
 
 																
-				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port".html`
+				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
 				md5=`echo $checksumline | awk {'print $1'}`
-				egrep -iq $md5 webTrack/$host/checksumsEscaneados.txt
+				egrep -iq $md5 webTrack/checksumsEscaneados.txt
 				md5found=$?
 				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
 
@@ -1343,7 +1343,7 @@ for line in $(cat $TARGETS); do
 					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
 				fi
 
-				# egrep -iq "no Route matched with those values" webTrack/$host/"$proto_http"-"$host"-"$port".html
+				# egrep -iq "no Route matched with those values" webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 				# greprc=$?
 				# if [[ $greprc -eq 0  ]];then 
 				# 	noEscaneado=1
@@ -1368,7 +1368,7 @@ for line in $(cat $TARGETS); do
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
 				
 				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 && $noFirewall -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
-					echo $checksumline >> webTrack/$host/checksumsEscaneados.txt	
+					echo $checksumline >> webTrack/checksumsEscaneados.txt	
 
 					####### wget ##### (usado para control si es un mismo sitio web es el mismo)
 					###### fuzz directorios personalizados ###
@@ -1700,7 +1700,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_IISwebdavVulnerable.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_nmapHTTPvuln.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_nmapHTTPvuln.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_nmapHTTPvuln.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_sapNetweaverLeak.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sapNetweaverLeak.txt 2>/dev/null |  egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sapNetweaverLeak.txt
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_confTLS.txt" ] && grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_confTLS.txt" ] && grep -i --color=never "incorrecta" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt 2>/dev/null | egrep -iv "Vulnerable a" | cut -d '.' -f2-4 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_confTLS.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_vulTLS.txt" ] && grep -i --color=never "Certificado expirado" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt && grep -i --color=never "VULNERABLE" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null | cut -d '.' -f2-4 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_vulTLS.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_sap-scan.txt" ] && egrep --color=never "200|vulnerable" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_citrixVul.txt" ] && egrep --color=never "root" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_citrixVul.txt 2>/dev/null | grep -vi 'error' > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_citrixVul.txt
@@ -1922,8 +1922,8 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	#grep panales admins que no esten en servicios/webApp.txt
-	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" .enumeracion/*webData.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py | grep -vFf servicios/webApp.txt >> servicios/admin-web-url.txt #extraer url
+	egrep -ira "initium|microapp|server|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py >> servicios/admin-web-url.txt #extraer url
+	
 
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 	# if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then 		
@@ -2097,21 +2097,21 @@ insert_data
 
 if [[ $webScaneado -eq 1 ]]; then
 	##########  filtrar los directorios de segundo nivel que respondieron 200 OK (llevarlos a .enumeracion) ################
-	touch logs/enumeracion/canary_webdirectorios2.txt # se necesita al menos 2 archivos *_webdirectorios2.txt
-	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web (directorios de segundo nivel)"
-	egrep --color=never "^200" logs/enumeracion/*webdirectorios2.txt 2>/dev/null| while read -r line ; do	
-		#line = 200	http://sigec.ruralytierras.gob.bo:80/login/index/
-		#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
-		archivo_origen=`echo $line | cut -d ':' -f1`
-		contenido=`echo $line | cut -d ':' -f2-6`    
-		#echo "archivo_origen $archivo_origen"
-		archivo_destino=$archivo_origen       
-		archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
-		#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
-		#echo "contenido $contenido"
-		echo $contenido >> $archivo_destino        
-	done
-	insert_data
+	# touch logs/enumeracion/canary_webdirectorios2.txt # se necesita al menos 2 archivos *_webdirectorios2.txt
+	# echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web (directorios de segundo nivel)"
+	# egrep --color=never "^200" logs/enumeracion/*webdirectorios2.txt 2>/dev/null| while read -r line ; do	
+	# 	#line = 200	http://sigec.ruralytierras.gob.bo:80/login/index/
+	# 	#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"		
+	# 	archivo_origen=`echo $line | cut -d ':' -f1`
+	# 	contenido=`echo $line | cut -d ':' -f2-6`    
+	# 	#echo "archivo_origen $archivo_origen"
+	# 	archivo_destino=$archivo_origen       
+	# 	archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}   	    
+	# 	#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
+	# 	#echo "contenido $contenido"
+	# 	echo $contenido >> $archivo_destino        
+	# done
+	#insert_data
 
 
 	############ vulnerabilidades relacionados a servidores/aplicaciones web ########
