@@ -420,53 +420,45 @@ function enumeracionIIS () {
 	fi
 
     
+	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
+		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+		greprc=$?						
+		if [[ $greprc -eq 1 ]]; then	
 
-	if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
 
-		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
-
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-			greprc=$?						
-			if [[ $greprc -eq 1 ]]; then	
+				waitWeb 1.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
 				waitWeb 1.5
 				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-			fi			
-		fi
 
-		waitWeb 1.5
-		echo -e "\t\t[+] Revisando archivos por defecto ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
-		
-		echo -e "\t\t[+] Revisando vulnerabilidad HTTP.sys ($host - IIS)"
-		echo "$proxychains  nmap -p $port --script http-vuln-cve2015-1635.nse $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
-		$proxychains nmap -n -Pn -p $port --script http-vuln-cve2015-1635.nse $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt &
-								
-		waitWeb 1.5
-		echo -e "\t\t[+] Revisando la existencia de backdoors ($host - IIS)"								
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backdoorIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando archivos por defecto ($host - IIS)"
+				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+				
+				echo -e "\t\t[+] Revisando vulnerabilidad HTTP.sys ($host - IIS)"
+				echo "$proxychains  nmap -p $port --script http-vuln-cve2015-1635.nse $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
+				$proxychains nmap -n -Pn -p $port --script http-vuln-cve2015-1635.nse $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt &
+										
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando la existencia de backdoors ($host - IIS)"								
+				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backdoorIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
 
-		waitWeb 1.5
-		echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backupIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
-		
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
+				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backupIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
 
-		if [  "$EXTRATEST" == "oscp" ]; then	
-			
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-			greprc=$?
-			if [[ $greprc -eq 0  ]];then #		
-				echo "CMS detected ($url)"
-			else
+				#iis_shortname_scanner
+				$proxychains msfconsole -x "use auxiliary/scanner/http/iis_shortname_scanner;set RHOSTS $host;exploit;exit" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null &
+			fi  #total
+
+			if [ "$EXTRATEST" == "oscp" ]; then	
 				waitWeb 1.5
 				echo -e "\t\t[+] Revisando archivos aspx ($host - IIS)"
 				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module aspx -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt &
-			fi		
-		fi
-		
-		$proxychains msfconsole -x "use auxiliary/scanner/http/iis_shortname_scanner;set RHOSTS $host;exploit;exit" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null &
-		
-	fi      
+			fi #oscp
+		fi	#NO CMS				
+	fi	#hosting domains	
 
 }
 
@@ -521,13 +513,13 @@ function enumeracionApache () {
 	fi
 
 
-	if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
+	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
+		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+		greprc=$?						
+		if [[ $greprc -eq 1 ]]; then	
 
-		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
+			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
 
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-			greprc=$?						
-			if [[ $greprc -eq 1 ]]; then	
 				waitWeb 1.5
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
 				echo "web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
@@ -549,22 +541,16 @@ function enumeracionApache () {
 				echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)  " 
 				multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt 
 				grep vulnerable logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt 
+			fi  #total
 
-				if [ "$EXTRATEST" == "oscp" ]; then	
-					egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-					greprc=$?
-					if [[ $greprc -eq 0  ]];then #		
-						echo "CMS detected ($url)"
-					else
-						waitWeb 1.5
-						echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
-						web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt &
-					fi
-				fi #oscp
-			fi	#NO CMS				
-		fi							
-	fi  #total
-    
+			if [ "$EXTRATEST" == "oscp" ]; then	
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
+				web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt &
+				
+			fi #oscp
+		fi	#NO CMS				
+	fi	#hosting domains						
     
 	
 	if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
@@ -600,7 +586,7 @@ function enumeracionTomcat () {
    port=$3  
 
 	#1: si no existe log 
-   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt"  ]]; then
+   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
 		echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"   
 
 		$proxychains curl -k --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt &   
@@ -633,26 +619,33 @@ function enumeracionTomcat () {
 	fi
 
    
+	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then 
+		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+		greprc=$?						
+		if [[ $greprc -eq 1 ]]; then	
 
-    if [[ "$MODE" == "total" || ! -z "$URL" ]]; then				
-			waitWeb 1.5
-			echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"								
-			web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-			sleep 1;		
+			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
 
-		if [  "$EXTRATEST" == "oscp" ]; then	
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-			greprc=$?
-			if [[ $greprc -eq 0  ]];then #		
-				echo "CMS detected ($url)"
-			else
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"								
+				web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+				sleep 1;	
+				
+				waitWeb 1.5
+				echo -e "\t\t[+] Revisando archivos por defecto ($host - Tomcat)"
+				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+				
+				#iis_shortname_scanner
+				$proxychains msfconsole -x "use auxiliary/scanner/http/iis_shortname_scanner;set RHOSTS $host;exploit;exit" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null &
+			fi  #total
+
+			if [ "$EXTRATEST" == "oscp" ]; then	
 				waitWeb 1.5
 				echo -e "\t\t[+] Revisando archivos jsp ($host - tomcat)"
 				web-buster -target $host -port $port -proto $proto_http -path $path_web -module jsp -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt &
-			fi			
-		fi								
-	fi  
-	  
+			fi #oscp
+		fi	#NO CMS				
+	fi	#hosting domains
 }
 
 function enumeracionSAP () {  
@@ -675,7 +668,6 @@ function enumeracionSAP () {
 		echo -e "\t\t[+] Revisando archivos comunes de SAP ($host - SAP)"
 		web-buster -target $host -port $port -proto $proto_http -path $path_web -module sap -threads $hilos_web -redirects 0 -show404 -error404 'setValuesAutoCreation' >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt &
 	fi
-   
 }
 
 
