@@ -683,6 +683,9 @@ function enumeracionCMS () {
 
 	#1: si no existe log
    	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"  ]]; then
+		echo ""
+		pwd
+		echo ""
 		touch "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"
 		 #######  drupal  ######
 		grep -qi drupal logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
@@ -1269,7 +1272,7 @@ for line in $(cat $TARGETS); do
 			if [[ "$only_status_code_nonexist" == "404"  ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
-				#mkdir -p webTrack/$host 2>/dev/null
+				mkdir -p webTrack/$host 2>/dev/null
 				mkdir -p webClone/$host 2>/dev/null
 				mkdir -p archivos/$host 2>/dev/null
 				touch webTrack/checksumsEscaneados.txt
@@ -1305,13 +1308,13 @@ for line in $(cat $TARGETS); do
 				if  [ ! -z $DOMINIO ]; then # solo si se escanea con dominio controlar que no se repita los hosts para escaneasr
 			
 					#Borrar lineas que cambian en cada peticion
-					removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html-"$port"-"$path_web_sin_slash".html
+					removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 
-					if [[ ! -f webTrack/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html-"$port"-"$path_web_sin_slash".html ]];then
-						echo "no disponible" > webTrack/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html-"$port"-"$path_web_sin_slash".html
+					if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
+						echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 					fi
 
-					checksumline=`md5sum webTrack/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html-"$port"-"$path_web_sin_slash".html`
+					checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
 					md5=`echo $checksumline | awk {'print $1'}`
 					egrep -iq $md5 webTrack/checksumsEscaneados.txt
 					md5found=$?
@@ -1835,13 +1838,13 @@ if [[ $webScaneado -eq 1 ]]; then
 
 
 		# filtrar error de conexion a base de datos y otros errores
-		egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webTrack/* 2>/dev/null| sed 's/webTrack\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
+		egrep -ira --color=never "mysql_query| mysql_fetch_array|access denied for user|mysqli|Undefined index" webTrack/$DOMINIO/* 2>/dev/null| sed 's/webTrack\///g' >> .enumeracion/"$DOMINIO"_web_errores.txt
 
 		# correos presentes en los sitios web
-		grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webTrack/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
+		grep -Eirao "\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,6}\b" webTrack/$DOMINIO/* | cut -d ":" -f2 | egrep --color=never $"com|net|org|bo|es" | grep $DOMINIO |  sort |uniq  >> logs/enumeracion/"$DOMINIO"_web_correos.txt
 		cat  logs/enumeracion/"$DOMINIO"_correos_recon.txt .enumeracion2/*_correos_recon.txt 2>/dev/null | grep "$DOMINIO" | sed 's/x22//' |  sed 's/x2//' |  sort |uniq  > .enumeracion/"$DOMINIO"_consolidado_correos.txt
 
-		egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webTrack/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt
+		egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webTrack/$DOMINIO/* > .vulnerabilidades/"$DOMINIO"_aws_secrets.txt
 
 		echo -e "[+] Buscar datos sensible en archivos clonados"
 		#echo "cd webTrack/$DOMINIO"
