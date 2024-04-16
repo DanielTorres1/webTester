@@ -683,9 +683,6 @@ function enumeracionCMS () {
 
 	#1: si no existe log
    	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"  ]]; then
-		echo ""
-		pwd
-		echo ""
 		touch "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_CMScheck.txt"
 		 #######  drupal  ######
 		grep -qi drupal logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
@@ -1335,7 +1332,7 @@ for line in $(cat $TARGETS); do
 
 					#mismo host
 					if [[ $md5found -eq 0 ]];then
-						echo "md5found $md5found logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
+						echo "md5found $md5found webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html"
 						echo -n "~sameHOST" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 						sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
 					fi
