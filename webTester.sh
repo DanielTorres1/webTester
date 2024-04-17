@@ -704,7 +704,7 @@ function enumeracionCMS () {
 		fi
 
 		#######  API  ######
-		egrep -qi 'api-endpoint|Express|Microsoft-IIS' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+		egrep -qi 'api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] API test ("$proto_http"://"$host":"$port")"
@@ -1233,18 +1233,21 @@ for line in $(cat $TARGETS); do
 
 			#Verificar que no siempre devuelve 200 OK
 			status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
-			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
 
-				echo "intentar una vez mas"
-				sleep 1
-				status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
-			fi
+			if [ -z "$FORCE" ]; then  # no es escaneo de redes por internet
+				if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
+					echo "intentar una vez mas"
+					sleep 1
+					status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
+				fi
 
-			if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
-				echo "intentar ultima vez"
-				sleep 1
-				status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
+				if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
+					echo "intentar ultima vez"
+					sleep 1
+					status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
+				fi
 			fi
+			
 
 			msg_error_404=''
 			if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
@@ -1685,7 +1688,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_backupweb.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosDefecto.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosPeligrosos.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webshell.txt" ] && egrep --color=never "^200|^401" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
@@ -1987,21 +1990,21 @@ cd .enumeracion/
 	touch canary.txt # es necesario que exista al menos 2 archivos
 	echo '' > canary_cert.txt
 
-	grep --color=never -i "Dahua" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/dahua-web.txt
-	grep --color=never -i "Dell iDRAC" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/idrac.txt
-	grep --color=never -i "WebLogic Server" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/WebLogic.txt
-	grep --color=never -i "Grafana" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/Grafana.txt
-	grep --color=never -i "Fortinet" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/fortinet.txt
-	grep --color=never -i "hikvision" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/hikvision.txt
-	grep --color=never -i "optical network terminal" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/HUAWEI-AR.txt
+	grep --color=never -i "Dahua" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'   >> ../servicios/dahua-web.txt
+	grep --color=never -i "Dell iDRAC" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/idrac.txt
+	grep --color=never -i "WebLogic Server" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/WebLogic.txt
+	grep --color=never -i "Grafana" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/Grafana.txt
+	grep --color=never -i "Fortinet" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/fortinet.txt
+	grep --color=never -i "hikvision" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/hikvision.txt
+	grep --color=never -i "optical network terminal" *webData.txt 2>/dev/null| cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/HUAWEI-AR.txt
 
-	grep --color=never -i "ONT-4G" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-ONT-4G.txt
-	grep --color=never -i "ONT1GE3FE2P1TVSWZ" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ZTE-ONT-4G.txt
-	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2017' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2017.txt
-	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2018' | cut -d '_' -f1-2 | tr '_' ':' > ../servicios/ZTE-F6XX-2018.txt
+	grep --color=never -i "ONT-4G" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  > ../servicios/ZTE-ONT-4G.txt
+	grep --color=never -i "ONT1GE3FE2P1TVSWZ" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/ZTE-ONT-4G.txt
+	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2017' | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  > ../servicios/ZTE-F6XX-2017.txt
+	grep --color=never -i "ZTE corp " *webData.txt 2>/dev/null | grep 'F6' | grep 'ZTE-2018' | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  > ../servicios/ZTE-F6XX-2018.txt
 
-	grep --color=never -i ciscoASA *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoASA.txt
-	grep --color=never -i "Cisco Router" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' >> ../servicios/ciscoRouter.txt
+	grep --color=never -i ciscoASA *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/ciscoASA.txt
+	grep --color=never -i "Cisco Router" *webData.txt 2>/dev/null | cut -d '_' -f1-2 | tr '_' ':' | tr -d '-'  >> ../servicios/ciscoRouter.txt
 
 	#phpmyadmin, etc
 	#responde con 401
