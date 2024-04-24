@@ -2121,7 +2121,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'` # extraer url
 		else
 			# Vulnerabilidad detectada en la raiz
-			url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` #192.168.0.36:8080
+			url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":"` | tr -d '-' #192.168.0.36:8080
 			if [[ ${url_vulnerabilidad} == *"443"* || ${url_vulnerabilidad} == *"9091"*  ]]; then
 				url_vulnerabilidad="https://$url_vulnerabilidad" #http://192.168.0.36:8080
 			else
