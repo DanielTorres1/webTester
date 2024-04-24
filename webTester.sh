@@ -2008,7 +2008,7 @@ cd .enumeracion/
 
 	#phpmyadmin, etc
 	#responde con 401
-	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $2}' | sort | uniq -i | uniq | td -d '-'  >> ../servicios/web401.txt
+	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $2}' | sort | uniq -i | uniq | tr -d '-'  >> ../servicios/web401.txt
 
 	#responde con 200 OK
 	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $2}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
@@ -2018,7 +2018,7 @@ cd .enumeracion/
 	#
 
 	#Fortigate
-	grep --color=never -i "fortigate" *_cert.txt 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google" | cut -d "_" -f1-2 | tr '_' ':' | td -d '-' | uniq >> ../servicios/fortigate.txt
+	grep --color=never -i "fortigate" *_cert.txt 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google" | cut -d "_" -f1-2 | tr '_' ':' | tr -d '-' | uniq >> ../servicios/fortigate.txt
 
 	#3com
 	grep --color=never -i 3com * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback" | egrep --color=never "^1" | cut -d "_" -f1 | uniq >> ../servicios/3com2.txt
@@ -2079,7 +2079,7 @@ cd .enumeracion/
 		#line=10.0.0.2:443
 	grep --color=never -i Unauthorized * 2>/dev/null | cut -d "_" -f1-2 | uniq | tr "_" ":"   > ../servicios/web401-2.txt
 	# sort
-	sort ../servicios/web401-2.txt 2>/dev/null | uniq | uniq  | td -d '-' >> ../servicios/web401.txt
+	sort ../servicios/web401-2.txt 2>/dev/null | uniq | uniq  | tr -d '-' >> ../servicios/web401.txt
 	rm ../servicios/web401-2.txt 2>/dev/null
 
 cd ..
