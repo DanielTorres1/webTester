@@ -350,7 +350,7 @@ function enumeracionDefecto () {
 
 			waitWeb 0.5
 			echo -e "\t\t[+] Revisando backups de archivos genericos ($host - default)"
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
 			waitWeb 0.5
 			echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
@@ -408,7 +408,7 @@ function enumeracionIIS () {
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - IIS)"
@@ -497,7 +497,7 @@ function enumeracionApache () {
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
@@ -591,7 +591,7 @@ function enumeracionTomcat () {
    port=$3
 
 	#1: si no existe log
-   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
+   	if [[ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
 		echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"
 
 		$proxychains curl -k --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt &
@@ -599,7 +599,7 @@ function enumeracionTomcat () {
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
 		waitWeb 0.5
 		echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
@@ -659,7 +659,7 @@ function enumeracionSAP () {
    port=$3
 
    	#1: si no existe log
-   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt"  ]]; then
+   	if [[ ! -e logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-nuclei.txt  ]]; then
 
 		echo -e "\t\t[+] Enumerar SAP ($proto_http : $host : $port)"
 		waitWeb 0.5
@@ -947,7 +947,7 @@ function enumeracionIOT ()
    	if [[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_SirepRAT.txt"  ]]; then
 		egrep -iq "Windows Device Portal" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
-		if [[ $greprc -eq 0 && ! -f .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt  ]];then # si el banner es Apache y no se enumero antes
+		if [ $greprc -eq 0  ];then # si el banner es Apache y no se enumero antes
 			echo -e "\t\t[+] Revisando SirepRAT ($host)"
 			$proxychains SirepRAT.sh $host LaunchCommandWithOutput --return_output --cmd 'c:\windows\System32\cmd.exe' --args '/c ipconfig' --v >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_SirepRAT.txt
 			grep -ia 'IPv4' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_SirepRAT.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_SirepRAT.txt
@@ -1668,7 +1668,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_archivosSAP.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt 2>/dev/null
