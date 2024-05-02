@@ -1022,7 +1022,7 @@ for line in $(cat $TARGETS); do
 		greprc=$?
 		if [[ "$HOSTING" == 'n' ]] && [[ $greprc -eq 0 ]]; then
 			echo -e "\t[+]  Buscando hosts virtuales en $host:$port"
-			waitWeb 0.5
+			waitWeb 0.1
 			nmap -Pn -sV -n -p $port $host 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_domainNmap.txt &
 			grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "^" -f3 | uniq > logs/enumeracion/"$host"_web_domainWebData.txt
 		fi
