@@ -1395,7 +1395,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
@@ -1918,7 +1918,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
 	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
-	comm -23 servicios/web-admin-temp.txt servicios/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt #eliminar elementos repetidos
+	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt #eliminar elementos repetidos
 
 	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
 	# if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then
