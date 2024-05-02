@@ -1417,7 +1417,7 @@ for line in $(cat $TARGETS); do
 
 					###  if the server is apache ######
 					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -2178,7 +2178,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			echo "archivo_origen $archivo_origen"
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/webData/phpinfo/'|sed 's/.enumeracion2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
-			phpinfo.pl -url "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
+			get-info-php "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
 			greprc=$?
 			if [[ $greprc -eq 0 ]] ; then

@@ -35,6 +35,7 @@ cp GO/checkHeadersServer/checkHeadersServer /usr/bin/pentest
 cp GO/headi/headi /usr/bin/pentest
 cp GO/checkCookie/checkCookie /usr/bin/pentest
 cp GO/getStatus/getStatus /usr/bin/pentest
+cp GO/phpinfo/get-info-php /usr/bin/pentest
 cp GO/listDir/listDir /usr/bin/pentest
 cp GO/SAP-scan/SAP-scan /usr/bin/pentest
 cp GO/getCert/get_ssl_cert /usr/bin/pentest
