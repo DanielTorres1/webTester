@@ -2150,7 +2150,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
-			contenido=`listDir -url=$url_vulnerabilidad`
+			contenido=`listDir -url=$url_vulnerabilidad | html2texto.py`
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
