@@ -1417,7 +1417,7 @@ for line in $(cat $TARGETS); do
 
 					###  if the server is apache ######
 					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring|erpnext|Payara" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
