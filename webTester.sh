@@ -2148,9 +2148,14 @@ if [[ $webScaneado -eq 1 ]]; then
 			contenido=$url_vulnerabilidad
 		fi
 
+		if [ $vulnerabilidad == 'PasswordDetected' ];then
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] PasswordDetected en $url_vulnerabilidad"  ; fi
+			contenido=$url_vulnerabilidad
+		fi
+
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
-			contenido=`listDir -url=$url_vulnerabilidad | html2texto.py`
+			contenido=`listDir -url=$url_vulnerabilidad | sed '/colspan="5"/d; s/<th valign="top"><img src="\/icons\/blank.gif" alt="\[ICO\]"><\/th>//g; s/<td valign="top"><img src="\/icons\/folder.gif" alt="\[DIR\]"><\/td>//g' | html2texto.py`
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
@@ -2235,37 +2240,6 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 				echo -e "\t[+] Falso positivo (404) "
 			else
 				echo "$url;$web_fingerprint" >> servicios/admin-web2.txt
-			# 	if [[ ${url} != *"ListadoDirectorios"*  &&  ${url} != *"wp-"* &&  ${url} != *".action"* &&  ${url} != *"index"* &&  ${url} != *"cpanel"* &&  ${url} != *"whm"* &&  ${url} != *"webmail"*  ]] ; then
-			# 		if [[ ${path_web} != *"."* && ${path_web} != *"manual"* && ${path_web} != *"dashboard"* && ${path_web} != *"docs"* && ${path_web} != *"license"* && ${path_web} != *"wp"* && ${path_web} != *"aspnet_client"*  && ${path_web} != *"autodiscover"*  && ${url} != *"manager/html"* && ${path_web} != *"manual"* && ${path_web} != *"phppgadmin"* && ${path_web} != *"controlpanel"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
-			# 			egrep -i "apache|nginx|kong|IIS" .enumeracion2/"$host"_"$port"_webData.txt | egrep -qiv "302 Found|Always200-OK|AngularJS|BladeSystem|cisco|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Open Source Routing Machine|oracle|owa|ownCloud|Pfsense|Roundcube|Router|Taiga|webadmin|Zentyal|Zimbra" # solo el segundo egrep poner "-q"
-			# 			greprc=$?
-			# 			# si no es tomcat/phpmyadmin/joomla descubrir rutas de 2do nivel accesibles
-			# 			if [[ $greprc -eq 0 && $web_fingerprint != *"tomcat"* && $web_fingerprint != *"phpmyadmin"* && $web_fingerprint != *"pgadmin"*  && $web_fingerprint != *"joomla"*  && $web_fingerprint != *"wordpress"* && $web_fingerprint != *"cms"*  && $web_fingerprint != *"sqlite"* && $web_fingerprint != *"index"* && $web_fingerprint != *"Webmail"* ]];then
-
-			# 				echo "path_web ($path_web)"
-
-			# 				if [ -z "$path_web" ]; then 	 # if vacio
-			# 					echo "Ya se escaneo la raiz del web server"
-			# 				else
-			# 					echo -e "\t[i] Buscar mas archivos y directorios dentro de  $proto_http://$host:$port/$path_web"
-			# 					echo "Escaneando con la opcion -m archivosPeligrosos"
-			# 					path_web_sin_slash=$(echo "$path_web" | sed 's/\///g')
-			# 					web-buster -target $host -port $port -proto $proto_http -path /$path_web/ -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion1.txt
-
-			# 					if [ "$MODE" == "total" ]; then
-			# 					web-buster -target $host -port $port -proto $proto_http -path /$path_web/ -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion2.txt
-			# 					fi
-			# 				fi
-
-			# 				egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion1.txt 2>/dev/null | awk '{print $2}' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion1.txt
-			# 				egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion2.txt  2>/dev/null | awk '{print $2}' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_"$path_web_sin_slash"-perdidaAutenticacion2.txt
-			# 			else
-			# 				echo -e "\t[i] CMS identificado o es un archivo"
-			# 			fi
-			# 		else
-			# 			echo -e "\t[i] El listado de directorios esta habilitado o es un archivo"
-			# 		fi
-			# 	fi # Es directorio
 			fi #404
 		fi
 
