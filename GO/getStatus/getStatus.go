@@ -94,6 +94,7 @@ func main() {
 			regexp.MustCompile(`(?i)404\s+no\s+encontrado`),
 			regexp.MustCompile(`<app-root>`),
 			regexp.MustCompile(`Log In to Payara Administration Console`),
+			regexp.MustCompile(`Internal error`),
 			regexp.MustCompile(`(?i)<meta http-equiv=`), // Añadida esta línea
 
 		}

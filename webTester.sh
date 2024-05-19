@@ -1232,7 +1232,7 @@ for line in $(cat $TARGETS); do
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then
 
 			#Verificar que no siempre devuelve 200 OK
-			status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
+			status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten/45s/`
 
 			if [ -z "$FORCE" ]; then  # no es escaneo de redes por internet
 				if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
@@ -1395,7 +1395,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|php' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
@@ -1417,7 +1417,7 @@ for line in $(cat $TARGETS); do
 
 					###  if the server is apache ######
 					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring|erpnext|Payara" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring|erpnext|Payara|openresty|Waiting" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
