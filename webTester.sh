@@ -90,8 +90,43 @@ path_web='/'
 webservers_defaultTitles=("IIS Windows Server" "Apache2 Ubuntu Default Page: It works" "Apache default page" "Apache2 Debian Default Page: It works")
 source /usr/share/lanscanner/api_keys.conf
 
-TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
 
+NOscanList=$(cat << EOL
+cisco
+Router
+BladeSystem
+oracle
+302 Found
+Coyote
+Express
+AngularJS
+Zimbra
+Pfsense
+GitLab
+Roundcube
+Zentyal
+Taiga
+Always200-OK
+Nextcloud
+Open Source Routing Machine
+ownCloud
+GoAhead-Webs
+printer
+Vuejs
+TrueConf Server Guest Page
+networkMonitoring
+erpnext
+Payara
+openresty
+Huawei
+Cloudflare
+Outlook
+owa
+SharePoint
+EOL
+)
+
+TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
@@ -1403,7 +1438,7 @@ for line in $(cat $TARGETS); do
 						wafw00f $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt &
 					fi
 
-					egrep -i "httpfileserver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs" # solo el segundo egrep poner "-q"
+					egrep -i "httpfileserver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then #
 						echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " > .vulnerabilidades/"$host"_"$port"_ProFTPD-RCE.txt
@@ -1416,8 +1451,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ######
-					#echo "egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt"
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs|printer|Vuejs|TrueConf Server Guest Page|networkMonitoring|erpnext|Payara|openresty|Waiting" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1426,7 +1460,7 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					#######  if the server is SharePoint ######
-					grep -i SharePoint logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"  # no redirecciona
+					grep -i SharePoint logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint
 						checkRAM
@@ -1435,7 +1469,7 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					#######  if the server is IIS ######
-					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes
 						checkRAM
@@ -2116,6 +2150,8 @@ if [[ $webScaneado -eq 1 ]]; then
 	#Vulnerabilidades detectada en la raiz del servidor
 	echo "canary" > .enumeracion2/canary_webData.txt
 	egrep "vulnerabilidad=" .enumeracion2/* 2>/dev/null| while read -r line ; do
+	find .enumeracion2 .vulnerabilidades2 -type f 2>/dev/null | xargs egrep "vulnerabilidad=" 2>/dev/null | while read -r line ; do 
+
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
 		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/170.239.123.50_80_webData.txt
@@ -2183,7 +2219,8 @@ if [[ $webScaneado -eq 1 ]]; then
 		if [[ $vulnerabilidad == 'phpinfo' ]];then
 			if [ "$VERBOSE" == '1' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
 			echo "archivo_origen $archivo_origen"
-			archivo_phpinfo=`echo "$archivo_origen" | sed 's/webData/phpinfo/'|sed 's/.enumeracion2\///'`
+			#.vulnerabilidades2/170.239.123.50_80_webData.txt
+			archivo_phpinfo=`echo "$archivo_origen" | sed 's/phpinfo/phpinfo2/'|sed 's/.vulnerabilidades2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
 			get-info-php "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
