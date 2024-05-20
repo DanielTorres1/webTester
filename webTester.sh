@@ -1273,14 +1273,9 @@ for line in $(cat $TARGETS); do
 				if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
 					echo "intentar una vez mas"
 					sleep 1
-					status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
+					status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s`
 				fi
 
-				if [[ "${status_code_nonexist,,}" == *"error"* || "${status_code_nonexist}" == *"502"* ]]; then # error de red
-					echo "intentar ultima vez"
-					sleep 1
-					status_code_nonexist=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten45s/`
-				fi
 			fi
 			
 
@@ -2149,7 +2144,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web"
 	#Vulnerabilidades detectada en la raiz del servidor
 	echo "canary" > .enumeracion2/canary_webData.txt
-	egrep "vulnerabilidad=" .enumeracion2/* 2>/dev/null| while read -r line ; do
+	#egrep "vulnerabilidad=" .enumeracion2/* 2>/dev/null| while read -r line ; do
 	find .enumeracion2 .vulnerabilidades2 -type f 2>/dev/null | xargs egrep "vulnerabilidad=" 2>/dev/null | while read -r line ; do 
 
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
