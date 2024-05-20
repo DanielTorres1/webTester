@@ -1430,7 +1430,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|php' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then

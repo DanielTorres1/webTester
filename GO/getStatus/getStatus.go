@@ -95,7 +95,7 @@ func main() {
 			regexp.MustCompile(`<app-root>`),
 			regexp.MustCompile(`Log In to Payara Administration Console`),
 			regexp.MustCompile(`Internal error`),
-			regexp.MustCompile(`(?i)<meta http-equiv=`), // Añadida esta línea
+			regexp.MustCompile(`(?i)<div id="app">`), // Añadida esta línea
 
 		}
 
