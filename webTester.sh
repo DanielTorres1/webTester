@@ -1281,8 +1281,9 @@ for line in $(cat $TARGETS); do
 
 			msg_error_404=''
 			if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
-				msg_error_404=`echo $status_code_nonexist | cut -d ':' -f2`
+				msg_error_404=$(echo $status_code_nonexist | cut -d ':' -f2)
 				msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
+				msg_error_404="'$msg_error_404'"
 			fi
 
 			only_status_code_nonexist=`echo $status_code_nonexist | cut -d ':' -f1`
