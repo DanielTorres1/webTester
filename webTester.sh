@@ -1282,7 +1282,7 @@ for line in $(cat $TARGETS); do
 			msg_error_404=''
 			if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist | cut -d ':' -f2)
-				msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
+				#msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
 				msg_error_404="'$msg_error_404'"
 			fi
 
@@ -2151,7 +2151,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
 		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/170.239.123.50_80_webData.txt
-		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"graphQL.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"* ]]; then
+		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"graphQL.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  ]]; then
 			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'` # extraer url
 		else
 			# Vulnerabilidad detectada en la raiz
