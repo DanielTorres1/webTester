@@ -517,7 +517,7 @@ function enumeracionApache () {
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 -error404 '$param_msg_error'"
+		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
 		echo $command  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
 		eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
