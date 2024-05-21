@@ -517,8 +517,9 @@ function enumeracionApache () {
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando paneles administrativos ($host - Apache/nginx)"
-		echo "web-buster -target $host -port $port  -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
-		web-buster -target $host -port $port  -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 -error404 '$param_msg_error'"
+		echo $command  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+		eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
@@ -2222,7 +2223,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/phpinfo/phpinfo2/'|sed 's/.vulnerabilidades2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
 			echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
-			get-info-php "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
+			get-info-php "$url_vulnerabilidad" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
 			greprc=$?
 			if [[ $greprc -eq 0 ]] ; then
