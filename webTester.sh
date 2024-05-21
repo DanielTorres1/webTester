@@ -1240,7 +1240,6 @@ for line in $(cat $TARGETS); do
 	proto_http=`echo $line | cut -f3 -d":"`
 	echo -e "\n[+] Escaneando ($proto_http $ip:$port $path_web)"
 
-
 	if [ "$VERBOSE" == '1' ]; then  echo "IP_LIST_FILE=$IP_LIST_FILE "; fi
 	lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
 
@@ -1282,7 +1281,7 @@ for line in $(cat $TARGETS); do
 			msg_error_404=''
 			if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist | cut -d ':' -f2)
-				#msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
+				msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
 				msg_error_404="'$msg_error_404'"
 			fi
 
@@ -2168,11 +2167,14 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo "vulnerabilidad $vulnerabilidad url_vulnerabilidad $url_vulnerabilidad"
 		archivo_destino=$archivo_origen
 		archivo_destino=${archivo_destino/.enumeracion2/.vulnerabilidades}
+		archivo_destino=${archivo_destino/.vulnerabilidades2/.vulnerabilidades}
+
 		archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webarchivos/$vulnerabilidad}
 		archivo_destino=${archivo_destino/admin/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webData/$vulnerabilidad}
 		archivo_destino=${archivo_destino/custom/$vulnerabilidad}
+		archivo_destino=${archivo_destino/phpinfo/phpinfo2}
 
 
 		if [ $vulnerabilidad == 'backdoor' ];then
@@ -2216,8 +2218,10 @@ if [[ $webScaneado -eq 1 ]]; then
 			if [ "$VERBOSE" == '1' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
 			echo "archivo_origen $archivo_origen"
 			#.vulnerabilidades2/170.239.123.50_80_webData.txt
+			# archivo_origen .vulnerabilidades2/200.87.130.42_443-_phpinfo.txt
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/phpinfo/phpinfo2/'|sed 's/.vulnerabilidades2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
+			echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
 			get-info-php "\"$url_vulnerabilidad\"" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
 			greprc=$?
