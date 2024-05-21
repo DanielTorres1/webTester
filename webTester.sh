@@ -1361,7 +1361,7 @@ for line in $(cat $TARGETS); do
 			msg_error_404=''
 			if [[  "$status_code_nonexist" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist | cut -d ':' -f2)
-				msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
+			#	msg_error_404=$(echo "$msg_error_404" | tr ' ' '~') # 404 Not Found -> 404~Not~Found
 				msg_error_404="'$msg_error_404'"
 			fi
 
@@ -2307,14 +2307,17 @@ if [[ $webScaneado -eq 1 ]]; then
 			greprc=$?
 			if [[ $greprc -eq 0 ]] ; then
 				echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
-				echo "URL  $url_vulnerabilidad" >> .vulnerabilidades/$archivo_phpinfo
-				echo ""  >> .vulnerabilidades/$archivo_phpinfo
-				grep ':' logs/vulnerabilidades/$archivo_phpinfo >> .vulnerabilidades/$archivo_phpinfo
-				echo -e "\n\n"  >> .vulnerabilidades/$archivo_phpinfo
+				contenido=""
+				# Añadir URL a la variable contenido
+				contenido+="URL $url_vulnerabilidad\n\n"
+				# Añadir el resultado del grep a la variable contenido
+				contenido+=$(grep ':' logs/vulnerabilidades/$archivo_phpinfo)
+				contenido+="\n\n"
 			else
 				echo -e "[i] No es un archivo phpinfo valido"
 			fi	#archivo phpinfo
 		fi
+
 		echo "archivo_destino $archivo_destino"
 		echo $contenido >> $archivo_destino
 	done
