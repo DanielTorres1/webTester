@@ -47,6 +47,8 @@ cp GO/xml-rpc-test/xml-rpc-test /usr/bin/pentest
 cp GO/xml-rpc-test/xml-rpc-login /usr/bin/pentest
 cp GO/check_blank_target/check_blank_target /usr/bin/pentest
 cp GO/validate-wordpress-user/validate-wordpress-user /usr/bin/pentest
+cp GO/getExtract/getExtract /usr/bin/pentest
+
 
 echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
 pip install sri-check --break-system-package

