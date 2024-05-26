@@ -123,6 +123,7 @@ Cloudflare
 Outlook
 owa
 SharePoint
+SoftEther
 EOL
 )
 
@@ -352,7 +353,7 @@ function enumeracionDefecto() {
 
     waitWeb 0.3
 
-    egrep -qiv "AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+    egrep -qiv "$NOscanList" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
     greprc=$?
 
     if [[ $greprc -eq 0 ]]; then
@@ -379,7 +380,7 @@ function enumeracionDefecto() {
         fi
 
         if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
-            egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+            egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
             greprc=$?
 
             if [[ $greprc -eq 1 ]]; then
@@ -476,7 +477,7 @@ function enumeracionIIS() {
     fi
 
     if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
@@ -601,7 +602,7 @@ function enumeracionApache() {
     fi
 
 	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
 		greprc=$?
 		if [[ $greprc -eq 1 ]]; then
 
@@ -735,7 +736,7 @@ function enumeracionTomcat() {
     fi
 
     if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
@@ -990,7 +991,7 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
 
 			echo "juumla.sh -u "$proto_http"://$host:$port/ " > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt
-			juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt &
+			juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt 2>/dev/null &
 
 			joomla_version.pl -host $host -port $port -path / > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt &
 
@@ -1399,7 +1400,7 @@ for line in $(cat $TARGETS); do
 						read resp
 					else
 						# si no es CMS descargar con httrack
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
 						greprc=$?
 						if [[ $greprc -eq 1 ]]; then
 							echo -e "\t\t[+] httrack ($host )"
@@ -1506,8 +1507,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
-
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple.com|google.com|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic.net|redhat.com|fastly.com' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -1615,7 +1615,7 @@ for line in $(cat $TARGETS); do
 						#check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt
 						#grep -iv error logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt
 						checkRAM
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
 						greprc=$?
 						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then
 							##########################################
@@ -1916,7 +1916,7 @@ if [[ $webScaneado -eq 1 ]]; then
 				fi
 				#exploit cadaver
 
-				grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|AngularJS|BladeSystem|cisco|Cloudflare|Coyote|Express|GitLab|GoAhead-Webs|Nextcloud|Always200-OK|Open Source Routing Machine|oracle|Outlook|owa|ownCloud|Pfsense|Roundcube|Router|SharePoint|Taiga|Zentyal|Zimbra"  # no redirecciona
+				grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
 				greprc=$?
 				if [[ $greprc -eq 0  ]];then
 					explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt &
@@ -2032,66 +2032,6 @@ if [[ $webScaneado -eq 1 ]]; then
 
 	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
-
-	#################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################
-	# if [[ "$PROXYCHAINS" == "n" && "$INTERNET" == 'n' ]]; then
-	# 	echo -e "$OKBLUE #################### Realizar escaneo de directorios (2do nivel) a los directorios descubiertos ######################$RESET"
-	# 	cat .enumeracion/*webdirectorios.txt 2>/dev/null| egrep -v '401|403' | uniq >> logs/enumeracion/webdirectorios_web_uniq.txt
-	# 	while IFS= read -r line
-	# 	do
-	# 		echo -e "\n\t########### $line #######"
-	# 		#line= 200	https://inscripcion.notariadoplurinacional.gob.bo:443/manual/ (Listado directorio activo)	 ,
-	# 		while true; do
-	# 			free_ram=`free -m | grep -i mem | awk '{print $7}'`
-	# 			script_instancias=$((`ps aux | grep perl | wc -l` - 1))
-	# 			if [[ $free_ram -gt $MIN_RAM  && $script_instancias -lt $MAX_SCRIPT_INSTANCES  ]]
-	# 			then
-	# 				if [[ ${line} != *"ListadoDirectorios"*  &&  ${line} != *"wp-"* &&  ${line} != *".action"* &&  ${line} != *"index"*  ]] ; then
-	# 					proto_http=`echo $line | cut -d ":" -f 1 | cut -d ' ' -f2` #  http/https
-	# 					host_port=`echo $line | cut -d "/" -f 3` # 190.129.69.107:80
-	# 					host=`echo $host_port | cut -d ":" -f 1` #puede ser subdominio tb
-	# 					port=`echo $host_port | cut -d ":" -f 2`
-	# 					path_web2=`echo $line | cut -d "/" -f4 | tr '[:upper:]' '[:lower:]'` #minuscula
-
-	# 					if [[  ${port} == *"."* ]]; then
-	# 						if [[ ${proto_http} == *"https"*  ]]; then
-	# 							port="443"
-	# 						else
-	# 							port="80"
-	# 						fi
-	# 					fi
-
-	# 					if [[ ${path_web2} != *"."* && ${path_web2} != *"manual"* && ${path_web2} != *"dashboard"* && ${path_web2} != *"docs"* && ${path_web2} != *"license"* && ${path_web2} != *"wp"* && ${path_web2} != *"aspnet_client"*  && ${path_web2} != *"autodiscover"*  && ${path_web2} != *"manager/html"* && ${path_web2} != *"manual"* && ${path_web2} != *"privacy"*  ]];then   # si es un directorio (no un archivo) y el listado de directorios no esta habilitado
-
-	# 						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "cisco|Router|BladeSystem|oracle|302 Found|Coyote|Express|AngularJS|Zimbra|Pfsense|GitLab|Roundcube|Zentyal|Taiga|Always200-OK|Nextcloud|Open Source Routing Machine|ownCloud|GoAhead-Webs"
-	# 						greprc=$?
-	# 						if [[ $greprc -eq 1 ]]; then
-	# 							waitWeb 0.3
-	# 							echo -e "\t\t[+] Enumerando directorios de 2do nivel ($path_web2)"
-	# 							web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios2.txt &
-	# 							web-buster -target $host -port $port -proto $proto_http -path "/$path_web2/" -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error | egrep --color=never "^200" >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos2.txt &
-	# 						fi
-
-	# 						#TODO
-	# 						#curl -F "files=@/usr/share/lanscanner/info.php" http://10.11.1.123/books/apps/jquery-file-upload/server/php/index.php > logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
-	# 						#grep "info.php" logs/vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt > .vulnerabilidades/"$ip"_"$port"_jqueryUpload.txt
-	# 					else
-	# 						echo -e "\t[-] No vale la pena escanear este directorio "
-	# 					fi
-	# 					sleep 1
-	# 				else
-	# 					echo -e "\t[-] El listado de directorios esta activo o es un directorio de wordpress "
-	# 				fi #revisar q el listado de directorio esta habilitado
-
-	# 				break
-	# 			else
-	# 				script_instancias=`ps aux | grep perl | wc -l`
-	# 				echo -e "\t[-] Maximo número de instancias de perl ($script_instancias) RAM = $free_ram Mb"
-	# 				sleep 3
-	# 			fi
-	# 		done #while
-	# 	done < logs/enumeracion/webdirectorios_web_uniq.txt
-	# fi
 
 fi #sitio escaneado
 
