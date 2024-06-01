@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
-
+	"io/ioutil"
 	"golang.org/x/net/html"
 )
 
@@ -32,36 +32,84 @@ func main() {
 	// Realiza la petición GET a la URL
 	resp, err := client.Get(*url)
 	if err != nil {
-		fmt.Println("Error al hacer la petición:", err)
+		//fmt.Println("Error al hacer la petición:", err)
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
 
-	// Parsea el HTML de la respuesta
-	doc, err := html.Parse(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println("Error al parsear el HTML:", err)
+		fmt.Println("Error al leer el cuerpo de la respuesta:", err)
 		os.Exit(1)
 	}
 
-	// Busca los nombres de los archivos en el HTML
-	var f func(*html.Node)
-	tdCount := 0
-	trCount := 0
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "td" {
-			tdCount++
-		}
+	htmlContent := string(body)
+	results := parseDirectoryListing(htmlContent)
+	for _, result := range results {
+		fmt.Println(result)
+	}
+}
+
+
+
+func parseDirectoryListing(htmlContent string) []string {
+	doc, err := html.Parse(strings.NewReader(htmlContent))
+	if err != nil {
+		panic(err)
+	}
+
+	var results []string
+	var walkFunc func(*html.Node)
+
+	walkFunc = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "tr" {
-			trCount++
-			tdCount = 0
+			var cells []string
+			for c := n.FirstChild; c != nil; c = c.NextSibling {
+				if c.Type == html.ElementNode && c.Data == "td" {
+					cell := strings.TrimSpace(extractText(c))
+					cells = append(cells, cell)
+				}
+			}
+
+			if len(cells) >= 5 {
+				//fileType := cells[0]
+				fileName := cells[1]
+				modifiedDate := cells[2]
+				fileSize := cells[3]
+
+				entryType := "[FILE]"
+				if fileSize == "-" {
+					entryType = "[DIR]"
+				}
+
+				result := fmt.Sprintf("%s| %s | %s| %s", entryType, fileName, modifiedDate, fileSize)
+				results = append(results, result)
+			}
 		}
-		if tdCount == 2 && trCount >= 3 && n.Type == html.TextNode && strings.TrimSpace(n.Data) != "" {
-			fmt.Println(n.Data)
-		}
+
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
+			walkFunc(c)
 		}
 	}
-	f(doc)
+
+	walkFunc(doc)
+	return results
+}
+
+func extractText(n *html.Node) string {
+	var text strings.Builder
+	var extractTextHelper func(*html.Node)
+
+	extractTextHelper = func(n *html.Node) {
+		if n.Type == html.TextNode {
+			text.WriteString(n.Data)
+		}
+
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			extractTextHelper(c)
+		}
+	}
+
+	extractTextHelper(n)
+	return text.String()
 }

@@ -92,15 +92,21 @@ func main() {
 		errorRegexps := []*regexp.Regexp{
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
 			regexp.MustCompile(`(?i)404\s+no\s+encontrado`),
+			regexp.MustCompile(`(?i)not found`),
+			regexp.MustCompile(`(?i)You need to enable JavaScript to run this app`),
+			regexp.MustCompile(`(?i)not-found`),
 			regexp.MustCompile(`<app-root>`),
 			regexp.MustCompile(`Log In to Payara Administration Console`),
 			regexp.MustCompile(`Internal error`),
 			regexp.MustCompile(`(?i)<div id="app">`),
+			regexp.MustCompile(`(?i)<div id="root">`),
 			regexp.MustCompile(`ENTEL S.A.`), 
-
+			regexp.MustCompile(`No existe el archivo`),
+			regexp.MustCompile(`Request Rejected`),
 		}
 
 		// Busca las cadenas en el cuerpo
+		//fmt.Println(bodyString)
 		errorMsg := ""
 		for _, re := range errorRegexps {
 			matches := re.FindStringSubmatch(bodyString)
