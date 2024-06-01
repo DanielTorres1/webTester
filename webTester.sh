@@ -1396,8 +1396,8 @@ for line in $(cat $TARGETS); do
 				echo "only_status_code_nonexist $only_status_code_nonexist"
 			fi
 
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_code $status_code_nonexist "; fi
-			if [[ "$only_status_code_nonexist" == "404"  ||  "$status_code_nonexist" == *"303"* ||  "$status_code_nonexist" == *"301"* ||  "$status_code_nonexist" == *"302"*  ]];then
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
+			if [[ "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
