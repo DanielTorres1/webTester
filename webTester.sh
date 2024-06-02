@@ -1829,7 +1829,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webshell.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_cms-registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_CVE-2024-24919.txt" ] && grep "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CVE-2024-24919.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CVE-2024-24919.txt
 
@@ -2274,7 +2274,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			echo "archivo_origen $archivo_origen"
 			#.vulnerabilidades2/170.239.123.50_80_webData.txt
 			# archivo_origen .vulnerabilidades2/200.87.130.42_443-_phpinfo.txt
-			archivo_phpinfo=`echo "$archivo_origen" | sed 's/phpinfo/phpinfo2/'|sed 's/.vulnerabilidades2\///'`
+			archivo_phpinfo=`echo "$archivo_origen" | sed 's/.enumeracion2\///'|sed 's/.vulnerabilidades2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
 			echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
 			get-info-php "$url_vulnerabilidad" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
