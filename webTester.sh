@@ -1371,6 +1371,8 @@ for line in $(cat $TARGETS); do
 			#Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
 			status_code_nonexist1=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten/45s/`
+			only_status_code_nonexist=$status_code_nonexist1
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist1: $status_code_nonexist1 "; fi
 			if [[  "$status_code_nonexist1" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist1 | cut -d ':' -f2)
 				msg_error_404="'$msg_error_404'"
@@ -1378,6 +1380,7 @@ for line in $(cat $TARGETS); do
 			fi
 
 			status_code_nonexist2=`getStatus -url $proto_http://${host}:${port}${path_web}graphql.php`
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist2: $status_code_nonexist2 "; fi
 			if [[  "$status_code_nonexist2" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist2 | cut -d ':' -f2)
 				msg_error_404="'$msg_error_404'"
@@ -1396,7 +1399,7 @@ for line in $(cat $TARGETS); do
 				echo "only_status_code_nonexist $only_status_code_nonexist"
 			fi
 
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist "; fi
 			if [[ "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
