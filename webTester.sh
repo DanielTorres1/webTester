@@ -1399,8 +1399,8 @@ for line in $(cat $TARGETS); do
 				echo "only_status_code_nonexist $only_status_code_nonexist"
 			fi
 
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist "; fi
-			if [[ "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
+			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
+			if [[ "$only_status_code_nonexist" == "403"  || "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -1526,7 +1526,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple.com|google.com|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic.net|redhat.com|fastly.com' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic|redhat|fastly|juniper' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -1818,7 +1818,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_archivosCGI.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_certsrv.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && grep -v 'Error Get' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
 
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
