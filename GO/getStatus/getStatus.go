@@ -103,6 +103,12 @@ func main() {
 			regexp.MustCompile(`ENTEL S.A.`), 
 			regexp.MustCompile(`No existe el archivo`),
 			regexp.MustCompile(`Request Rejected`),
+			regexp.MustCompile(`Error de servidor`),
+			regexp.MustCompile(`Unexpected end of document`),
+			regexp.MustCompile(`This page can't be displayed`),
+			
+			
+			
 		}
 
 		// Busca las cadenas en el cuerpo
