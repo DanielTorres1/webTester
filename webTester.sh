@@ -1448,6 +1448,7 @@ for line in $(cat $TARGETS); do
 						fi
 
 						checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
+						lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
 						md5=`echo $checksumline | awk {'print $1'}`
 						egrep -iq $md5 webTrack/checksumsEscaneados.txt
 						md5found=$?
@@ -1458,7 +1459,7 @@ for line in $(cat $TARGETS); do
 						fi
 
 						for webserver_title in "${webservers_defaultTitles[@]}"; do
-							if [[ "$title" == *"$webserver_title"* ]]; then
+							if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; the
 								noEscaneado=1
 								break
 							fi
