@@ -1460,7 +1460,7 @@ for line in $(cat $TARGETS); do
 						fi
 
 						for webserver_title in "${webservers_defaultTitles[@]}"; do
-							if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; the
+							if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; then
 								noEscaneado=1
 								break
 							fi
