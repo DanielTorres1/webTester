@@ -830,15 +830,7 @@ function enumeracionCMS () {
 			fi
 		fi
 
-		#######  API  ######
-		egrep -qi 'api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
-		greprc=$?
-		if [[ $greprc -eq 0 ]];then
-			echo -e "\t\t[+] API test ("$proto_http"://"$host":"$port")"
-			web-buster -target $host -port $port  -proto $proto_http -path $path_web -module api -threads $hilos_web -redirects 0 -show404 >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt &
-		fi
-
-
+		
 		#######  yii  ######
 		grep -qi yii logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
@@ -1372,6 +1364,7 @@ for line in $(cat $TARGETS); do
 			msg_error_404=''
 			status_code_nonexist1=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten/45s/`
 			only_status_code_nonexist=$status_code_nonexist1
+
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist1: $status_code_nonexist1 "; fi
 			if [[  "$status_code_nonexist1" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist1 | cut -d ':' -f2)
@@ -1379,12 +1372,19 @@ for line in $(cat $TARGETS); do
 				only_status_code_nonexist=`echo $status_code_nonexist1 | cut -d ':' -f1`
 			fi
 
+
+			
 			status_code_nonexist2=`getStatus -url $proto_http://${host}:${port}${path_web}graphql.php`
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist2: $status_code_nonexist2 "; fi
 			if [[  "$status_code_nonexist2" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist2 | cut -d ':' -f2)
 				msg_error_404="'$msg_error_404'"
 				only_status_code_nonexist=`echo $status_code_nonexist2 | cut -d ':' -f1`
+			fi
+
+			# si la primera peticion fue error de red
+			if [[ "$status_code_nonexist1" == *"Network error"* && "$status_code_nonexist2" != *":"* ]]; then
+  				only_status_code_nonexist=$status_code_nonexist2
 			fi
 
 
@@ -1556,7 +1556,7 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					###  if the server is nginx ######
-					egrep -i 'nginx|api-endpoint' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" 
+					egrep -i 'nginx|api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" 
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es nginx y no se enumero antes
 						checkRAM
@@ -2233,7 +2233,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'PasswordDetected' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] PasswordDetected en $url_vulnerabilidad"  ; fi
-			contenido=`getExtract -url $url_vulnerabilidad -type password`
+			contenido=`getExtract -url $url_vulnerabilidad -type password | uniq`
 		fi
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
@@ -2266,7 +2266,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'IPinterna' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] IPinterna \n"  ; fi
-			contenido=`getExtract -url $url_vulnerabilidad -type IPinterna`
+			contenido=`getExtract -url $url_vulnerabilidad -type IPinterna | uniq`
 		fi
 
 

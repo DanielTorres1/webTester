@@ -87,6 +87,7 @@ func main() {
 			os.Exit(1)
 		}
 		bodyString := string(bodyBytes)
+		//fmt.Printf("%s \n", bodyString)
 
 		// Define las expresiones regulares
 		errorRegexps := []*regexp.Regexp{
@@ -106,8 +107,6 @@ func main() {
 			regexp.MustCompile(`Error de servidor`),
 			regexp.MustCompile(`Unexpected end of document`),
 			regexp.MustCompile(`This page can't be displayed`),
-			
-			
 			
 		}
 

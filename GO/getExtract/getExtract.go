@@ -91,11 +91,7 @@ func main() {
 	req.Header.Set("Sec-Fetch-Site", "none")
 
 	// Make the GET request
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Network error")
-		os.Exit(1)
-	}
+	resp, _ := client.Do(req)
 	defer resp.Body.Close()
 
 	// Check if the status code has more than 3 characters
