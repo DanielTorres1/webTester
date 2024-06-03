@@ -1405,11 +1405,12 @@ for line in $(cat $TARGETS); do
 				webScaneado=1
 
 				if [ -z "$FORCE" ]; then  # no es escaneo de redes por internet
-					mkdir -p webTrack/$host 2>/dev/null
 					mkdir -p webClone/$host 2>/dev/null
 					mkdir -p archivos/$host 2>/dev/null
-					touch webTrack/checksumsEscaneados.txt
 				fi
+
+				mkdir -p webTrack/$host 2>/dev/null
+				touch webTrack/checksumsEscaneados.txt
 
 				if [[ "$MODE" == "total" &&  ! -z "$URL" ]];then
 					echo -e "\t[+] Clonando: $URL"
@@ -1440,7 +1441,7 @@ for line in $(cat $TARGETS); do
 				checkRAM
 
 				if  [ ! -z $DOMINIO ]; then # solo si se escanea con dominio controlar que no se repita los hosts para escaneasr
-						#Borrar lineas que cambian en cada peticion
+						#remove links http/https
 						removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 
 						if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then

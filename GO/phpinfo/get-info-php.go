@@ -43,12 +43,6 @@ func main() {
 	content := string(body)
 	content = strings.ReplaceAll(content, "'", "\"")
 
-	err = ioutil.WriteFile("phpinfo.html", []byte(content), 0644)
-	if err != nil {
-		fmt.Printf("Error writing to file: %v\n", err)
-		return
-	}
-
 	if !regexp.MustCompile(`PHP Version`).MatchString(content) {
 		fmt.Printf("%s is not a PHPinfo file\n", url)
 		return
