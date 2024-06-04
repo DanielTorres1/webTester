@@ -887,7 +887,7 @@ function enumeracionCMS () {
 			wordpress-CVE-2022-21661.py $proto_http"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressCVE~2022~21661.txt
 
 			wordpress-version.py $proto_http"://"$host":"$port/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
-			cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
+			grep -vi 'Error' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
 
 			# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
@@ -1448,8 +1448,9 @@ for line in $(cat $TARGETS); do
 					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 				fi
 
+				noEscaneado=1
 				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
-				lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
+				lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html | cut -d ' ' -f1`
 				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
 
 				md5=`echo $checksumline | awk {'print $1'}`
@@ -1463,7 +1464,8 @@ for line in $(cat $TARGETS); do
 				fi
 
 				for webserver_title in "${webservers_defaultTitles[@]}"; do
-					if [[ "$title" == *"$webserver_title"* ]] || [[ $lenghtsite -lt 50 ]]; then
+					if [[ "$title" == *"$webserver_title"* ]] || [[ "$lenghtsite" -lt 50 ]]; then
+					
 						noEscaneado=1
 						break
 					fi
