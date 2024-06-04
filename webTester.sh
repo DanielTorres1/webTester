@@ -908,11 +908,12 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 
-			grep -qi "^" "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt"
+			grep -qi "\^" "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt"
 			greprc=$?
 			if [[ $greprc -eq 0 ]];then
 				newdomain=$(cut -d '^' -f3 "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt")
 				host=$newdomain
+				echo "newdomain $newdomain"
 			fi
 
 			if [[ "$port" != "80" && "$port" != '443' ]];then
