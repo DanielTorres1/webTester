@@ -1490,7 +1490,7 @@ for line in $(cat $TARGETS); do
 					ip2domainRedirect=0
 				fi
 
-				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|Dominio identificado" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #verificar si debemos escanear
+				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #verificar si debemos escanear
 				hostOK=$?
 
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
