@@ -1382,9 +1382,8 @@ for line in $(cat $TARGETS); do
 				msg_error_404="'$msg_error_404'"
 				only_status_code_nonexist=`echo $status_code_nonexist1 | cut -d ':' -f1`
 			fi
+			echo "status_code_nonexist1 $status_code_nonexist1"
 
-
-			
 			status_code_nonexist2=`getStatus -url $proto_http://${host}:${port}${path_web}graphql.php`
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist2: $status_code_nonexist2 "; fi
 			if [[  "$status_code_nonexist2" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
@@ -1392,6 +1391,7 @@ for line in $(cat $TARGETS); do
 				msg_error_404="'$msg_error_404'"
 				only_status_code_nonexist=`echo $status_code_nonexist2 | cut -d ':' -f1`
 			fi
+			echo "status_code_nonexist2 $status_code_nonexist2"
 
 			# si la primera peticion fue error de red
 			if [[ "$status_code_nonexist1" == *"Network error"* && "$status_code_nonexist2" != *":"* ]]; then
@@ -1405,14 +1405,13 @@ for line in $(cat $TARGETS); do
 			fi
 
 			if [ ! -z "$msg_error_404" ];then
-				param_msg_error="-error404 $msg_error_404" #parametro para web-buster
+				param_msg_error="-error404 '$msg_error_404'" #parametro para web-buster
 				only_status_code_nonexist=404
-				echo "only_status_code_nonexist $only_status_code_nonexist"
+				echo "new only_status_code_nonexist $only_status_code_nonexist ($msg_error_404)"
 			fi
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
 			if [[ "$only_status_code_nonexist" == "401"  || "$only_status_code_nonexist" == "403"  || "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
-			#if [[ "$only_status_code_nonexist" == "401" || "$only_status_code_nonexist" == "403" || "$only_status_code_nonexist" == "404" || "$only_status_code_nonexist" == *"303"* || "$only_status_code_nonexist" == *"301"* || "$only_status_code_nonexist" == *"302"* ]] && [[ "$status_code_nonexist1" != *"Network error"* && "$status_code_nonexist2" != *"Network error"* ]]; then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -1476,7 +1475,6 @@ for line in $(cat $TARGETS); do
 
 				for webserver_title in "${webservers_defaultTitles[@]}"; do
 					if [[ "$title" == *"$webserver_title"* ]] || [[ "$lenghtsite" -lt 50 ]]; then
-					
 						noEscaneado=1
 						break
 					fi
@@ -1782,21 +1780,6 @@ if [ "$VERBOSE" == '1' ]; then  echo " IP_LIST_FILE $IP_LIST_FILE"; fi
 ####### PARSE ########
 echo "webScaneado $webScaneado"
 if [[ $webScaneado -eq 1 ]]; then
-	##########  Filtrar los directorios que respondieron 200 OK (llevarlos a .enumeracion) ################
-	# echo -e "$OKBLUE [i] Filtrar los directorios descubiertos que respondieron 200 OK (llevarlos a .enumeracion) $RESET"
-	# touch logs/enumeracion/canary_webdirectorios.txt # se necesita al menos 2 archivos *_webdirectorios.txt
-	# egrep --color=never "^200" logs/enumeracion/*webdirectorios.txt 2>/dev/null| while read -r line ; do
-	# 	#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"
-	# 	archivo_origen=`echo $line | cut -d ':' -f1`
-	# 	contenido=`echo $line | cut -d ':' -f2-6`
-	# 	#echo "archivo_origen $archivo_origen"
-	# 	archivo_destino=$archivo_origen
-	# 	archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}
-	# 	#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
-	# 	#echo "contenido $contenido"
-	# 	echo $contenido >> $archivo_destino
-	# done
-
 	for line in $(cat $TARGETS); do
 		ip=`echo $line | cut -f1 -d":"`
 		port=`echo $line | cut -f2 -d":"`
