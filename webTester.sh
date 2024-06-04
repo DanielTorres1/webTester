@@ -1450,27 +1450,29 @@ for line in $(cat $TARGETS); do
 
 				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
 				lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
+				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
+
 				md5=`echo $checksumline | awk {'print $1'}`
 				egrep -iq $md5 webTrack/checksumsEscaneados.txt
 				md5found=$?
-				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
-
+				
 				if [ $md5found -eq 0 ]; then
 					noEscaneado=0
+				else
+					echo $checksumline >> webTrack/checksumsEscaneados.txt
 				fi
 
 				for webserver_title in "${webservers_defaultTitles[@]}"; do
-					if [[ "$title" == *"$webserver_title"* ]] || [[ $lengthsite -lt 50 ]]; then
+					if [[ "$title" == *"$webserver_title"* ]] || [[ $lenghtsite -lt 50 ]]; then
 						noEscaneado=1
 						break
 					fi
 				done
 
-				echo $checksumline >> webTrack/checksumsEscaneados.txt
-
+				
 				#mismo host
 				if [[ $md5found -eq 0 ]];then
-					echo "md5found $md5found webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html"
+					#echo "md5found $md5found webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html"
 					echo -n "~sameHOST" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
 				fi
