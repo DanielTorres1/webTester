@@ -1442,7 +1442,7 @@ for line in $(cat $TARGETS); do
 				checkRAM
 
 				#remove links http/https
-				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
+				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null | egrep -vi 'date|token|hidden|ajax_url' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 		
 				if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
 					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
