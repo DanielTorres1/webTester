@@ -866,27 +866,38 @@ function enumeracionCMS () {
 		grep -qi wordpress logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
+			newdomain=$(cut -d '^' -f3 "logs/enumeracion/${host}_${port}-${path_web_sin_slash}_webDataInfo.txt")
+			if [ -n "$newdomain" ]; then
+				host=$newdomain
+				#
+			fi
+
+			if [[ "$port" != "80" && "$port" != '443' ]];then
+				wordpress_url="$proto_http://$host:$port"
+			else
+				wordpress_url="$proto_http://$host" 
+			fi
+
+
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
+			checkerWeb.py --tipo registro --url "$wordpress_url/" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
+			wordpress-scan -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressPlugins.txt &
+			xml-rpc-test -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-habilitado.txt &
+			xml-rpc-login -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt &
 
-			checkerWeb.py --tipo registro --url "$proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
-
-			wordpress-scan -url $proto_http"://"$host":"$port/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressPlugins.txt &
-			xml-rpc-test -url $proto_http"://"$host":"$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-habilitado.txt &
-			xml-rpc-login -url $proto_http"://"$host":"$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt &
-
-			echo -e "\t\t[+] nuclei Wordpress ("$proto_http"://"$host":"$port")"
-			nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
+			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
+			nuclei -u "$wordpress_url/"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
 
 			wpscan  --update  >/dev/null
-			echo -e "\t\t[+] Wordpress user enumeration ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
 			#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json"
-			$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
-			echo -e "\t\t[+] wordpress_ghost_scanner ("$proto_http"://"$host":"$port")"
+			$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
+			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressGhost.txt 2>/dev/null &
 
-			wordpress-CVE-2022-21661.py $proto_http"://"$host":"$port/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressCVE~2022~21661.txt
+			wordpress-CVE-2022-21661.py $wordpress_url/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressCVE~2022~21661.txt
 
-			wordpress-version.py $proto_http"://"$host":"$port/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
+			wordpress-version.py $wordpress_url/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
 			grep -vi 'Error' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
 
 			# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
