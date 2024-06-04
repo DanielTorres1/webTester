@@ -1387,7 +1387,7 @@ for line in $(cat $TARGETS); do
   				only_status_code_nonexist=$status_code_nonexist2
 			fi
 
-
+	
 			if [[ "$only_status_code_nonexist" == '200' &&  -z "$msg_error_404" ]]; then
 				echo -n "~Always200-OK" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 				sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
@@ -1401,6 +1401,7 @@ for line in $(cat $TARGETS); do
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
 			if [[ "$only_status_code_nonexist" == "401"  || "$only_status_code_nonexist" == "403"  || "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
+			#if [[ "$only_status_code_nonexist" == "401" || "$only_status_code_nonexist" == "403" || "$only_status_code_nonexist" == "404" || "$only_status_code_nonexist" == *"303"* || "$only_status_code_nonexist" == *"301"* || "$only_status_code_nonexist" == *"302"* ]] && [[ "$status_code_nonexist1" != *"Network error"* && "$status_code_nonexist2" != *"Network error"* ]]; then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -1441,7 +1442,7 @@ for line in $(cat $TARGETS); do
 				checkRAM
 
 				#remove links http/https
-				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
+				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 		
 				if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
 					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
@@ -1459,7 +1460,7 @@ for line in $(cat $TARGETS); do
 				fi
 
 				for webserver_title in "${webservers_defaultTitles[@]}"; do
-					if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; then
+					if [[ "$title" == *"$webserver_title"* ]] || [[ $lengthsite -lt 50 ]]; then
 						noEscaneado=1
 						break
 					fi
