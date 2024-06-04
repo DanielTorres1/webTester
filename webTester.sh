@@ -1442,7 +1442,9 @@ for line in $(cat $TARGETS); do
 
 				if  [ ! -z $DOMINIO ]; then # solo si se escanea con dominio controlar que no se repita los hosts para escaneasr
 						#remove links http/https
+						ls logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt
 						removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
+						ls webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 
 						if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
 							echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
