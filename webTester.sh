@@ -1440,45 +1440,40 @@ for line in $(cat $TARGETS); do
 				echo -e "\t[+] Navegacion forzada en host: $proto_http://${host}:${port}${path_web}"
 				checkRAM
 
-				if  [ ! -z $DOMINIO ]; then # solo si se escanea con dominio controlar que no se repita los hosts para escaneasr
-						#remove links http/https
-						ls logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt
-						removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
-						ls webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
-
-						if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
-							echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
-						fi
-
-						checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
-						lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
-						md5=`echo $checksumline | awk {'print $1'}`
-						egrep -iq $md5 webTrack/checksumsEscaneados.txt
-						md5found=$?
-						title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
-
-						if [ $md5found -eq 0 ]; then
-							noEscaneado=0
-						fi
-
-						for webserver_title in "${webservers_defaultTitles[@]}"; do
-							if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; then
-								noEscaneado=1
-								break
-							fi
-						done
-
-						echo $checksumline >> webTrack/checksumsEscaneados.txt
-
-						#mismo host
-						if [[ $md5found -eq 0 ]];then
-							echo "md5found $md5found webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html"
-							echo -n "~sameHOST" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
-							sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
-						fi
-				else
-					noEscaneado=1 #si no se escanea con domino 
+				#remove links http/https
+				removeLinks.py logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt | egrep -vi 'date|token|hidden' > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
+		
+				if [[ ! -f webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html ]];then
+					echo "no disponible" > webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html
 				fi
+
+				checksumline=`md5sum webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
+				lenghtsite=`wc -w  webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html`
+				md5=`echo $checksumline | awk {'print $1'}`
+				egrep -iq $md5 webTrack/checksumsEscaneados.txt
+				md5found=$?
+				title=`cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d '~' -f1`
+
+				if [ $md5found -eq 0 ]; then
+					noEscaneado=0
+				fi
+
+				for webserver_title in "${webservers_defaultTitles[@]}"; do
+					if [[ "$title" == *"$webserver_title"* ]] || [ $lenghtsite -lt 50 ]; then
+						noEscaneado=1
+						break
+					fi
+				done
+
+				echo $checksumline >> webTrack/checksumsEscaneados.txt
+
+				#mismo host
+				if [[ $md5found -eq 0 ]];then
+					echo "md5found $md5found webTrack/$host/"$proto_http"-"$host"-"$port"-"$path_web_sin_slash".html"
+					echo -n "~sameHOST" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
+				fi
+			
 				
 
 				grep "Dominio identificado" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
