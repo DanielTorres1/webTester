@@ -6,6 +6,7 @@ OKRED='\033[91m'
 OKGREEN='\033[92m'
 OKORANGE='\033[93m'
 RESET='\e[0m'
+LC_TIME=C
 
 
 # usamos un bucle while para recorrer todos los argumentos
@@ -98,9 +99,11 @@ BladeSystem
 oracle
 302 Found
 Coyote
+Sophos
 Express
 AngularJS
 Viridian
+NTLM
 Zimbra
 Pfsense
 GitLab
@@ -123,7 +126,6 @@ Huawei
 Cloudflare
 Outlook
 owa
-SharePoint
 SoftEther
 EOL
 )
@@ -427,19 +429,20 @@ function enumeracionSharePoint() {
     #1: si no existe log
     if [[ ! -e "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt" ]]; then
         echo -e "\t[+] Enumerar Sharepoint ($proto_http : $host : $port)"
-        if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-            echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"
-            waitWeb 0.3
-            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'"
-            echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
-            eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
-        fi
-
-        waitWeb 0.3
+                waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos comunes de sharepoint ($host - SharePoint)"
         command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module sharepoint -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'"
         echo $command > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt &
+
+		# if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
+        #     echo -e "\t\t[+] Revisando directorios comunes ($host - SharePoint)"
+        #     waitWeb 0.3
+        #     command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 -error404 'something went wrong'"
+        #     echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+        #     eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+        # fi
+
     fi
 }
 
@@ -490,7 +493,7 @@ function enumeracionIIS() {
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
 
         waitWeb 0.3
-        echo -e "\t\t[+] Revisando archivos comunes de webservices ($host - IIS)"
+        echo -e "\t\t[+] Revisando openWebservice ($host - IIS)"
         command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module webservices -threads $hilos_web -redirects 0 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt &
@@ -1674,7 +1677,7 @@ for line in $(cat $TARGETS); do
 					echo -e "\t\t[+] serverType $serverType"
 					if [  -z "$serverType" ]; then
 						checkRAM
-						enumeracionDefecto "$proto_http" $host $port $msg_error_404
+						enumeracionDefecto "$proto_http" "$host" $port "$msg_error_404"
 					fi
 
 					#######  if the server is IoT ######
@@ -1840,9 +1843,16 @@ if [[ $webScaneado -eq 1 ]]; then
 		for host in $lista_hosts; do
 			echo -e "Parse $host:$port"
 
+			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webadmin.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt 2>/dev/null
+			#check if the response is 401 for all request
+			if [ -f "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt" ]; then
+				count=$(grep -c "401" "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt")
+				if [ "$count" -gt 100 ]; then
+					echo "$proto_http://$host:$port" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+			fi
+
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt .enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webadmin.txt" ] && egrep --color=never "^200|^401" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_archivosSAP.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosSAP.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt 2>/dev/null
@@ -2128,13 +2138,13 @@ cd .enumeracion/
 
 	#phpmyadmin, etc
 	#responde con 401
-	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $2}' | sort | uniq -i | uniq | tr -d '-'  >> ../servicios/web401.txt
+	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $3}' | sort | uniq -i | uniq | tr -d '-'  >> ../servicios/web401.txt
 
 	#responde con 200 OK
-	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $2}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
+	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 
 	#tomcat
-	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $2}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
+	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 	#
 
 	#Fortigate
@@ -2277,7 +2287,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
-			contenido=`listDir -url=$url_vulnerabilidad | sed '/colspan="5"/d; s/<th valign="top"><img src="\/icons\/blank.gif" alt="\[ICO\]"><\/th>//g; s/<td valign="top"><img src="\/icons\/folder.gif" alt="\[DIR\]"><\/td>//g' | html2texto.py`
+			contenido=`listDir -url=$url_vulnerabilidad `
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
@@ -2397,12 +2407,12 @@ if [[ "$ESPECIFIC" == "1" ]];then
 	grep -i 'api' .vulnerabilidades2/"$host"_"$port"_archivosPeligrosos.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
 
 	#CS-40 Divulgación de información
-	grep -ira 'vulnerabilidad=divulgacionInformacion' logs | egrep -v '404|403'| awk {'print $2'} > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
-	grep -ira 'vulnerabilidad=debugHabilitado' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
-	grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
-	grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| awk {'print $2'} >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
-	grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
-	grep -ira 'vulnerabilidad=backdoor' logs |  egrep -v '404|403' | awk {'print $2'} >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=divulgacionInformacion' logs | egrep -v '404|403'| cut -d '~' -f5 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=debugHabilitado' logs |  egrep -v '404|403'| cut -d '~' -f5 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=MensajeError' logs |  egrep -v '404|403'| cut -d '~' -f5 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=IPinterna' logs | egrep -v '404|403'| cut -d '~' -f5 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=phpinfo' logs |  egrep -v '404|403' | cut -d '~' -f5 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
+	grep -ira 'vulnerabilidad=backdoor' logs |  egrep -v '404|403' | cut -d '~' -f5 >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
 
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | grep wpVersion ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Wordpress version:$_\n"' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_perdidaAutenticacion|_webarchivos|_SharePoint|_webdirectorios|_archivosSAP|_webservices|_archivosTomcat|_webserver|_archivosCGI|_CGIServlet|_sapNetweaverLeak|_custom' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | grep -v 'ListadoDirectorios' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-40.txt
@@ -2410,7 +2420,7 @@ if [[ "$ESPECIFIC" == "1" ]];then
 
 
 	#CS-41 Exposición de usuarios
-	grep -ira 'vulnerabilidad=ExposicionUsuarios' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-41.txt
+	grep -ira 'vulnerabilidad=ExposicionUsuarios' logs | cut -d '~' -f5 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-41.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | grep _wpUsers ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Usuarios:$_\n"' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-41.txt
 	cp .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-41.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-41.txt 2>/dev/null
 
@@ -2425,12 +2435,12 @@ if [[ "$ESPECIFIC" == "1" ]];then
 
 
 	#CS-46 Archivos por defecto
-	grep -ira 'vulnerabilidad=contenidoPrueba' logs | awk {'print $2'} > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-46.txt
+	grep -ira 'vulnerabilidad=contenidoPrueba' logs | cut -d '~' -f5 > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-46.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_archivosDefecto|_passwordDefecto' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done  >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-46.txt
 	cp .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-46.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-46.txt 2>/dev/null
 
 	#CS-48 Servidor mal configurado
-	grep -ira 'vulnerabilidad=ListadoDirectorios' logs | awk {'print $2'} | uniq > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-48.txt
+	grep -ira 'vulnerabilidad=ListadoDirectorios' logs | cut -d '~' -f5 | uniq > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-48.txt
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_heartbleed|_tomcatNuclei|_apacheNuclei|_IIS~CVE~2017~7269|_citrixVul|_apacheStruts|_shortname|_apacheTraversal' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad server:$_\n"' >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-48.txt
 	cp .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-48.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-48.txt 2>/dev/null
 
