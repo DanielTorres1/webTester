@@ -1849,8 +1849,8 @@ if [[ $webScaneado -eq 1 ]]; then
 				count=$(grep -c "401" "logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt")
 				if [ "$count" -gt 100 ]; then
 					echo "$proto_http://$host:$port" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+				fi
 			fi
-
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt .enumeracion/"$host"_"$port-$path_web_sin_slash"_joomla-version.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}-${path_web_sin_slash}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt 2>/dev/null
@@ -1926,81 +1926,81 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e "servicios/cgi.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_archivosCGI.txt 2>/dev/null | awk '{print $2}' >> servicios/cgi.txt
 
 
-		if [ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_configuracionInseguraWordpress.txt" ]; then
-			#####wordpress
-			grep '!' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt
-			strings logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraWordpress.txt 2>/dev/null
+			if [ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_configuracionInseguraWordpress.txt" ]; then
+				#####wordpress
+				grep '!' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt 2>/dev/null | egrep -vi 'identified|version|\+' | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt
+				strings logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt 2>/dev/null| grep --color=never "XML-RPC seems" -m1 -b1 -A9 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraWordpress.txt 2>/dev/null
 
-			for username in `cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt`
-			do
-				if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi
-				respuesta=``
-				validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid.txt
-				sleep 2
-				egrep -qi "no existe" logs/enumeracion/"$username"_valid.txt 2>/dev/null
-				greprc=$? # $greprc -eq 0 --> no existe el usuario
-
-				if [[ ( $greprc -eq 0 && ${username} == *"-"* && ! -z $DOMINIO )]];then
-					username="${username//-/.}" # reemplazar - con .
-					username="$username@$DOMINIO"
-					username="${username//www./}"
+				for username in `cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt`
+				do
 					if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi
-					validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid2.txt
-					egrep -qi "no existe" logs/enumeracion/"$username"_valid2.txt 2>/dev/null
-					greprc=$?
-				fi
+					respuesta=``
+					validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid.txt
+					sleep 2
+					egrep -qi "no existe" logs/enumeracion/"$username"_valid.txt 2>/dev/null
+					greprc=$? # $greprc -eq 0 --> no existe el usuario
 
-				if [[ $greprc -eq 1  ]] ; then #"no existe" no presente en log
-					echo $username >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt
-				fi
-			done #wp user
-			############
-		fi
+					if [[ ( $greprc -eq 0 && ${username} == *"-"* && ! -z $DOMINIO )]];then
+						username="${username//-/.}" # reemplazar - con .
+						username="$username@$DOMINIO"
+						username="${username//www./}"
+						if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi
+						validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid2.txt
+						egrep -qi "no existe" logs/enumeracion/"$username"_valid2.txt 2>/dev/null
+						greprc=$?
+					fi
 
-
-		if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_heartbleedRAM.txt" ]; then
-			#heartbleed
-			egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt 2>/dev/null
-			greprc=$?
-			if [[ $greprc -eq 0 ]] ; then
-				echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
-				grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt
-				$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleedRAM.txt
-				$proxychains heartbleed.sh $host $port &
+					if [[ $greprc -eq 1  ]] ; then #"no existe" no presente en log
+						echo $username >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt
+					fi
+				done #wp user
+				############
 			fi
-		fi
 
-		if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt" ]; then
-			#Redirect con contenido
-			egrep -qi "posiblemente vulnerable" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null
-			greprc=$?
-			if [[ $greprc -eq 0  ]];then
-				if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi
-				curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt &
-			fi
-		fi
 
-		if [ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt" ]; then
-			#WebDAV
-			egrep -i "OK" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null| grep -iq 'PROPFIND'
-			greprc=$?
-			if [[ $greprc -eq 0  ]];then
-				if [[ $VERBOSE -eq 's'  ]];then echo "Metodo PROPFIND DETECTADO"; fi
-				if [[ "$port" != "80" && "$port" != '443' ]];then
-					davtest -url $proto_http://$host:$port >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt &
-				else
-					davtest -url $proto_http://$host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt &
+			if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_heartbleedRAM.txt" ]; then
+				#heartbleed
+				egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt 2>/dev/null
+				greprc=$?
+				if [[ $greprc -eq 0 ]] ; then
+					echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
+					grep --color=never "|" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleed.txt
+					$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_heartbleedRAM.txt
+					$proxychains heartbleed.sh $host $port &
 				fi
-				#exploit cadaver
+			fi
 
-				grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
+			if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt" ]; then
+				#Redirect con contenido
+				egrep -qi "posiblemente vulnerable" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null
 				greprc=$?
 				if [[ $greprc -eq 0  ]];then
-					explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt &
+					if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi
+					curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt &
 				fi
-				# https://www.exploit-db.com/exploits/41992/
 			fi
-		fi
+
+			if [ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt" ]; then
+				#WebDAV
+				egrep -i "OK" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null| grep -iq 'PROPFIND'
+				greprc=$?
+				if [[ $greprc -eq 0  ]];then
+					if [[ $VERBOSE -eq 's'  ]];then echo "Metodo PROPFIND DETECTADO"; fi
+					if [[ "$port" != "80" && "$port" != '443' ]];then
+						davtest -url $proto_http://$host:$port >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt &
+					else
+						davtest -url $proto_http://$host >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt 2>>logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webdav.txt &
+					fi
+					#exploit cadaver
+
+					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
+					greprc=$?
+					if [[ $greprc -eq 0  ]];then
+						explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt &
+					fi
+					# https://www.exploit-db.com/exploits/41992/
+				fi
+			fi
 		done #for hosts
 	done # for web.txt
 	########
