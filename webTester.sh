@@ -2270,7 +2270,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		archivo_destino=${archivo_destino/webdirectorios/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webarchivos/$vulnerabilidad}
-		archivo_destino=${archivo_destino/admin/$vulnerabilidad}
+		archivo_destino=${archivo_destino/webadmin/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webData/$vulnerabilidad}
 		archivo_destino=${archivo_destino/custom/$vulnerabilidad}
 
@@ -2287,7 +2287,9 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
-			contenido=`listDir -url=$url_vulnerabilidad `
+			contenido="URL $url_vulnerabilidad\n\n"
+			contenido+=`listDir -url=$url_vulnerabilidad `
+			contenido+="\n\n"
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
@@ -2326,13 +2328,13 @@ if [[ $webScaneado -eq 1 ]]; then
 			# archivo_origen .vulnerabilidades2/200.87.130.42_443-_phpinfo.txt
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/.enumeracion2\///'|sed 's/.vulnerabilidades2\///'`
 			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
-			echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
+			#echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
 			get-info-php "$url_vulnerabilidad" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
 			greprc=$?
 			if [[ $greprc -eq 0 ]] ; then
-				echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
-				contenido=""
+				#echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
+				contenido="\n\n"
 				# Añadir URL a la variable contenido
 				contenido+="URL $url_vulnerabilidad\n\n"
 				# Añadir el resultado del grep a la variable contenido
