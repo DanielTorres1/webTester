@@ -2437,7 +2437,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 			if [[ ${web_fingerprint} == *"404 not found"* ]]; then
 				echo -e "\t[+] Falso positivo (404) "
 			else
-				echo "$url;$web_fingerprint" >> servicios/admin-web2.txt
+				echo "$url;$web_fingerprint" >> servicios/admin-web-asorted.txt
 			fi #404
 		fi
 
@@ -2445,8 +2445,8 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 fi
 
 
-sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
-rm servicios/admin-web2.txt 2>/dev/null
+sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
+rm servicios/admin-web-asorted.txt 2>/dev/null
 
 if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
