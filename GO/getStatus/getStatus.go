@@ -100,6 +100,7 @@ func main() {
 			regexp.MustCompile(`Internal error`),
 			regexp.MustCompile(`(?i)<div id="app">`),
 			regexp.MustCompile(`(?i)<div id="root">`),
+			regexp.MustCompile(`(?i)<body class="mat-typography">`),
 			regexp.MustCompile(`ENTEL S.A.`), 
 			regexp.MustCompile(`No existe el archivo`),
 			regexp.MustCompile(`Request Rejected`),

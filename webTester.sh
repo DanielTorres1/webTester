@@ -2221,24 +2221,7 @@ waitFinish
 insert_data
 
 if [[ $webScaneado -eq 1 ]]; then
-	##########  filtrar los directorios de segundo nivel que respondieron 200 OK (llevarlos a .enumeracion) ################
-	# touch logs/enumeracion/canary_webdirectorios2.txt # se necesita al menos 2 archivos *_webdirectorios2.txt
-	# echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web (directorios de segundo nivel)"
-	# egrep --color=never "^200" logs/enumeracion/*webdirectorios2.txt 2>/dev/null| while read -r line ; do
-	# 	#line = 200	http://sigec.ruralytierras.gob.bo:80/login/index/
-	# 	#echo -e  "$OKRED[!] Listado de directorio detectado $RESET"
-	# 	archivo_origen=`echo $line | cut -d ':' -f1`
-	# 	contenido=`echo $line | cut -d ':' -f2-6`
-	# 	#echo "archivo_origen $archivo_origen"
-	# 	archivo_destino=$archivo_origen
-	# 	archivo_destino=${archivo_destino/logs\/enumeracion/.enumeracion}
-	# 	#200	http://192.168.50.154:80/img/ (Listado directorio activo)	 TRACE
-	# 	#echo "contenido $contenido"
-	# 	echo $contenido >> $archivo_destino
-	# done
-	#insert_data
-
-
+	
 	############ vulnerabilidades relacionados a servidores/aplicaciones web ########
 	echo -e "[i] Revisar vulnerabilidades relacionadas a aplicaciones web"
 	#Vulnerabilidades detectada en la raiz del servidor
@@ -2294,18 +2277,18 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] contenidoPrueba"  ; fi
-			contenido=$url_vulnerabilidad
+			contenido="$url_vulnerabilidad"
 		fi
 
 
 		if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then
 			echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"
-			contenido==$url_vulnerabilidad
+			contenido="$url_vulnerabilidad"
 		fi
 
 		if [[ $vulnerabilidad == 'OpenPhpMyAdmin' || $vulnerabilidad == 'debugHabilitado' || $vulnerabilidad == 'OpenMikrotik' || $vulnerabilidad == 'divulgacionInformacion' ]];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] $vulnerabilidad \n"  ; fi
-			contenido=$url_vulnerabilidad
+			contenido="$url_vulnerabilidad"
 		fi
 
 
