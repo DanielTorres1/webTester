@@ -2265,7 +2265,8 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'PasswordDetected' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] PasswordDetected en $url_vulnerabilidad"  ; fi
-			contenido=`getExtract -url $url_vulnerabilidad -type password | uniq`
+			contenido="URL $url_vulnerabilidad\n\n"
+			contenido+=`getExtract -url $url_vulnerabilidad -type password | uniq`
 		fi
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
@@ -2300,7 +2301,8 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'IPinterna' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] IPinterna \n"  ; fi
-			contenido=`getExtract -url $url_vulnerabilidad -type IPinterna | uniq`
+			contenido="URL $url_vulnerabilidad\n\n"
+			contenido+=`getExtract -url $url_vulnerabilidad -type IPinterna | uniq`
 		fi
 
 
