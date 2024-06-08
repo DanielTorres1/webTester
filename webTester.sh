@@ -91,8 +91,35 @@ path_web='/'
 webservers_defaultTitles=("IIS Windows Server" "Apache2 Ubuntu Default Page: It works" "Apache default page" "Apache2 Debian Default Page: It works")
 source /usr/share/lanscanner/api_keys.conf
 
+defaultAdminURL=$(cat << 'EOL'
+broadband device
+Check Point
+Cisco
+controlpanel
+cpanel
+Error1
+Fortinet
+Grafana
+hikvision
+Juniper
+keycloak
+Mini web server
+Nextcloud
+Office
+OpenPhpMyAdmin
+Outlook
+RouterOS
+SonicWALL
+TOTVS
+User Portal
+webmail
+whm
+xxxxxx
+Zimbra Web Client
+EOL
+)
 
-NOscanList=$(cat << EOL
+NOscanList=$(cat << 'EOL'
 cisco
 Router
 BladeSystem
@@ -285,11 +312,14 @@ function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
 
 	cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
-	rm servicios/admin-web-url.txt 2>/dev/null
-
 	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint-inserted.txt 2>/dev/null
+	# servicios/admin-web-fingerprint-inserted.txt es usado por cracker.sh
+	rm servicios/admin-web-url.txt 2>/dev/null
 	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 
+	# llevar los paneles de administracion genericos a servicios_archived
+	cat servicios/web-admin-default.txt >> servicios_archived/web-admin-default.txt
+	rm servicios/web-admin-default.txt
 	}
 
 function formato_ip {
@@ -2107,8 +2137,13 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|Nextcloud|User Portal|keycloak|kiosko|login|Quasar App|controlpanel|cpanel|whm|webmail|phpmyadmin|Web Management|Office|intranet|InicioSesion|S.R.L.|SRL|Outlook|Zimbra Web Client|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Grafana|Ingrese|Express|Ingreso de Usuario" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "Fortinet|Cisco|RouterOS|Juniper|TOTVS|xxxxxx|Mini web server|SonicWALL|Check Point|sameHOST|OpenPhpMyAdmin|hikvision|Error1" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
+	#paneles de admin de desarollo propio
+	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|kiosko|login|Quasar App|Web Management|intranet|InicioSesion|S.R.L.|SRL|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Ingrese|Ingreso de Usuario|phpmyadmin|log in" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
+
+	#paneles admin genericos sophos,cisco, etc
+	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default.txt
+
 
 fi #sitio escaneado
 
@@ -2144,7 +2179,7 @@ cd .enumeracion/
 	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 
 	#tomcat
-	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
+	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/web-admin-default.txt
 	#
 
 	#Fortigate
@@ -2360,14 +2395,44 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 			fi
 			host=`echo $host_port | cut -d ":" -f 1`
 			path_web2=`echo $url | cut -d "/" -f 4-5`
+			path_web2_sin_slash=$(echo "$path_web2" | sed 's/\///g')
 
 			echo -e "\t[+] Identificando "
 			#web_fingerprint=`webData.pl -t $host -d "/$path_web2" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
-			web_fingerprint=`webData -proto $proto_http -target $host -port $port -path "/$path_web2" -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g'`
-			#echo "web_fingerprint ($web_fingerprint)" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webFingerprint.txt
+			webData -proto $proto_http -target $host -port $port -path "/$path_web2" -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g' > logs/enumeracion/"$host"_"$port-$path_web2_sin_slash"_webFingerprint.txt &		
+		fi
 
-			web_fingerprint=`echo "$web_fingerprint" | tr '[:upper:]' '[:lower:]' | tr -d ";"` # a minusculas y eliminar  ;
-			#echo "web_fingerprint ($web_fingerprint)"
+	done < servicios/admin-web-url.txt
+fi
+
+waitFinish
+
+#parse
+if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
+	echo -e "$OKBLUE [i] PARSE: paneles de administracion $RESET"
+	while IFS= read -r url
+	do
+		
+		if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt 2>/dev/null && ! grep -qF "$url" servicios_archived/admin-web-fingerprint-inserted.txt 2>/dev/null; then
+			echo -e "\n\t########### ($url)  #######"
+			####### Identificar tipo de panel de admin
+			host_port=`echo $url | cut -d "/" -f 3` # 190.129.69.107:80
+			proto_http=`echo $url | cut -d ":" -f 1`
+			if [[ ${host_port} == *":"* ]]; then
+				port=`echo $host_port | cut -d ":" -f 2`
+			else
+				if [[  ${proto_http} == *"https"* ]]; then
+					port="443"
+				else
+					port="80"
+				fi
+			fi
+			host=`echo $host_port | cut -d ":" -f 1`
+			path_web2=`echo $url | cut -d "/" -f 4-5`
+			path_web2_sin_slash=$(echo "$path_web2" | sed 's/\///g')
+
+			echo -e "\t[+] Parse "
+			web_fingerprint=`cat  logs/enumeracion/"$host"_"$port-$path_web2_sin_slash"_webFingerprint.txt | tr '[:upper:]' '[:lower:]' | tr -d ";"` # a minusculas y eliminar  ;
 			#############
 			if [[ ${web_fingerprint} == *"404 not found"* ]]; then
 				echo -e "\t[+] Falso positivo (404) "
@@ -2382,7 +2447,6 @@ fi
 
 sort servicios/admin-web2.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web2.txt 2>/dev/null
-
 
 if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
