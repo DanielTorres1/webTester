@@ -95,11 +95,13 @@ defaultAdminURL=$(cat << 'EOL'
 broadband device
 Check Point
 Cisco
+pfsense
 controlpanel
 cpanel
 Error1
 Fortinet
 Grafana
+tp-link
 hikvision
 Juniper
 keycloak
@@ -124,6 +126,7 @@ cisco
 Router
 BladeSystem
 oracle
+tp-link
 302 Found
 Coyote
 Sophos
