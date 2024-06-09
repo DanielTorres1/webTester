@@ -2144,7 +2144,6 @@ if [[ $webScaneado -eq 1 ]]; then
 	#paneles admin genericos sophos,cisco, etc
 	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default.txt
 
-
 fi #sitio escaneado
 
 
@@ -2519,5 +2518,5 @@ insert_data
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
 echo "servicios admin"
-cat servicios/web-admin-fingerprint.txt
+cat servicios/web-admin-default.txt
 insert_data_admin 2>/dev/null
