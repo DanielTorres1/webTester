@@ -2142,7 +2142,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
 
 	#paneles admin genericos sophos,cisco, etc
-	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default.txt
+	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default.txt
 
 
 fi #sitio escaneado
@@ -2444,7 +2444,6 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 	done < servicios/admin-web-url.txt
 fi
 
-
 sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
 rm servicios/admin-web-asorted.txt 2>/dev/null
 
@@ -2519,4 +2518,6 @@ insert_data
 # delete empty files
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
+echo "servicios admin"
+cat servicios/web-admin-fingerprint.txt
 insert_data_admin 2>/dev/null
