@@ -71,6 +71,13 @@ func main() {
 	client := &http.Client{
 		Transport: tr,
 		Timeout:   10 * time.Second,
+		// Custom redirect policy: always follow redirects
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 10 {
+				return fmt.Errorf("stopped after 10 redirects")
+			}
+			return nil
+		},
 	}
 
 	// Create a new GET request
@@ -91,44 +98,57 @@ func main() {
 	req.Header.Set("Sec-Fetch-Site", "none")
 
 	// Make the GET request
-	resp, _ := client.Do(req)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error making the request:", err)
+		os.Exit(1)
+	}
 	defer resp.Body.Close()
 
 	// Check if the status code has more than 3 characters
 	statusCode := strconv.Itoa(resp.StatusCode)
 	if len(statusCode) > 3 {
 		fmt.Println("Network error")
-	} else {
-		var bodyReader io.ReadCloser
-		switch resp.Header.Get("Content-Encoding") {
-		case "gzip":
-			bodyReader, err = gzip.NewReader(resp.Body)
-			if err != nil {
-				fmt.Println("Error decompressing the gzip response")
-				os.Exit(1)
-			}
-			defer bodyReader.Close()
-		default:
-			bodyReader = resp.Body
-		}
+		os.Exit(1)
+	}
 
-		// Read the response body
-		bodyBytes, err := ioutil.ReadAll(bodyReader)
+	var bodyReader io.ReadCloser
+
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		bodyReader, err = gzip.NewReader(resp.Body)
 		if err != nil {
-			fmt.Println("Error reading the response body")
+			fmt.Println("Error al descomprimir la respuesta gzip")
 			os.Exit(1)
 		}
-		bodyString := string(bodyBytes)
+		defer bodyReader.Close()
+	case "x-gzip":
+		bodyReader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			fmt.Println("Error al descomprimir la respuesta x-gzip")
+			os.Exit(1)
+		}
+		defer bodyReader.Close()
+	default:
+		bodyReader = resp.Body
+	}
 
-		// Call the appropriate extraction function based on the type parameter
-		switch *extractType {
-		case "password":
-			extractPasswords(bodyString)
-		case "IPinterna":
-			extractIPInterna(bodyString)
-		default:
-			fmt.Println("Invalid type. Use 'password' or 'IPinterna'")
-			os.Exit(1)
-		}
+	// Read the response body
+	bodyBytes, err := ioutil.ReadAll(bodyReader)
+	if err != nil {
+			fmt.Println("Error reading the response body")
+		os.Exit(1)
+	}
+	bodyString := string(bodyBytes)
+	//fmt.Println(bodyString)
+	// Call the appropriate extraction function based on the type parameter
+	switch *extractType {
+	case "password":
+		extractPasswords(bodyString)
+	case "IPinterna":
+		extractIPInterna(bodyString)
+	default:
+		fmt.Println("Invalid type. Use 'password' or 'IPinterna'")
+		os.Exit(1)
 	}
 }
