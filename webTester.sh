@@ -321,8 +321,8 @@ function insert_data_admin () {
 	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 
 	# llevar los paneles de administracion genericos a servicios_archived
-	cat servicios/web-admin-default.txt >> servicios_archived/web-admin-default.txt
-	rm servicios/web-admin-default.txt
+	cat servicios/web-admin-default.txt >> servicios/web-admin-default-inserted.txt 2>/dev/null
+	rm servicios/web-admin-default.txt 2>/dev/null
 	}
 
 function formato_ip {
@@ -2145,7 +2145,9 @@ if [[ $webScaneado -eq 1 ]]; then
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
 
 	#paneles admin genericos sophos,cisco, etc
-	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default.txt
+	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default-temp.txt
+	comm -23 servicios/web-admin-default-temp.txt servicios_archived/web-admin-default-inserted.txt  >> servicios/web-admin-default.txt 2>/dev/null #eliminar elementos repetidos
+
 
 fi #sitio escaneado
 
