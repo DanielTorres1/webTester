@@ -851,6 +851,85 @@ function enumeracionTomcat() {
 	fi	#hosting domains
 }
 
+
+# xhtml files  
+# https://appwebjb.entel.bo/guiatelefonica/faces/
+# https://appwebjb.entel.bo/actualizaentel/faces/
+
+# jsp fles
+# https://appwebjb.entel.bo/ConsultaGestor/
+
+function enumeracionJava() {
+    proto_http=$1
+    host=$2
+    port=$3
+	msg_error_404=$4 #cadena en comillas simples
+  	
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
+
+    #1: si no existe log
+    if [[ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt" ]]; then
+        echo -e "\t\t[+] Enumerar Java ($proto_http : $host : $port [$param_msg_error])"
+
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos genericos ($host - JAVA)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webarchivos.txt &
+
+      
+
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - JAVA)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module webserver -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt
+        eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webserver.txt &
+
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - JAVA)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
+
+    fi
+
+    if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+        greprc=$?
+        if [[ $greprc -eq 1 ]]; then
+
+            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+
+                waitWeb 0.3
+                echo -e "\t\t[+] Revisando directorios comunes ($host - JAVA)"
+                command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+                echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
+                eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+                sleep 1
+
+                waitWeb 0.3
+				echo -e "\t\t[+] Revisando archivos por defecto ($host - JAVA)"
+				command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt 
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
+
+			fi  #total
+
+			if [ "$EXTRATEST" == "oscp" ]; then
+				waitWeb 0.3
+				echo -e "\t\t[+] Revisando archivos jsp ($host - JAVA)"
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module jsp -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt
+				eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_jsp-files.txt
+			fi #oscp
+		fi	#NO CMS
+	fi	#hosting domains
+}
+
 function enumeracionSAP () {
    proto_http=$1
    host=$2
@@ -1644,6 +1723,18 @@ for line in $(cat $TARGETS); do
 						enumeracionApache "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
+
+					###  if the server is java ######
+					egrep -i 'JavaServer' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
+					greprc=$?
+					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
+						checkRAM
+						enumeracionJava "$proto_http" "$host" "$port" "$msg_error_404"
+					fi
+					####################################
+
+
+					
 
 					###  if the server is nginx ######
 					egrep -i 'nginx|api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" 
