@@ -109,6 +109,8 @@ func main() {
 			regexp.MustCompile(`Error de servidor`),
 			regexp.MustCompile(`Unexpected end of document`),
 			regexp.MustCompile(`This page can't be displayed`),
+			regexp.MustCompile(`ALIVE FROM DJANGO`),
+			
 			
 		}
 

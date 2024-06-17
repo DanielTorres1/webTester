@@ -92,71 +92,67 @@ webservers_defaultTitles=("IIS Windows Server" "Apache2 Ubuntu Default Page: It 
 source /usr/share/lanscanner/api_keys.conf
 
 defaultAdminURL=$(cat << 'EOL'
+302 Found
+Always200-OK
+AngularJS
+BladeSystem
+botpress
 broadband device
 Check Point
+cisco
 Cisco
-pfsense
+Cloudflare
 controlpanel
+Coyote
 cpanel
+erpnext
 Error1
+Express
 Fortinet
+GitLab
+GoAhead-Webs
 Grafana
-tp-link
 hikvision
+Huawei
 Juniper
 keycloak
 Mini web server
+networkMonitoring
 Nextcloud
+NTLM
 Office
 OpenPhpMyAdmin
+openresty
+Open Source Routing Machine
+oracle
 Outlook
+owa
+ownCloud
+Payara
+pfsense
+Pfsense
+printer
+Roundcube
+Router
 RouterOS
+SoftEther
 SonicWALL
+Sophos
+Taiga
 TOTVS
+tp-link
+TrueConf Server Guest Page
+Tyco
 User Portal
+Viridian
+Vuejs
 webmail
 whm
 xxxxxx
-Zimbra Web Client
-EOL
-)
-
-NOscanList=$(cat << 'EOL'
-cisco
-Router
-BladeSystem
-oracle
-tp-link
-302 Found
-Coyote
-Sophos
-Express
-AngularJS
-Viridian
-NTLM
-Zimbra
-Pfsense
-GitLab
-Roundcube
 Zentyal
-Taiga
-Always200-OK
-Nextcloud
-Open Source Routing Machine
-ownCloud
-GoAhead-Webs
-printer
-Vuejs
-TrueConf Server Guest Page
-networkMonitoring
-erpnext
-Payara
-openresty
-Huawei
-Cloudflare
-Outlook
-owa
-SoftEther
+OLT Web Management Interface
+Zimbra
+Zimbra Web Client
 EOL
 )
 
@@ -394,7 +390,7 @@ function enumeracionDefecto() {
 
     echo -e "\t[+] Default enumeration ($proto_http : $host : $port [$param_msg_error])"
     waitWeb 0.3
-    egrep -qiv "$NOscanList" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+    egrep -qiv "$defaultAdminURL" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
     greprc=$?
 
     if [[ $greprc -eq 0 ]]; then
@@ -421,7 +417,7 @@ function enumeracionDefecto() {
         fi
 
         if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
-            egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+            egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
             greprc=$?
 
             if [[ $greprc -eq 1 ]]; then
@@ -533,7 +529,7 @@ function enumeracionIIS() {
     fi
 
     if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
@@ -678,7 +674,7 @@ function enumeracionApache() {
     fi
 
 	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
 		greprc=$?
 		if [[ $greprc -eq 1 ]]; then
 
@@ -819,7 +815,7 @@ function enumeracionTomcat() {
     fi
 
     if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
@@ -898,7 +894,7 @@ function enumeracionJava() {
     fi
 
     if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+        egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
@@ -1048,7 +1044,6 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
 			nuclei -u "$wordpress_url/"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
 
-			wpscan  --update  >/dev/null
 			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
 			#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json"
 			$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
@@ -1588,7 +1583,7 @@ for line in $(cat $TARGETS); do
 						read resp
 					else
 						# si no es CMS descargar con httrack
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
 						greprc=$?
 						if [[ $greprc -eq 1 ]]; then
 							echo -e "\t\t[+] httrack ($host )"
@@ -1645,8 +1640,6 @@ for line in $(cat $TARGETS); do
 					sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
 				fi
 			
-				
-
 				grep "Dominio identificado" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
 				greprc=$? 	# 1= no coincide
 				result=$(formato_ip "$host")
@@ -1703,7 +1696,7 @@ for line in $(cat $TARGETS); do
 						wafw00f $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wafw00f.txt &
 					fi
 
-					egrep -i "httpfileserver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
+					egrep -i "httpfileserver" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then #
 						echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " > .vulnerabilidades/"$host"_"$port"_ProFTPD-RCE.txt
@@ -1716,7 +1709,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ######
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1725,7 +1718,7 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					###  if the server is java ######
-					egrep -i 'JavaServer' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" # solo el segundo egrep poner "-q"
+					egrep -i 'JavaServer' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -1737,7 +1730,7 @@ for line in $(cat $TARGETS); do
 					
 
 					###  if the server is nginx ######
-					egrep -i 'nginx|api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList" 
+					egrep -i 'nginx|api-endpoint|Express' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL" 
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es nginx y no se enumero antes
 						checkRAM
@@ -1746,7 +1739,7 @@ for line in $(cat $TARGETS); do
 					
 
 					#######  if the server is SharePoint ######
-					grep -i SharePoint logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
+					grep -i SharePoint logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint
 						checkRAM
@@ -1755,7 +1748,7 @@ for line in $(cat $TARGETS); do
 					####################################
 
 					#######  if the server is IIS ######
-					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
+					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes
 						checkRAM
@@ -1825,7 +1818,7 @@ for line in $(cat $TARGETS); do
 						#check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt
 						#grep -iv error logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_check-blank-target.txt
 						checkRAM
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"
+						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"
 						greprc=$?
 						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then
 							##########################################
@@ -2117,7 +2110,7 @@ if [[ $webScaneado -eq 1 ]]; then
 					fi
 					#exploit cadaver
 
-					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$NOscanList"  # no redirecciona
+					grep -i IIS logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL"  # no redirecciona
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then
 						explodingcan-checker.py -t $proto_http://$host:$port> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS~CVE~2017~7269.txt &
