@@ -2401,9 +2401,10 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		if [ $vulnerabilidad == 'ListadoDirectorios' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] ListadoDirectorios en $url_vulnerabilidad"  ; fi
-			contenido="URL $url_vulnerabilidad\n\n"
-			contenido+=`listDir -url=$url_vulnerabilidad `
-			contenido+="\n\n"
+			contenido=`listDir -url=$url_vulnerabilidad `
+			if [[ -n "$contenido" ]] && [[ "$contenido" != "[DIR]| Parent Directory | | -" ]]; then
+				contenido="URL $url_vulnerabilidad\n\n" + "$contenido \n\n"
+			fi
 		fi
 
 		if [ $vulnerabilidad == 'contenidoPrueba' ];then
@@ -2613,6 +2614,4 @@ insert_data
 # delete empty files
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
-echo "servicios admin"
-cat servicios/web-admin-default.txt
 insert_data_admin 2>/dev/null

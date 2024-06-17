@@ -99,6 +99,8 @@ func main() {
 			regexp.MustCompile(`Log In to Payara Administration Console`),
 			regexp.MustCompile(`Internal error`),
 			regexp.MustCompile(`(?i)<div id="app">`),
+			regexp.MustCompile(`(?i)<div class="wrapper" id="app">`),
+			regexp.MustCompile(`(?i)page.not_found`),
 			regexp.MustCompile(`(?i)<div id="root">`),
 			regexp.MustCompile(`(?i)<body class="mat-typography">`),
 			regexp.MustCompile(`ENTEL S.A.`), 
