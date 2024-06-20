@@ -1312,6 +1312,8 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
+	cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt
+
 	#Verificar que no se obtuvo ese dato
 	if [ -e logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt ]; then
 		echo "ya se reviso2"
