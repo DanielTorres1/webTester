@@ -68,7 +68,3 @@ cd ..
 # docker build -t dumpster-diver .  
 # cd ..
 
-echo -e "${GREEN} [+] Instalar truffleHog ${RESET}"
-cd truffleHog
-docker build -t truffle-hog .  
-cd ..
