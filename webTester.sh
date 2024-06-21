@@ -91,6 +91,36 @@ path_web='/'
 webservers_defaultTitles=("IIS Windows Server" "Apache2 Ubuntu Default Page: It works" "Apache default page" "Apache2 Debian Default Page: It works")
 source /usr/share/lanscanner/api_keys.conf
 
+
+customPanel=$(cat << 'EOL'
+initium
+microapp
+inicia
+Registro
+Entrar
+Cuentas
+kiosko
+login
+Quasar App
+Web Management
+intranet
+InicioSesion
+S.R.L.
+SRL
+Sign In
+PLATAFORMA
+administrador
+Iniciar sesion
+Sistema
+Usuarios
+Ingrese
+Ingreso de Usuario
+phpmyadmin
+Pedidos
+log in
+EOL
+)
+
 defaultAdminURL=$(cat << 'EOL'
 302 Found
 Always200-OK
@@ -1334,8 +1364,7 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
-	cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt
-
+	
 	#Verificar que no se obtuvo ese dato
 	if [ -e logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt ]; then
 		echo "ya se reviso2"
@@ -2014,7 +2043,6 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
-
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_configuracionInseguraYii.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiTest.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraYii.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_backupweb.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt 2>/dev/null
@@ -2065,7 +2093,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			
 			
-			
+			cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
@@ -2219,7 +2247,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
 	#paneles de admin de desarollo propio (custom)
-	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|kiosko|login|Quasar App|Web Management|intranet|InicioSesion|S.R.L.|SRL|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Ingrese|Ingreso de Usuario|phpmyadmin|log in" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
+	egrep -ira $customPanel logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
 
 	#paneles admin genericos sophos,cisco, etc
