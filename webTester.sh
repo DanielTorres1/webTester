@@ -95,20 +95,16 @@ defaultAdminURL=$(cat << 'EOL'
 302 Found
 Always200-OK
 swfobject
-AngularJS
 BladeSystem
 botpress
 broadband device
 Check Point
 cisco
-Cisco
 Cloudflare
 controlpanel
-Coyote
 cpanel
 erpnext
 Error1
-Express
 Fortinet
 GitLab
 GoAhead-Webs
@@ -122,16 +118,12 @@ networkMonitoring
 Nextcloud
 NTLM
 Office
-OpenPhpMyAdmin
 openresty
 Open Source Routing Machine
 oracle
-Outlook
-owa
 ownCloud
 Payara
 pfsense
-Pfsense
 printer
 Roundcube
 Router
@@ -146,7 +138,6 @@ TrueConf Server Guest Page
 Tyco
 User Portal
 Viridian
-Vuejs
 webmail
 whm
 xxxxxx
@@ -154,6 +145,8 @@ Zentyal
 OLT Web Management Interface
 Zimbra
 Zimbra Web Client
+Outlook
+owa
 EOL
 )
 
@@ -2225,7 +2218,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	#paneles de admin de desarollo propio
+	#paneles de admin de desarollo propio (custom)
 	egrep -ira "initium|microapp|inicia|Registro|Entrar|Cuentas|kiosko|login|Quasar App|Web Management|intranet|InicioSesion|S.R.L.|SRL|Sign In|PLATAFORMA|administrador|Iniciar sesion|Sistema|Usuarios|Ingrese|Ingreso de Usuario|phpmyadmin|log in" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
 
