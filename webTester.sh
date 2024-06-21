@@ -311,15 +311,17 @@ function checkRAM (){
 function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
 
+	#URL usadas para identificar si es panel administrativo propio o generico
 	cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
-	cat servicios/admin-web-fingerprint.txt >> servicios/admin-web-fingerprint-inserted.txt 2>/dev/null
-	# servicios/admin-web-fingerprint-inserted.txt es usado por cracker.sh
 	rm servicios/admin-web-url.txt 2>/dev/null
-	rm servicios/admin-web-fingerprint.txt 2>/dev/null
 
-	# llevar los paneles de administracion genericos a servicios_archived
-	cat servicios/web-admin-default.txt >> servicios/web-admin-default-inserted.txt 2>/dev/null
-	rm servicios/web-admin-default.txt 2>/dev/null
+	#paneles administrativos propios
+	cat servicios/admin-web-custom.txt >> servicios/admin-web-custom-inserted.txt 2>/dev/null
+	rm servicios/admin-web-custom.txt 2>/dev/null
+
+	# Paneles de administracion genericos (sophos, ))
+	cat servicios/admin-web-generic.txt >> servicios/admin-web-generic-inserted.txt 2>/dev/null
+	rm servicios/admin-web-generic.txt 2>/dev/null
 	}
 
 function formato_ip {
@@ -2018,7 +2020,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_configuracionInseguraYii.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiTest.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraYii.txt 2>/dev/null
@@ -2229,7 +2231,7 @@ if [[ $webScaneado -eq 1 ]]; then
 
 	#paneles admin genericos sophos,cisco, etc
 	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default-temp.txt
-	comm -23 servicios/web-admin-default-temp.txt servicios_archived/web-admin-default-inserted.txt  >> servicios/web-admin-default.txt 2>/dev/null #eliminar elementos repetidos
+	comm -23 servicios/web-admin-default-temp.txt servicios_archived/admin-web-generic-inserted.txt  >> servicios/admin-web-generic.txt 2>/dev/null #eliminar elementos repetidos
 
 
 fi #sitio escaneado
@@ -2266,7 +2268,7 @@ cd .enumeracion/
 	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
 
 	#tomcat
-	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/web-admin-default.txt
+	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-generic.txt
 	#
 
 	#Fortigate
@@ -2468,7 +2470,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 	while IFS= read -r url
 	do
 		
-		if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt 2>/dev/null && ! grep -qF "$url" servicios_archived/admin-web-fingerprint-inserted.txt 2>/dev/null; then
+		if ! grep -qF "$url" servicios/admin-web-custom-inserted.txt 2>/dev/null && ! grep -qF "$url" servicios_archived/admin-web-custom-inserted.txt 2>/dev/null; then
 			echo -e "\n\t########### ($url)  #######"
 			####### Identificar tipo de panel de admin
 			host_port=`echo $url | cut -d "/" -f 3` # 190.129.69.107:80
@@ -2502,7 +2504,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 	while IFS= read -r url
 	do
 		
-		if ! grep -qF "$url" servicios/admin-web-fingerprint-inserted.txt 2>/dev/null && ! grep -qF "$url" servicios_archived/admin-web-fingerprint-inserted.txt 2>/dev/null; then
+		if ! grep -qF "$url" servicios/admin-web-custom-inserted.txt 2>/dev/null && ! grep -qF "$url" servicios_archived/admin-web-custom-inserted.txt 2>/dev/null; then
 			echo -e "\n\t########### ($url)  #######"
 			####### Identificar tipo de panel de admin
 			host_port=`echo $url | cut -d "/" -f 3` # 190.129.69.107:80
@@ -2533,7 +2535,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 	done < servicios/admin-web-url.txt
 fi
 
-sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-fingerprint.txt
+sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-custom.txt
 rm servicios/admin-web-asorted.txt 2>/dev/null
 
 if [[ "$ESPECIFIC" == "1" ]];then
