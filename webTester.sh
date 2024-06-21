@@ -504,6 +504,12 @@ function enumeracionIIS() {
         echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
+		echo -e "\t\t[+] Revisando backups ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backups -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+
+
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
         command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 0 -show404 $param_msg_error"
@@ -562,9 +568,9 @@ function enumeracionIIS() {
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - IIS)"
-				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backupIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error"
-				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
-				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module configIIS -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configIIS.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configIIS.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] certsrv ($host - IIS)"
@@ -636,6 +642,12 @@ function enumeracionApache() {
         echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
 
+		waitWeb 0.3
+		echo -e "\t\t[+] Revisando backups ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backups -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+
         waitWeb 0.3
         echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
         checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt &
@@ -695,10 +707,10 @@ function enumeracionApache() {
 				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosDefecto.txt &
 
 				waitWeb 0.3
-				echo -e "\t\t[+] Revisando backups de archivos de configuración ($host - Apache/nginx)"
-				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backupApache -threads $hilos_web -redirects 0 -show404 $param_msg_error"
-				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
-				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+				echo -e "\t\t[+] Revisando archivos de configuración ($host - Apache/nginx)"
+				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module configApache -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+				echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configApache.txt
+				eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configApache.txt &
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando la existencia de backdoors ($host - Apache/nginx)"
@@ -783,6 +795,13 @@ function enumeracionTomcat() {
         command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
         echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webdirectorios.txt &
+
+		waitWeb 0.3
+		echo -e "\t\t[+] Revisando backups ($host - Tomcat)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backups -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+
 
         waitWeb 0.3
         echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
@@ -892,6 +911,13 @@ function enumeracionJava() {
         command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt &
+
+		waitWeb 0.3
+		echo -e "\t\t[+] Revisando backups ($host - java)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module backups -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt
+        eval $command >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_backupweb.txt &
+
 
     fi
 
@@ -1992,6 +2018,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port-$path_web_sin_slash"_hadoopNamenode.txt
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_configuracionInseguraYii.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_yiiTest.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configuracionInseguraYii.txt 2>/dev/null
@@ -2000,7 +2027,9 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_archivosPeligrosos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_openWebservice.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_openWebservice.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_webshell.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt >> .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_webshell.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_configApache.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configApache.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configApache.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_configIIS.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configIIS.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_configIIS.txt 2>/dev/null
+			
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_phpinfo.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_phpinfo.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_cms-registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_CVE~2024~24919.txt" ] && grep "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CVE~2024~24919.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CVE~2024~24919.txt 2>/dev/null
@@ -2041,7 +2070,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			
 			
-
+			
+			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-45.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_testSSL.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-45.txt 2>/dev/null
