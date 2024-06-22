@@ -16,10 +16,18 @@ import (
 )
 
 func extractPasswords(bodyString string) {
+	// passwordRegexps := []*regexp.Regexp{
+	// 	regexp.MustCompile(`"password":"([^"]*)"`), // Captures everything after "password":
+	// 	regexp.MustCompile(`'password':\{([^}]*)\}`), // Captures everything inside the 'password' object
+	// }
+	//fmt.Println(" bodyString:", bodyString)
+
 	passwordRegexps := []*regexp.Regexp{
-		regexp.MustCompile(`"password":"([^"]*)"`), // Captures everything after "password":
-		regexp.MustCompile(`'password':\{([^}]*)\}`), // Captures everything inside the 'password' object
+		regexp.MustCompile(`password"\s*:\s*"([^"]*)"`),   // Captura todo después de "password":
+		regexp.MustCompile(`password'\s*:\s*'([^']*)'`),   // Captura todo después de 'password':
+		regexp.MustCompile(`password\s*=\s*([^"' ]*)`),    // Captura todo después de password=
 	}
+	
 
 	for _, re := range passwordRegexps {
 		matches := re.FindAllStringSubmatch(bodyString, -1)
@@ -27,6 +35,7 @@ func extractPasswords(bodyString string) {
 			if len(match) > 1 {
 				password := match[1]
 				lowerPassword := strings.ToLower(password)
+				//fmt.Println("Contraseña encontrada1:", lowerPassword)
 				// Verifica si password contiene "required" o "password"
 				if strings.Contains(lowerPassword, "required") || strings.Contains(lowerPassword, "password") || strings.Contains(lowerPassword, "http") {
 					continue

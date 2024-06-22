@@ -127,6 +127,7 @@ Always200-OK
 swfobject
 BladeSystem
 botpress
+Plesk
 broadband device
 Check Point
 cisco
@@ -160,6 +161,8 @@ Router
 RouterOS
 SoftEther
 SonicWALL
+FortiGate
+airOS
 Sophos
 Taiga
 TOTVS
@@ -335,8 +338,8 @@ function insert_data_admin () {
 	insert-data-admin.py 2>/dev/null
 
 	#URL usadas para identificar si es panel administrativo propio o generico
-	cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
-	rm servicios/admin-web-url.txt 2>/dev/null
+	# cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
+	# rm servicios/admin-web-url.txt 2>/dev/null
 
 	#paneles administrativos propios
 	cat servicios/admin-web-custom.txt >> servicios/admin-web-custom-inserted.txt 2>/dev/null
@@ -1098,8 +1101,7 @@ function enumeracionCMS () {
 			nuclei -u "$wordpress_url/"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
 
 			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
-			#echo "$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$proto_http"://"$host":"$port" --format json"
-			$proxychains wpscan --disable-tls-checks  --enumerate u  --random-user-agent --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
+			$proxychains wpscan --disable-tls-checks  --random-user-agent  --enumerate u  --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
 			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressGhost.txt 2>/dev/null &
 
@@ -2093,7 +2095,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			
 			
-			cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
+			cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py | grep -v 'Error en la entrada' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
@@ -2246,14 +2248,21 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	#paneles de admin de desarollo propio (custom)
-	egrep -ira $customPanel logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort > servicios/web-admin-temp.txt
+	###########3paneles de admin de desarollo propio (custom)
+	egrep -ira "$customPanel" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort | uniq -i > servicios/web-admin-temp.txt
+	if [ ! -f "servicios_archived/admin-web-url-inserted.txt" ]; then
+		touch "servicios_archived/admin-web-url-inserted.txt"
+	fi
 	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
+	###########################
 
-	#paneles admin genericos sophos,cisco, etc
+	########### paneles admin genericos sophos,cisco, etc
 	egrep -ira "$defaultAdminURL" logs/enumeracion/*_webDataInfo.txt |grep -iv 'error' | awk -F'~' '{split($1, a, ":"); print $5 ";" a[2]}' | sort | uniq >  servicios/web-admin-default-temp.txt
+	if [ ! -f "servicios_archived/admin-web-generic-inserted.txt" ]; then
+		touch "servicios_archived/admin-web-generic-inserted.txt"
+	fi
 	comm -23 servicios/web-admin-default-temp.txt servicios_archived/admin-web-generic-inserted.txt  >> servicios/admin-web-generic.txt 2>/dev/null #eliminar elementos repetidos
-
+	######################################
 
 fi #sitio escaneado
 
@@ -2286,7 +2295,7 @@ cd .enumeracion/
 	grep --color=never -i admin * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|webData|Usando archivo" | grep 401 | awk '{print $3}' | sort | uniq -i | uniq | tr -d '-'  >> ../servicios/web401.txt
 
 	#responde con 200 OK
-	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-url.txt
+	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i  >> ../servicios/admin-web-url.txt
 
 	#tomcat
 	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-generic.txt
@@ -2485,7 +2494,8 @@ if [[ $webScaneado -eq 1 ]]; then
 	#################################
 fi #webScanned
 
-if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativos y no se esta escaneado un sitio en especifico
+# banner grabbing de los paneles administrativos "custom"
+if [[ -f servicios/admin-web-url.txt ]] ; then # 
 	#https://sucre.bo/mysql/
 	echo -e "$OKBLUE [i] Identificando paneles de administracion $RESET"
 	while IFS= read -r url
@@ -2557,7 +2567,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 fi
 
 sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-custom.txt
-rm servicios/admin-web-asorted.txt 2>/dev/null
+rm servicios/admin-web-asorted.txt rm servicios/admin-web-url.txt 2>/dev/null
 
 if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
