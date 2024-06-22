@@ -2098,7 +2098,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
 			
 			
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt | jq '.commonName'  | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
