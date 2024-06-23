@@ -1379,7 +1379,10 @@ for line in $(cat $TARGETS); do
 			echo -e "\t[+]  Buscando hosts virtuales en $host:$port"
 			waitWeb 0.1
 			nmap -Pn -sV -n -p $port $host 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_domainNmap.txt &
-			grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "^" -f3 | uniq > logs/enumeracion/"$host"_web_domainWebData.txt
+			newhost=`grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "^" -f3 | uniq`
+			echo $newhost > logs/enumeracion/"$host"_web_domainWebData.txt
+			cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_webDataInfo.txt
+			cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null
 		fi
 
 		if [[ "$host_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
@@ -1562,15 +1565,14 @@ for line in $(cat $TARGETS); do
 
 	if [ "$VERBOSE" == '1' ]; then  echo "IP_LIST_FILE=$IP_LIST_FILE "; fi
 	lista_hosts=`grep --color=never $ip $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
-
-
+	
 	if [ -z "$lista_hosts" ] ; then
 			lista_hosts=$ip
 	else
 			lista_hosts=`echo -e "$lista_hosts\n$ip"|uniq`
 	fi
 
-
+	
 	if [ "$VERBOSE" == '1' ]; then  echo -e "LISTA HOST:$lista_hosts" ;fi #lista de todos los dominios + ip
 	for host in $lista_hosts; do
 		echo -e "\t[+] host actual: $host"
@@ -2016,6 +2018,13 @@ if [[ $webScaneado -eq 1 ]]; then
 			lista_hosts=$ip
 		fi
 
+		#######si la ip resuelve a un dominio
+		newhost=$(cat "logs/enumeracion/${ip}_web_domainWebData.txt")
+		if [[ -n "$newhost" ]]; then
+			lista_hosts="${lista_hosts}"$'\n'"${newhost}"
+		fi
+		##########################
+
 		for host in $lista_hosts; do
 			echo -e "Parse $host:$port"
 
@@ -2098,7 +2107,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
 			
 			
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat .enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt | jq '.commonName'  | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName'  | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
