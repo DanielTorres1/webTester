@@ -110,7 +110,8 @@ func main() {
 			regexp.MustCompile(`Unexpected end of document`),
 			regexp.MustCompile(`This page can't be displayed`),
 			regexp.MustCompile(`ALIVE FROM DJANGO`),
-			
+			regexp.MustCompile(`Uncaught Error`),
+			regexp.MustCompile(`error Page`),
 			
 		}
 
