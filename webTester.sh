@@ -1741,7 +1741,8 @@ for line in $(cat $TARGETS); do
 
 						if [ -f webTrack/directorios-personalizado.txt ]; then
 							checkRAM
-							web-buster -target $host -port $port -proto $proto_http -path $path_web -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt &
+							#web-buster -target $host -port $port -proto $proto_http -path $path_web -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt &
+							cp webTrack/directorios-personalizado.txt /tmp/$host-personalizado.txt
 							#rm webTrack/directorios-personalizado2.txt 2>/dev/null
 						fi
 					fi
