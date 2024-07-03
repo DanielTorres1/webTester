@@ -36,7 +36,13 @@ cp GO/headi/headi /usr/bin/pentest
 cp GO/checkCookie/checkCookie /usr/bin/pentest
 cp GO/getStatus/getStatus /usr/bin/pentest
 cp GO/phpinfo/get-info-php /usr/bin/pentest
-cp GO/listDir/listDir /usr/bin/pentest
+
+cd GO/listDir
+go mod download golang.org/x/net
+go build listDir.go 
+cp listDir /usr/bin/pentest
+cd ../../
+
 cp GO/SAP-scan/SAP-scan /usr/bin/pentest
 cp GO/getCert/get_ssl_cert /usr/bin/pentest
 cp GO/allow-http/allow-http /usr/bin/pentest

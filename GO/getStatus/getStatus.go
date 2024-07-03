@@ -112,6 +112,13 @@ func main() {
 			regexp.MustCompile(`ALIVE FROM DJANGO`),
 			regexp.MustCompile(`Uncaught Error`),
 			regexp.MustCompile(`error Page`),
+			regexp.MustCompile(`WordPress`),
+			regexp.MustCompile(`Joomla`),
+			regexp.MustCompile(`<body onload="startTime()">`),
+			regexp.MustCompile(`<body class=" login">`),
+			Parent Directory
+			Access denied
+			
 			
 		}
 
