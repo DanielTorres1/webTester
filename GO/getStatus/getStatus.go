@@ -116,9 +116,8 @@ func main() {
 			regexp.MustCompile(`Joomla`),
 			regexp.MustCompile(`<body onload="startTime()">`),
 			regexp.MustCompile(`<body class=" login">`),
-			Parent Directory
-			Access denied
-			
+			regexp.MustCompile(`Access denied`),
+			regexp.MustCompile(`Parent Directory`),
 			
 		}
 
