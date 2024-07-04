@@ -30,7 +30,10 @@ type Result struct {
 var routes = []Route{
 	{"album-and-image-gallery-plus-lightbox", "wp-content/plugins/album-and-image-gallery-plus-lightbox/","CVE-2024-4194"},
 {"wp-photo-album-plus", "wp-content/plugins/wp-photo-album-plus/","CVE-2024-4037, CVE-2024-31377"},
-{"email-log", "wp-content/plugins/email-log/","CVE-2024-0867"},
+{"duplicator", "wp-content/plugins/duplicator/","CVE-2022-2551"},
+{"project-source-code-download", "wp-content/plugins/project-source-code-download/","CVE-2022-1585"},
+{"all-in-one-wp-migration", "wp-content/plugins/all-in-one-wp-migration/","None"},
+{"backwpup", "wp-content/plugins/backwpup/","CVE-2017-2551"},
 {"simple-basic-contact-form", "wp-content/plugins/simple-basic-contact-form/","CVE-2024-4144"},
 {"woo-orders-tracking", "wp-content/plugins/woo-orders-tracking/","CVE-2024-4039, CVE-2023-4216"},
 {"back-in-stock-notifier-for-woocommerce", "wp-content/plugins/back-in-stock-notifier-for-woocommerce/","CVE-2024-4038"},

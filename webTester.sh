@@ -129,6 +129,7 @@ BladeSystem
 botpress
 Plesk
 FortiMail
+StreamHub
 broadband device
 Check Point
 cisco
@@ -138,6 +139,7 @@ cpanel
 erpnext
 Error1
 Fortinet
+Dahua
 GitLab
 GoAhead-Webs
 Grafana
@@ -1034,7 +1036,7 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt &
 
-			drupa7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt
+			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt
 			# http://www.mipc.com.bo/node/9/devel/token
 			if [[  "$MODE" == "total" ]]; then
 				echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
@@ -1223,7 +1225,8 @@ function enumeracionCMS () {
 			echo "juumla.sh -u "$proto_http"://"$host":"$port""$path_web" " > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt
 			juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt 2>/dev/null &
 			joomlaCVE-2023-23752.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt
-			joomblah-CVE-2017-8917.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt #falta
+			joomblah-CVE-2017-8917.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt
+			joomlaPlugin-CVE-2018-17254.php -u "$proto_http"://"$host":"$port""$path_web"plugins/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt
 			
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-joomla-CVE~2023~23752.txt &
@@ -1590,44 +1593,50 @@ for line in $(cat $TARGETS); do
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then
 
-			#Verificar que no siempre devuelve 200 OK
+			############# Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
-			status_code_nonexist1=`getStatus -url $proto_http://${host}:${port}${path_web}nonexisten/45s/`
-			only_status_code_nonexist=$status_code_nonexist1
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist1: $status_code_nonexist1 "; fi
+			routes=('nonexisten/45s/' 'grap31hql.php' 'nonexisten')
 
-			if [[  "$status_code_nonexist1" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
-				msg_error_404=$(echo $status_code_nonexist1 | cut -d ':' -f2)
-				msg_error_404="'$msg_error_404'"
-				only_status_code_nonexist=`echo $status_code_nonexist1 | cut -d ':' -f1`
-			fi
+			for route in "${routes[@]}"; do
+				status_code=`getStatus -url $proto_http://${host}:${port}${path_web}${route}`
 
-			status_code_nonexist2=`getStatus -url $proto_http://${host}:${port}${path_web}graphql.php`
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] status_code_nonexist2: $status_code_nonexist2 "; fi
-			if [[  "$status_code_nonexist2" == *":"*  ]]; then # devuelve 200 OK pero se detecto un mensaje de error 404
-				msg_error_404=$(echo $status_code_nonexist2 | cut -d ':' -f2)
-				msg_error_404="'$msg_error_404'"
-				only_status_code_nonexist=`echo $status_code_nonexist2 | cut -d ':' -f1`
-			fi
+				if [ "$VERBOSE" == '1' ]; then
+					echo -e "\t[+] status_code for ${route}: $status_code"
+				fi
 
-			# si la primera peticion fue error de red
-			if [[ "$status_code_nonexist1" == *"Network error"* && "$status_code_nonexist2" != *":"* ]]; then
-  				only_status_code_nonexist=$status_code_nonexist2
-			fi
+				#Full path disclosure identified
+				if [[ "$status_code" == *";"* ]]; then
+					FPD=$(echo $status_code | cut -d ';' -f2)
+					echo -e "$proto_http://${host}:${port}${path_web}${route}\n" >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_FPD.txt
+					echo $FPD >> .enumeracion/"$host"_"$port-$path_web_sin_slash"_FPD.txt
 
-	
-			if [[ "$only_status_code_nonexist" == '200' &&  -z "$msg_error_404" ]]; then
-				echo -n "~Always200-OK" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
-				sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #borrar salto de linea
-			fi
+					#only status code and error_msg
+					status_code=$(echo $status_code | cut -d ';' -f1)
+				fi
 
-			if [ ! -z "$msg_error_404" ];then
-				only_status_code_nonexist=404
-				echo "new only_status_code_nonexist $only_status_code_nonexist ($msg_error_404)"
-			fi
+				if [[ "$status_code" == *":"* ]]; then
+					msg_error_404=$(echo $status_code | cut -d ':' -f2)
+					msg_error_404="'$msg_error_404'"
+					only_status_code=$(echo $status_code | cut -d ':' -f1)
+
+					if [[ "$only_status_code" == '200' && -z "$msg_error_404" ]]; then
+						echo -n "~Always200-OK" >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt
+						sed -i ':a;N;$!ba;s/\n//g' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt # borrar salto de linea
+						break
+					fi
+
+					if [ ! -z "$msg_error_404" ]; then
+						only_status_code=404
+						echo "new only_status_code $only_status_code ($msg_error_404)"
+					fi
+				fi
+			done
+			##################################
+
+
 
 			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
-			if [[ "$only_status_code_nonexist" == "401"  || "$only_status_code_nonexist" == "403"  || "$only_status_code_nonexist" == "404"  ||  "$only_status_code_nonexist" == *"303"* ||  "$only_status_code_nonexist" == *"301"* ||  "$only_status_code_nonexist" == *"302"*  ]];then
+			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -2110,6 +2119,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt" ] && egrep -v 'Couldnt|Running|juumla.sh|returned' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt 2>/dev/null
 			
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt 2>/dev/null
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName' 2>/dev/null | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
@@ -2403,7 +2413,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
 		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/170.239.123.50_80_webData.txt
-		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"archivosCGI.txt"* ]]; then
+		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"SharePoint.txt"* || ${archivo_origen} == *"archivosCGI.txt"* ]]; then
 			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'` # extraer url
 		else
 			# Vulnerabilidad detectada en la raiz

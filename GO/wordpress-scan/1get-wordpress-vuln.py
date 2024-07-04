@@ -10,6 +10,7 @@ data = []
 
 # Create a list with the specified items
 vulnerabilities = [
+    "Unauthenticated Backup Download",
     "Unauthenticated Remote Code Execution",
     "Unauthenticated SQL Injection",
     "Unauthenticated Local File Inclusion",

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"strings"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -88,6 +89,26 @@ func main() {
 		bodyString := string(bodyBytes)
 		//fmt.Printf("%s \n", bodyString)
 
+		/////////////////// buscar Full Path Disclosure /////
+		FPD:= ""
+		FPDStrings := []string{
+			"/var/www/html",
+			"/usr/local/apache2/htdocs/",
+			"C:/xampp/htdocs/",
+			"C:/wamp64/www/",
+			"/var/www/nginx-default",
+			"/usr/share/nginx/html",
+		}
+
+		// Search for each string in the bodyString
+		for _, searchString := range FPDStrings {
+			if strings.Contains(bodyString, searchString) {
+				FPD = searchString
+			}
+		}
+		///////////////////////////////////////
+
+		/////////// busca de errores 404 ///////
 		// Define las expresiones regulares
 		errorRegexps := []*regexp.Regexp{
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
@@ -118,10 +139,14 @@ func main() {
 			regexp.MustCompile(`<body class=" login">`),
 			regexp.MustCompile(`Access denied`),
 			regexp.MustCompile(`Parent Directory`),
+			regexp.MustCompile(`<div id="back">`),
+			regexp.MustCompile(`startTime`),
+			regexp.MustCompile(`error-container`),
+			regexp.MustCompile(`<div class="login-page">`),
+			
 			
 		}
 
-		// Busca las cadenas en el cuerpo
 		//fmt.Println(bodyString)
 		errorMsg := ""
 		for _, re := range errorRegexps {
@@ -132,11 +157,18 @@ func main() {
 			}
 		}
 
-		// Imprime el código de estado HTTP final junto con el mensaje de error, si se encuentra alguno
+		returnString := fmt.Sprintf("%d", resp.StatusCode)
+
 		if resp.StatusCode != 404 && errorMsg != "" {
-			fmt.Printf("%d:%s\n", resp.StatusCode, errorMsg)
-		} else {
-			fmt.Println(resp.StatusCode)
+			returnString += ":" + errorMsg
 		}
+
+		if FPD != "" {
+			returnString += ";" +  FPD
+		}
+
+		fmt.Println(returnString)
+
+		
 	}
 }
