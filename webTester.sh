@@ -1109,11 +1109,9 @@ function enumeracionCMS () {
 			$proxychains wpscan --disable-tls-checks  --random-user-agent  --enumerate u  --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
 			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressGhost.txt 2>/dev/null &
-
-			wordpress-CVE-2022-21661.py $wordpress_url/wp-admin/admin-ajax.php 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-CVE~2022~21661.txt
-
 			wordpress-version.py $wordpress_url/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
 			grep -vi 'Error' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
+			wordpress-CVE-2022-21661.py --url $wordpress_url/wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-CVE~2022~21661.txt 2>/dev/null &
 
 			# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
@@ -1374,6 +1372,15 @@ for line in $(cat $TARGETS); do
 	port=`echo $line | cut -f2 -d":"`
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
 
+	##### domain identified 
+	newhost=$(grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null | cut -d "^" -f3 | uniq)
+	if [ -n "$newhost" ]; then
+		echo "$newhost" > logs/enumeracion/"$host"_web_domainWebData.txt 2>/dev/null
+		cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null
+		cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null
+	fi
+	#################
+
 	
 	#Verificar que no se obtuvo ese dato
 	if [ -e logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_vhosts.txt ]; then
@@ -1385,10 +1392,6 @@ for line in $(cat $TARGETS); do
 			echo -e "\t[+]  Buscando hosts virtuales en $host:$port"
 			waitWeb 0.1
 			nmap -Pn -sV -n -p $port $host 2>/dev/null | grep 'Host:' | grep '\.' | awk '{print $4}' | sort | uniq > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_domainNmap.txt &
-			newhost=`grep 'Dominio identificado' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | cut -d "^" -f3 | uniq`
-			echo $newhost > logs/enumeracion/"$host"_web_domainWebData.txt
-			cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_webDataInfo.txt
-			cp logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt logs/enumeracion/"$newhost"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null
 		fi
 
 		if [[ "$host_LIST_FILE" == *"importarMaltego"* ]]  && [[ ! -z "$DOMINIO" ]] && [[ "$HOSTING" == 'n' ]]; then	#Si escaneamos un dominio especifico fuzzer vhosts
