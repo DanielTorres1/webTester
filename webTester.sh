@@ -1599,7 +1599,7 @@ for line in $(cat $TARGETS); do
 
 			for route in "${routes[@]}"; do
 				status_code=`getStatus -url $proto_http://${host}:${port}${path_web}${route}`
-
+				only_status_code=$status_code
 				if [ "$VERBOSE" == '1' ]; then
 					echo -e "\t[+] status_code for ${route}: $status_code"
 				fi
@@ -1634,8 +1634,6 @@ for line in $(cat $TARGETS); do
 			##################################
 
 
-
-			if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] $proto_http://${host}:${port}${path_web}nonexisten45s/ status_codes: $status_code_nonexist1 $status_code_nonexist2 "; fi
 			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
