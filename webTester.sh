@@ -1225,7 +1225,7 @@ function enumeracionCMS () {
 			joomlaPlugin-CVE-2018-17254.php -u "$proto_http"://"$host":"$port""$path_web"plugins/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt
 			joomla-cve2015-8562.py -t "$proto_http"://"$host":"$port""$path_web" -l 8.8.8.8 -p 443 # request to https://app.beeceptor.com/
 			joomla-cve2023-23752.rb "$proto_http"://"$host":"$port""$path_web" --no-color > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt
-			joomla-cve2015-7297.sh -u "$proto_http"://"$host":"$port""$path_web" > ogs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt
+			joomla-cve2015-7297.py --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt
 			
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-joomla-CVE~2023~23752.txt &
@@ -2122,7 +2122,9 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023~23752.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023~23752.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt 2>/dev/null
+			
 			
 
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt 2>/dev/null
