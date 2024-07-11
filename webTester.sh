@@ -130,9 +130,12 @@ botpress
 Plesk
 FortiMail
 StreamHub
+404 not found
+wordpress
 broadband device
 Check Point
 cisco
+Chamilo
 Cloudflare
 controlpanel
 cpanel
@@ -140,6 +143,7 @@ erpnext
 Fortinet
 Dahua
 GitLab
+Liferay
 GoAhead-Webs
 Grafana
 hikvision
@@ -151,6 +155,7 @@ networkMonitoring
 Nextcloud
 NTLM
 Office
+oviyam
 openresty
 Open Source Routing Machine
 oracle
@@ -165,6 +170,8 @@ SoftEther
 SonicWALL
 FortiGate
 airOS
+Strapi
+Slim
 Sophos
 Taiga
 TOTVS
@@ -179,7 +186,6 @@ xxxxxx
 Zentyal
 OLT Web Management Interface
 Zimbra
-Zimbra Web Client
 Outlook
 owa
 EOL
@@ -1091,33 +1097,35 @@ function enumeracionCMS () {
 			if [[ "$port" != "80" && "$port" != '443' ]];then
 				wordpress_url="$proto_http"://"$host":"$port""$path_web"
 			else
-				wordpress_url="$proto_http://$host" 
+				wordpress_url="$proto_http://$host""$path_web" 
 			fi
+
+			echo "200 OK $wordpress_url"wp-login.php >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
 
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
-			checkerWeb.py --tipo registro --url "$wordpress_url/" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
-			wordpress-scan -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressPlugins.txt &
-			xml-rpc-test -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xmlRpcHabilitado.txt &
-			xml-rpc-login -url $wordpress_url/ > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt &
+			checkerWeb.py --tipo registro --url "$wordpress_url" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
+			wordpress-scan -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressPlugins.txt &
+			xml-rpc-test -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xmlRpcHabilitado.txt &
+			xml-rpc-login -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_xml-rpc-login.txt &
 
 			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
-			nuclei -u "$wordpress_url/"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
+			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressNuclei.txt 2>&1 &
 
 			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
 			$proxychains wpscan --disable-tls-checks  --random-user-agent  --enumerate u  --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json &
 			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpressGhost.txt 2>/dev/null &
-			wordpress-version.py $wordpress_url/ > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
+			wordpress-version.py $wordpress_url > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt 2>/dev/null
 			grep -vi 'Error' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
-			wordpress-CVE-2022-21661.py --url $wordpress_url/wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-CVE~2022~21661.txt 2>/dev/null &
+			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-CVE~2022~21661.txt 2>/dev/null &
 
 			# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 			# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
 			if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
 				echo -e "\t\t[+] Revisando vulnerabilidades de wordpress (wpscan)"
-				$proxychains wpscan --disable-tls-checks  --random-user-agent --url "$proto_http"://$host/ --enumerate ap,cb,dbe --api-token $TOKEN_WPSCAN --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt &
+				$proxychains wpscan --disable-tls-checks  --random-user-agent --url $wordpress_url --enumerate ap,cb,dbe --api-token $TOKEN_WPSCAN --plugins-detection aggressive  > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt &
 				sleep 5
 				grep -qi "The URL supplied redirects to" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpscan.txt
 				greprc=$?
@@ -1599,7 +1607,7 @@ for line in $(cat $TARGETS); do
 
 			############# Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
-			routes=('nonexisten/45s/' 'grap31hql.php' 'nonexisten')
+			routes=('websaffadmi/' 'admin/accosuntaa.php' 'nonexisten')
 
 			for route in "${routes[@]}"; do
 				status_code=`getStatus -url $proto_http://${host}:${port}${path_web}${route}`

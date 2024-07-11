@@ -108,7 +108,7 @@ func main() {
 		}
 		///////////////////////////////////////
 
-		/////////// busca de errores 404 ///////
+		/////////// busca de errores 404 cuando devuelve 200 OK///////
 		// Define las expresiones regulares
 		errorRegexps := []*regexp.Regexp{
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
@@ -143,7 +143,9 @@ func main() {
 			regexp.MustCompile(`startTime`),
 			regexp.MustCompile(`error-container`),
 			regexp.MustCompile(`<div class="login-page">`),
-			
+			regexp.MustCompile(`BOOTSTRAP`),
+			regexp.MustCompile(`text/javascript`),
+			regexp.MustCompile(`<div class="container">`),
 			
 		}
 
