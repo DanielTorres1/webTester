@@ -351,12 +351,12 @@ function insert_data_admin () {
 
 	#paneles administrativos propios
 	cat servicios/admin-web-custom.txt >> servicios/admin-web-custom-inserted-temp.txt 2>/dev/null
-	sort servicios/admin-web-custom-inserted-temp.txt > servicios/admin-web-custom-inserted.txt
+	sort servicios/admin-web-custom-inserted-temp.txt > servicios_archived/admin-web-custom-inserted.txt
 	rm servicios/admin-web-custom.txt servicios/admin-web-custom-inserted-temp.txt 2>/dev/null
 
 	# Paneles de administracion genericos (sophos, ))
 	cat servicios/admin-web-generic.txt >> servicios/admin-web-generic-inserted-temp.txt 2>/dev/null
-	sort servicios/admin-web-generic-inserted-temp.txt > servicios/admin-web-generic-inserted.txt
+	sort servicios/admin-web-generic-inserted-temp.txt > servicios_archived/admin-web-generic-inserted.txt
 	rm servicios/admin-web-generic.txt 2>/dev/null
 	}
 
@@ -2293,10 +2293,10 @@ if [[ $webScaneado -eq 1 ]]; then
 
 	###########3paneles de admin de desarollo propio (custom)
 	egrep -ira "$customPanel" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort | uniq -i > servicios/web-admin-temp.txt
-	if [ ! -f "servicios_archived/admin-web-url-inserted.txt" ]; then
-		touch "servicios_archived/admin-web-url-inserted.txt"
+	if [ ! -f "servicios_archived/admin-web-custom-inserted.txt" ]; then
+		touch "servicios_archived/admin-web-custom-inserted.txt"
 	fi
-	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-url-inserted.txt  >> servicios/admin-web-url.txt 2>/dev/null #eliminar elementos repetidos
+	comm -23 servicios/web-admin-temp.txt servicios_archived/admin-web-custom-inserted.txt  >> servicios/admin-web-url.txt #eliminar elementos repetidos
 	###########################
 
 	########### paneles admin genericos sophos,cisco, etc
@@ -2304,7 +2304,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	if [ ! -f "servicios_archived/admin-web-generic-inserted.txt" ]; then
 		touch "servicios_archived/admin-web-generic-inserted.txt"
 	fi
-	comm -23 servicios/web-admin-default-temp.txt servicios_archived/admin-web-generic-inserted.txt  >> servicios/admin-web-generic.txt 2>/dev/null #eliminar elementos repetidos
+	comm -23 servicios/web-admin-default-temp.txt servicios_archived/admin-web-generic-inserted.txt  >> servicios/admin-web-generic.txt #eliminar elementos repetidos
 	######################################
 
 fi #sitio escaneado
