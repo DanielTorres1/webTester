@@ -2461,6 +2461,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			contenido=$url_vulnerabilidad
 		fi
 
+		if [ $vulnerabilidad == 'FPD' ];then
+			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] FPD en $url_vulnerabilidad"  ; fi
+			contenido=$url_vulnerabilidad
+		fi
+
 		if [ $vulnerabilidad == 'PasswordDetected' ];then
 			if [ "$VERBOSE" == '1' ]; then  echo -e "[+] PasswordDetected en $url_vulnerabilidad"  ; fi
 			contenido="URL $url_vulnerabilidad\n\n"
