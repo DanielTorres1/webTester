@@ -350,11 +350,13 @@ function insert_data_admin () {
 	# rm servicios/admin-web-url.txt 2>/dev/null
 
 	#paneles administrativos propios
-	cat servicios/admin-web-custom.txt >> servicios/admin-web-custom-inserted.txt 2>/dev/null
-	rm servicios/admin-web-custom.txt 2>/dev/null
+	cat servicios/admin-web-custom.txt >> servicios/admin-web-custom-inserted-temp.txt 2>/dev/null
+	sort servicios/admin-web-custom-inserted-temp.txt > servicios/admin-web-custom-inserted.txt
+	rm servicios/admin-web-custom.txt servicios/admin-web-custom-inserted-temp.txt 2>/dev/null
 
 	# Paneles de administracion genericos (sophos, ))
-	cat servicios/admin-web-generic.txt >> servicios/admin-web-generic-inserted.txt 2>/dev/null
+	cat servicios/admin-web-generic.txt >> servicios/admin-web-generic-inserted-temp.txt 2>/dev/null
+	sort servicios/admin-web-generic-inserted-temp.txt > servicios/admin-web-generic-inserted.txt
 	rm servicios/admin-web-generic.txt 2>/dev/null
 	}
 
