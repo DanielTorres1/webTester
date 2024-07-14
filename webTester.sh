@@ -650,6 +650,21 @@ function enumeracionApi() {
 	eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_api.txt &
 }
 
+
+function enumeracionAdminCMS() {
+    proto_http=$1
+    host=$2
+    port=$3
+	msg_error_404=$4 #cadena en comillas simples
+
+	waitWeb 0.3
+	echo -e "\t\t[+] Revisando paneles administrativos CMS ($host - Apache/nginx)"
+	command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module adminCMS -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+	echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
+	eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+}
+
+
 function enumeracionApache() {
     proto_http=$1
     host=$2
@@ -676,6 +691,7 @@ function enumeracionApache() {
         command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module admin -threads $hilos_web -redirects 0 -show404 $param_msg_error"
         echo $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
         eval $command >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt &
+
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando backups ($host - Apache/nginx)"
@@ -1098,9 +1114,6 @@ function enumeracionCMS () {
 			else
 				wordpress_url="$proto_http://$host""$path_web" 
 			fi
-
-			echo "200 OK $wordpress_url"wp-login.php >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webadmin.txt
-
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
 			checkerWeb.py --tipo registro --url "$wordpress_url" > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_cms-registroHabilitado.txt
@@ -1787,9 +1800,22 @@ for line in $(cat $TARGETS); do
 
 					enumeracionCMS "$proto_http" $host $port
 
+					
+
 					if [ $proto_http == "https" ]; then
 						testSSL "$proto_http" $host $port
 					fi
+
+
+					
+					###  CMS admin ######
+					egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #
+					greprc=$?
+					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
+						checkRAM
+						enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
+					fi
+					####################################
 
 					###  if the server is apache ######
 					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
