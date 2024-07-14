@@ -146,6 +146,8 @@ func main() {
 			regexp.MustCompile(`BOOTSTRAP`),
 			regexp.MustCompile(`text/javascript`),
 			regexp.MustCompile(`<div class="container">`),
+			regexp.MustCompile(`__VIEWSTATE`),
+			
 			
 		}
 

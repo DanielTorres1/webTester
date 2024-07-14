@@ -708,7 +708,7 @@ func main() {
 		if result.Error != nil {
 			fmt.Printf("%s | Error | %v\n", result.Name, result.Error)
 		} else {
-			fmt.Printf("%s | %s | %d | %s | %s\n", result.Name, result.Version, result.StatusCode, result.Result, result.CVE)
+			fmt.Printf("%s %s | %d | %s | %s\n", result.Name, result.Version, result.StatusCode, result.Result, result.CVE)
 		}
 	}
 }
