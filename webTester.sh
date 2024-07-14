@@ -131,7 +131,6 @@ Plesk
 FortiMail
 StreamHub
 404 not found
-wordpress
 broadband device
 Check Point
 cisco
@@ -352,13 +351,10 @@ function insert_data_admin () {
 	# cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
 	# rm servicios/admin-web-url.txt 2>/dev/null
 
-	#paneles administrativos propios
+	#paneles administrativos propios + CMS
 	cat servicios/admin-web-custom.txt >> servicios_archived/admin-web-custom-inserted.txt 2>/dev/null
-	rm servicios/admin-web-custom.txt 2>/dev/null
-
 	# Paneles de administracion genericos (sophos, ))
 	cat servicios/admin-web-generic.txt >> servicios_archived/admin-web-generic-inserted.txt 2>/dev/null
-	rm servicios/admin-web-generic.txt 2>/dev/null
 	}
 
 function formato_ip {
@@ -2292,7 +2288,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	###########3paneles de admin de desarollo propio (custom)
+	###########3paneles de admin de desarollo propio (custom) + CMS
 	egrep -ira "$customPanel" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort | uniq -i > servicios/web-admin-temp.txt
 	if [ ! -f "servicios_archived/admin-web-custom-inserted.txt" ]; then
 		touch "servicios_archived/admin-web-custom-inserted.txt"
@@ -2308,6 +2304,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	fi
 	sort servicios_archived/admin-web-generic-inserted.txt > servicios_archived/admin-web-generic-inserted-sorted.txt
 	comm -23 servicios/web-admin-default-temp.txt servicios_archived/admin-web-generic-inserted-sorted.txt  >> servicios/admin-web-generic.txt #eliminar elementos repetidos
+	#rm servicios/web-admin-default-temp.txt
 	######################################
 
 fi #sitio escaneado
