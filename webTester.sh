@@ -138,10 +138,12 @@ cisco
 Chamilo
 Cloudflare
 controlpanel
+Diagnostic Interface
 cpanel
 erpnext
 Fortinet
 Dahua
+MailCleaner
 GitLab
 Liferay
 GoAhead-Webs
@@ -163,6 +165,7 @@ ownCloud
 Payara
 pfsense
 printer
+processmaker
 Roundcube
 Router
 RouterOS
@@ -1607,7 +1610,7 @@ for line in $(cat $TARGETS); do
 
 			############# Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
-			routes=('websaffadmi/' 'admin/accosuntaa.php' 'nonexisten')
+			routes=('accosuntaa.php' 'websaffadmi/' 'nonexisten')
 
 			for route in "${routes[@]}"; do
 				status_code=`getStatus -url $proto_http://${host}:${port}${path_web}${route}`

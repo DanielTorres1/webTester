@@ -144,9 +144,13 @@ func main() {
 			regexp.MustCompile(`error-container`),
 			regexp.MustCompile(`<div class="login-page">`),
 			regexp.MustCompile(`BOOTSTRAP`),
-			regexp.MustCompile(`text/javascript`),
+			regexp.MustCompile(`script src`),
 			regexp.MustCompile(`<div class="container">`),
 			regexp.MustCompile(`__VIEWSTATE`),
+			regexp.MustCompile(`Cannot modify header information`),
+			regexp.MustCompile(`Cannot declare class`),
+			regexp.MustCompile(`ajax_response_xml_root`),
+			regexp.MustCompile(`An attack was detected`),
 			
 			
 		}
