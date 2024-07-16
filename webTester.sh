@@ -122,6 +122,9 @@ EOL
 )
 
 defaultAdminURL=$(cat << 'EOL'
+wordpress
+joomla
+drupal
 302 Found
 Always200-OK
 swfobject
@@ -1809,9 +1812,9 @@ for line in $(cat $TARGETS); do
 
 					
 					###  CMS admin ######
-					egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt #
+					egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_webDataInfo.txt | egrep -qiv "302 Found|Always200-OK|swfobject|BladeSystem|botpress|Plesk|FortiMail|StreamHub|404 not found|broadband device|Check Point|cisco|Chamilo|Cloudflare|controlpanel|Diagnostic Interface|cpanel|erpnext|Fortinet|Dahua|MailCleaner|GitLab|Liferay|GoAhead-Webs|Grafana|hikvision|Huawei|Juniper|keycloak|Mini web server|networkMonitoring|Nextcloud|NTLM|Office|oviyam|openresty|Open Source Routing Machine|oracle|ownCloud|Payara|pfsense|printer|processmaker|Roundcube|Router|RouterOS|SoftEther|SonicWALL|FortiGate|airOS|Strapi|Slim|Sophos|Taiga|TOTVS|tp-link|TrueConf Server Guest Page|Tyco|User Portal|Viridian|webmail|whm|xxxxxx|Zentyal|OLT Web Management Interface|Zimbra|Outlook|owa"
 					greprc=$?
-					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
+					if [[ $greprc -eq 0  ]];then 
 						checkRAM
 						enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
