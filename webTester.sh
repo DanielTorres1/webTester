@@ -1622,7 +1622,7 @@ for line in $(cat $TARGETS); do
 
 			############# Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
-			routes=('accosuntaa.php' 'websaffadmi/' 'nonexisten')
+			routes=('accosuntaa.php' 'websaffadmi/' 'nonexisten' '2009_dump.sql')
 
 			for route in "${routes[@]}"; do
 				status_code=`getStatus -url $proto_http://${host}:${port}${path_web}${route}`
@@ -1655,6 +1655,7 @@ for line in $(cat $TARGETS); do
 					if [ ! -z "$msg_error_404" ]; then
 						only_status_code=404
 						echo "new only_status_code $only_status_code ($msg_error_404)"
+						break
 					fi
 				fi
 			done
@@ -1788,7 +1789,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic|redhat|fastly|juniper' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic|redhat|fastly|juniper|SolarWinds' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port-$path_web_sin_slash"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "

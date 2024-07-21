@@ -151,6 +151,15 @@ func main() {
 			regexp.MustCompile(`Cannot declare class`),
 			regexp.MustCompile(`ajax_response_xml_root`),
 			regexp.MustCompile(`An attack was detected`),
+			regexp.MustCompile(`<body id="admin-login-wrapper">`),
+			regexp.MustCompile(`<canvas id="canvas">`),
+			regexp.MustCompile(`<div class="login-box">`),
+			regexp.MustCompile(`name="generator"`),
+
+			
+			
+			
+			
 			
 			
 		}
