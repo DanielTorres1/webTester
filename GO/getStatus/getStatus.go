@@ -155,10 +155,7 @@ func main() {
 			regexp.MustCompile(`<canvas id="canvas">`),
 			regexp.MustCompile(`<div class="login-box">`),
 			regexp.MustCompile(`name="generator"`),
-
-			
-			
-			
+			regexp.MustCompile(`error-404`),
 			
 			
 			
