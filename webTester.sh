@@ -1758,29 +1758,29 @@ for line in $(cat $TARGETS); do
 				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 && $noFirewall -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					
 
-					if [ -z "$FORCE" ]; then # no es escaneo de redes por internet
-						####### wget ##### (usado para control si es un mismo sitio web es el mismo)
-						###### fuzz directorios personalizados ###
-						echo -e "\t\t[+] directorios personalizado"
-						cd webTrack/$host
-							wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico,pdf,docx,xls,doc,ppt,pps,pptx,xlsx --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
-						cd ../../
-						find webTrack/$host | egrep '\.html|\.js' | while read line
-						do
-							extractLinks.py "$line" 2>/dev/null | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
-						done
+					# if [ -z "$FORCE" ]; then # no es escaneo de redes por internet
+					# 	####### wget ##### (usado para control si es un mismo sitio web es el mismo)
+					# 	###### fuzz directorios personalizados ###
+					# 	echo -e "\t\t[+] directorios personalizado"
+					# 	cd webTrack/$host
+					# 		wget -mirror --convert-links --adjust-extension --no-parent -U "Mozilla/5.0 (X11; Linux x86_64; rv:45.0) Gecko/20100101 Firefox/45.0" --reject gif,jpg,bmp,png,mp4,jpeg,flv,webm,mkv,ogg,gifv,avi,wmv,3gp,ttf,svg,woff2,css,ico,pdf,docx,xls,doc,ppt,pps,pptx,xlsx --exclude-directories /calendar,/noticias,/blog,/xnoticias,/article,/component,/index.php --timeout=5 --tries=1 --adjust-extension  --level=3 --no-check-certificate $proto_http://$host 2>/dev/null
+					# 	cd ../../
+					# 	find webTrack/$host | egrep '\.html|\.js' | while read line
+					# 	do
+					# 		extractLinks.py "$line" 2>/dev/null | grep "$host" | awk -F"$host/" '{print $2}' >> webTrack/directorios-personalizado2.txt
+					# 	done
 
-						sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
-						sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
+					# 	sed -i '/^$/d' webTrack/directorios-personalizado2.txt 2>/dev/null
+					# 	sort webTrack/directorios-personalizado2.txt 2>/dev/null | egrep -v 'gif|swf|jquery|jpg' | uniq > webTrack/directorios-personalizado.txt
 
-						if [ -f webTrack/directorios-personalizado.txt ]; then
-							checkRAM
-							#web-buster -target $host -port $port -proto $proto_http -path $path_web -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt &
-							cp webTrack/directorios-personalizado.txt /tmp/$host-personalizado.txt
-							#rm webTrack/directorios-personalizado2.txt 2>/dev/null
-						fi
-					fi
-					####################################
+					# 	if [ -f webTrack/directorios-personalizado.txt ]; then
+					# 		checkRAM
+					# 		#web-buster -target $host -port $port -proto $proto_http -path $path_web -module custom -customDir webTrack/directorios-personalizado.txt -threads $hilos_web -redirects 0 -show404  >> logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_custom.txt &
+					# 		cp webTrack/directorios-personalizado.txt /tmp/$host-personalizado.txt
+					# 		#rm webTrack/directorios-personalizado2.txt 2>/dev/null
+					# 	fi
+					# fi
+					# ####################################
 
 					########### check methods ###
 					waitWeb 0.3
