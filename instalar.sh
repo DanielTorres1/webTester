@@ -60,6 +60,8 @@ echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
 pip install sri-check --break-system-package
 pip install fake_useragent --break-system-package
 pip install rich_click --break-system-package
+pip install alive_progress --break-system-package
+pip install faker --break-system-package
 
 echo -e "${RED}[+]${BLUE} katana ${RESET}"
 go install github.com/projectdiscovery/katana/cmd/katana@latest
