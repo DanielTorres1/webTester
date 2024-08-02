@@ -2250,7 +2250,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_droopescan.txt > .enumeracion/"$host"_"$port-$path_web_sin_slash"_droopescan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}-${path_web_sin_slash}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_divulgacionInformacion.txt 2>/dev/null
 			
-			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_zabbix_passwordDefecto.txt > .vulnerabilidades/"$host"_zabbix_passwordDefecto.txt
+			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_zabbix_passwordDefecto.txt > .vulnerabilidades/"$host"_zabbix_passwordDefecto.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" > .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
 
 			
@@ -2324,8 +2324,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port-$path_web_sin_slash"_company.txt" ] && cat logs/enumeracion/"$host"_"$port-$path_web_sin_slash"_cert.txt 2>/dev/null | domain2company.py | egrep -iv 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice|:|self-signed|Certificate|localhost|fortigate|Error' > .enumeracion/"$host"_"$port-$path_web_sin_slash"_company.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}-${path_web_sin_slash}_wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt 2>/dev/null
 
-			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt
-			cat .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt 2>dev/null | cut -d ':' -f2 >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt
+			[ ! -e ".vulnerabilidades2/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt > .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt 2>/dev/null
+			cat .vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wordpress-cve~2017~5487.txt 2>/dev/null | cut -d ':' -f2 >> logs/vulnerabilidades/"$host"_"$port-$path_web_sin_slash"_wpUsers.txt
 
 			
 
