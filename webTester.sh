@@ -1740,8 +1740,14 @@ for line in $(cat $TARGETS); do
 		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
 		greprc=$?
 		if [[ $greprc -eq 0 && -z "$URL" ]];then
-			echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado3 \n"
-			escanearConURL=1 # para que escaneo como URL a parte
+
+			if awk -F ',' -v host="$host" 'tolower($2) == tolower(host) && tolower($4) != "cloudflare inc."' "importarMaltego/subdominios.csv" | grep -q '.'; then
+				echo -e "\t[+] host $host esta en la lista webApp.txt y no usa cloudflare escaner por separado3 \n"
+				escanearConURL=1 # para que escaneo como URL a parte
+			else
+				echo "[+] host $host está usando Cloudflare Inc."
+			fi
+			
 		fi
 
 		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then
