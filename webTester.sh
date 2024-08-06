@@ -297,6 +297,7 @@ if [ ! -z $URL ] ; then #
 	path_web="/"$(echo ${URL} | cut -d'/' -f4-)"/"
 	# Reemplazar '//' con '/'
 	path_web=${path_web//\/\//\/}
+	echo "path_web extraido $path_web"
 
 	if [[ "$URL" == *"localhost"* ]] || [[ "$URL" == *"127.0.0.1"* ]]; then
 		echo "La URL contiene 'localhost'. Saliendo del programa."
