@@ -2044,7 +2044,7 @@ for line in $(cat $TARGETS); do
 
 					serverType=`cat logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | cut -d "~" -f2`
 					echo -e "\t\t[+] serverType $serverType"
-					if [[ -z "$serverType" || "$serverType" == *"cloudflare"* ]]; then
+					if [[ -z "$serverType"  ]]; then
 						checkRAM
 						enumeracionDefecto "$proto_http" "$host" $port "$msg_error_404"
 					fi
