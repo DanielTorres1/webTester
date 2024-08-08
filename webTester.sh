@@ -1118,8 +1118,8 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t[+] Revisando vulnerabilidades de Chamilo ($host)"
 			echo -e "\t\t[+] CVE-2023-34960 ("$proto_http"://"$host":"$port")"
-			echo "chamilo-CVE-2023-34960.py -u \"$proto_http://$host:$port/\"  -c 'uname -a'" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo-CVE~2023~34960.txt
-			chamilo-CVE-2023-34960.py -u "$proto_http"://"$host":"$port""$path_web"  -c 'uname -a' >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo-CVE~2023~34960.txt &
+			echo "chamilo-CVE-2023-34960.py -u \"$proto_http://$host:$port/\"  -c 'uname -a'" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo~CVE~2023~34960.txt
+			chamilo-CVE-2023-34960.py -u "$proto_http"://"$host":"$port""$path_web"  -c 'uname -a' >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo~CVE~2023~34960.txt &
 		fi
 
 		#######  wordpress  ######
@@ -2300,7 +2300,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpress-CVE~2022~21661.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress-CVE~2022~21661.txt >> .vulnerabilidades/"$host"_"$port"_wordpress-CVE~2022~21661.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_xmlRpcHabilitado.txt" ] && grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xmlRpcHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_xmlRpcHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_xml-rpc-login.txt" ] && grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xml-rpc-login.txt >> .vulnerabilidades/"$host"_"$port"_xml-rpc-login.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_chamilo-CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo-CVE~2023~34960.txt >> .vulnerabilidades/"$host"_"$port"_chamilo-CVE~2023~34960.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_chamilo~CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo~CVE~2023~34960.txt >> .vulnerabilidades/"$host"_"$port"_chamilo~CVE~2023~34960.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_apacheNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheNuclei.txt >> .vulnerabilidades/"$host"_"$port"_apacheNuclei.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_tomcatNuclei.txt" ] && egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"tomcatNuclei.txt >> .vulnerabilidades/"$host"_"$port"_tomcatNuclei.txt 2>/dev/null
 			
