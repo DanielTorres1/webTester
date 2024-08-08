@@ -70,6 +70,8 @@ cd BlackWidow
 bash install.sh
 cd ..
 
+wpscan --update
+
 # echo -e "${GREEN} [+] Instalar DumpsterDiver ${RESET}"
 # cd DumpsterDiver
 # docker build -t dumpster-diver .  
