@@ -70,6 +70,9 @@ cd BlackWidow
 bash install.sh
 cd ..
 
+echo -e "${GREEN} [+] Instalar gourlex ${RESET}"
+go install github.com/trap-bytes/gourlex@latest
+
 wpscan --update
 
 # echo -e "${GREEN} [+] Instalar DumpsterDiver ${RESET}"
