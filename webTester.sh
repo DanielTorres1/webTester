@@ -224,7 +224,7 @@ echo "hilos_web $hilos_web"
 if [[ -z $TARGETS && -z $URL ]] ; then
 
 cat << "EOF"
-WebTester.sh v2
+WebTester.sh 
 Options:
 --mode: hacking/total
 --proxychains: s/n
