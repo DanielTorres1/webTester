@@ -1888,9 +1888,9 @@ for line in $(cat $TARGETS); do
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 				noFirewall=$?
 				# 1= no coincide (no redirecciona a otro dominio o es error de proxy)
-				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect"; fi
+				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect noFirewall $noFirewall [1 1 1 0 OK]"; fi
 
-				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $ip2domainRedirect -eq 0 && $noFirewall -eq 1 ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
+				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $noFirewall -eq 1 && $ip2domainRedirect -eq 0  ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					
 
 					# if [ -z "$FORCE" ]; then # no es escaneo de redes por internet
@@ -2178,7 +2178,7 @@ for line in $(cat $TARGETS); do
 				fi
 
 			else
-				if [ "$VERBOSE" == '1' ]; then  echo -e "NO escanear $proto_http://$host:$port/"; fi
+				if [ "$VERBOSE" == '1' ]; then  echo -e "NO escanear $proto_http://$host:$port $path_web"; fi
 			fi #hosting
 #######3
 		fi
