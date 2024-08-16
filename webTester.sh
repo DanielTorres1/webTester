@@ -454,7 +454,7 @@ function enumeracionDefecto() {
 
             waitWeb 0.3
             echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
-            checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"phpinfo.txt &
+            checkerWeb.py --tipo phpinfo --url $proto_http://"$host":"$port""$path_web" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"phpinfo.txt &
             command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 0 -show404 $param_msg_error"
             echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt
             eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt &
@@ -1888,7 +1888,7 @@ for line in $(cat $TARGETS); do
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 				noFirewall=$?
 				# 1= no coincide (no redirecciona a otro dominio o es error de proxy)
-				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK ip2domainRedirect $ip2domainRedirect noFirewall $noFirewall [1 1 1 0 OK]"; fi
+				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK noFirewall $noFirewall ip2domainRedirect $ip2domainRedirect [1 1 1 0 OK]"; fi
 
 				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $noFirewall -eq 1 && $ip2domainRedirect -eq 0  ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					
