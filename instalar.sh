@@ -22,6 +22,9 @@ cp webTester.sh /usr/bin
 cp -r pentest/* /usr/bin/pentest/
 cp vhost-non-exist.txt /usr/share/lanscanner/vhost-non-exist.txt
 
+cp -r shared/* /usr/share/lanscanner
+
+
 echo -e "${RED}[+]${BLUE} Instalando librerias ${RESET}"
 apt install -y httrack webhttrack
 

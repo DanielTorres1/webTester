@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+work/
+dist/
+htmlcov/
+.coverage
+.vscode
+TODO.md
+dist/
+poetry.lock
