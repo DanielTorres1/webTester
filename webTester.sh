@@ -1170,7 +1170,7 @@ function enumeracionCMS () {
 			fi
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
-			checkerWeb.py --tipo registro --url "$wordpress_url" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms-registroHabilitado.txt
+			checkerWeb.py --tipo registro --url "$wordpress_url" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt
 			wordpress-scan -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressPlugins.txt &
 			xml-rpc-test -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xmlRpcHabilitado.txt &
 			xml-rpc-login -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xml~rpc~login.txt &
@@ -1307,7 +1307,7 @@ function enumeracionCMS () {
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt &
 
 			echo -e "\t\t[+] Revisando si el registro esta habilitado"
-			checkerWeb.py --tipo registro --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms-registroHabilitado.txt
+			checkerWeb.py --tipo registro --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt
 		fi
 		###################################
 
@@ -2295,7 +2295,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
 			
-			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt >> .vulnerabilidades/"$host"_zabbix_passwordDefecto.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
 
 			
@@ -2309,7 +2309,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configIIS.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configIIS.txt >> .vulnerabilidades/"$host"_"$port"_configIIS.txt 2>/dev/null
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"phpinfo.txt > .vulnerabilidades/"$host"_"$port"_phpinfo.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_cms-registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms-registroHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_cms-registroHabilitado.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_cms~registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_cms~registroHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_CVE~2024~24919.txt" ] && grep -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~24919.txt >> .vulnerabilidades/"$host"_"$port"_CVE~2024~24919.txt 2>/dev/null
 
 			[ ! -e ".vulnerabilidades2/${host}_${port}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
