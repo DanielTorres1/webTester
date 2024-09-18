@@ -1819,6 +1819,10 @@ for line in $(cat $TARGETS); do
 						break
 					fi
 				fi
+
+				if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  ]];then
+					break
+				fi
 			done
 			##################################
 
