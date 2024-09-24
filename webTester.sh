@@ -1362,7 +1362,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de qnap  ($host)"
-			qnap-cve-2024-27130-scanner.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt &
+			qnap-cve-2024-27130-scanner.py --url "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt &
 		fi
 		###################################
 
