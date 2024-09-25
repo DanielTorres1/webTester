@@ -203,7 +203,7 @@ EOL
 )
 
 TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
-echo "Version: 1.0 26082024"
+echo "Version: 1.0 25092024"
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
@@ -1534,7 +1534,7 @@ for line in $(cat $TARGETS); do
 				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"
 				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt 2>/dev/null &
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
-					echo -e "\t[+]Obteniendo dominios del certificado SSL"
+					echo -e "\t[+] Obteniendo dominios del certificado SSL"
 					$proxychains get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"cert.txt  2>/dev/null &
 				fi  ##### extract domains certificate
 			fi
@@ -1890,8 +1890,14 @@ for line in $(cat $TARGETS); do
 				fi
 
 				for webserver_title in "${webservers_defaultTitles[@]}"; do
-					if [[ "$title" == *"$webserver_title"* ]] || [[ "$lenghtsite" -lt 50 ]]; then
-						noEscaneado=1
+					if [[ "$title" == *"$webserver_title"* ]] || [[ "$lenghtsite" -lt 50 ]]; then												
+					
+						#si existe su version https, solo escanear https
+						if [[ -e "webTrack/$host/https-${host}-443-${path_web_sin_slash}.html" && "$port" -eq 80 ]]; then
+							noEscaneado=0
+						else
+							noEscaneado=1
+						fi 
 						break
 					fi
 				done
@@ -1913,7 +1919,7 @@ for line in $(cat $TARGETS); do
 					ip2domainRedirect=0
 				fi
 
-				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt #verificar si debemos escanear
+				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|ListadoDirectorios" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt #verificar si debemos escanear
 				hostOK=$?
 
 				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
@@ -2580,6 +2586,7 @@ cd .enumeracion/
 
 	#responde con 200 OK
 	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i  >> ../servicios/admin-web-url.txt
+	cat *_webdirectorios.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i  >> ../servicios/admin-web-url.txt
 
 	#tomcat
 	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-generic.txt
