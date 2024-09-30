@@ -203,7 +203,7 @@ EOL
 )
 
 TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
-echo "Version: 1.0 25092024"
+echo "Version: 1.0 29092024"
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
@@ -1186,7 +1186,14 @@ function enumeracionCMS () {
 			wordpress-version.py $wordpress_url > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt 2>/dev/null
 			grep -vi 'Error' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt > .enumeracion/"$host"_"$port"_wordpressVersion.txt
 			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~CVE~2022~21661.txt 2>/dev/null &
-			wordpress-plugin-cve-2024-1071.py $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~CVE~2024~1071.txt 2>/dev/null &
+			#Ultimate Member 
+			wordpress-plugin-cve-2024-1071.py $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~cve~2024~1071.txt 2>/dev/null &
+
+			#LiteSpeed-Cache
+			wordpress-plugin-cve-2024-44000.py --url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~44000.txt 2>/dev/null &
+
+			#Bricks Builder
+			wordpress-plugin-cve-2024-25600.py -u $wordpress_url  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt 2>/dev/null &
 
 			# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
 			if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
@@ -1335,7 +1342,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Check Point SSL Network Extender  ($host)"
-			check-point-CVE-2024-24919.py --ip $host  --port $port --path /etc/passwd > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~24919.txt &
+			check-point-CVE-2024-24919.py --ip $host  --port $port --path /etc/passwd > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~24919.txt &
 		fi
 		###################################
 
@@ -1344,7 +1351,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Splunkd  ($host)"
-			splunk-cve-2024-36991.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~36991.txt &
+			splunk-cve-2024-36991.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~36991.txt &
 		fi
 		###################################
 
@@ -1353,7 +1360,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Solarwinds  ($host)"
-			solarwinds-cve-2024-28995.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~28995.txt &
+			solarwinds-cve-2024-28995.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~28995.txt &
 		fi
 		###################################
 
@@ -1362,7 +1369,8 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de qnap  ($host)"
-			qnap-cve-2024-27130-scanner.py --url "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt &
+			qnap-CVE-2024-27130-scanner.py --url "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~cve~2024~27130.txt &
+			qnap-CVE-2023-47218.rb -t $host -p $port -c id > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~CVE~2023~47218.txt &
 		fi
 		###################################
 
@@ -1376,13 +1384,33 @@ function enumeracionCMS () {
 		fi
 		###################################
 
+		#######  geoserver  ######
+		grep -qi "geoserver" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+		greprc=$?
+		if [[ $greprc -eq 0 ]];then
+			echo -e "\t\t[+] Revisando vulnerabilidades de geoserver  ($host)"
+			geoserver-cve-2024-36401-scan.py -u "${proto_http}://${host}:${port}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt & 
+		fi
+		###################################
+
 
 		#######  cacti  ######
 		grep -qi "cacti" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de cacti  ($host)"
-			cacti-cve-2024-29895.py --url "${proto_http}://${host}:${port}${path_web}" --command id > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~29895.txt
+			cacti-cve-2024-29895.py --url "${proto_http}://${host}:${port}${path_web}" --command id > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt
+		fi
+		###################################
+
+
+		#######  Jenkins  ######
+		grep -qi "Jenkins" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+		greprc=$?
+		if [[ $greprc -eq 0 ]];then
+			echo -e "\t\t[+] Revisando vulnerabilidades de Jenkins  ($host)"
+			jenkins-cve-2024-43044.py "${proto_http}://${host}:${port}${path_web}" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt
+
 		fi
 		###################################
 
@@ -1402,7 +1430,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de CrushFTP  ($host)"
-			crushFTP-cve-2024-4040.py -t "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"crushFTP-CVE~2024~4040.txt &
+			crushFTP-cve-2024-4040.py -t "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"crushFTP-cve~2024~4040.txt &
 		fi
 		###################################
 
@@ -1411,8 +1439,8 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Palo Alto  ($host)"
-			palo-alto-cve-2024-3400.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"paloAlto-CVE~2024~3400.txt &
-			nmap -p $port --script http-panos-cve-2024-3400.nse $host > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~3400~nmap.txt &
+			palo-alto-cve-2024-3400.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"paloAlto-cve~2024~3400.txt &
+			nmap -p $port --script http-panos-cve-2024-3400.nse $host > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~3400~nmap.txt &
 		fi
 
 		#######  D-Link NAS  ######
@@ -1420,7 +1448,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de D-Link NAS  ($host)"
-			d-Link-NAS-cve-2024-3273.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-CVE~2024~3273.txt &
+			d-Link-NAS-cve-2024-3273.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~3273.txt &
 			
 		fi
 
@@ -2305,8 +2333,10 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
 			
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt 2>/dev/null
+
 			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt
+			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null
 
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_configuracionInseguraYii.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt >> .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt 2>/dev/null
@@ -2320,7 +2350,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"phpinfo.txt > .vulnerabilidades/"$host"_"$port"_phpinfo.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_cms~registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_cms~registroHabilitado.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_CVE~2024~24919.txt" ] && grep -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~24919.txt >> .vulnerabilidades/"$host"_"$port"_CVE~2024~24919.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_cve~2024~24919.txt" ] && grep -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~24919.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~24919.txt 2>/dev/null
 
 			[ ! -e ".vulnerabilidades2/${host}_${port}_HTTPsys.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"HTTPsys.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_HTTPsys.txt
 			[ ! -e ".vulnerabilidades2/${host}_${port}_IISwebdavVulnerable.txt" ] && grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"IISwebdavVulnerable.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_IISwebdavVulnerable.txt
@@ -2341,7 +2371,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_proxyshell.txt" ] && egrep '\[info\]' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"proxyshell.txt >> .vulnerabilidades/"$host"_"$port"_proxyshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_cve2020-3452.txt" ] && egrep --color=never "INTERNAL_PASSWORD_ENABLED" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve2020-3452.txt >> .vulnerabilidades/"$host"_"$port"_cve2020-3452.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressGhost.txt" ] && egrep '\[+\]' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressGhost.txt 2>/dev/null |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_wordpressGhost.txt 2>/dev/null
+			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpress~CVE~2022~21661.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~CVE~2022~21661.txt >> .vulnerabilidades/"$host"_"$port"_wordpress~CVE~2022~21661.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_${path_web_sin_slash}wordpress~plugin~cve~2024~44000.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~44000.txt >> .vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~44000.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_${path_web_sin_slash}wordpress~plugin~cve~2024~25600.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt >> .vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt 2>/dev/null
+
 			[ ! -e ".vulnerabilidades2/${host}_${port}_xmlRpcHabilitado.txt" ] && grep -i 'demo.sayHello' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xmlRpcHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_xmlRpcHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_xml~rpc~login.txt" ] && grep -i 'incorrect' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xml~rpc~login.txt >> .vulnerabilidades/"$host"_"$port"_xml~rpc~login.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_chamilo~CVE~2023~34960.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"chamilo~CVE~2023~34960.txt >> .vulnerabilidades/"$host"_"$port"_chamilo~CVE~2023~34960.txt 2>/dev/null
@@ -2359,16 +2393,16 @@ if [[ $webScaneado -eq 1 ]]; then
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_invokerJboss.txt" ] && egrep -i 'linux|windows|unix' logs/vulnerabilidades/"$host"_"$port"_invokerJboss.txt > .vulnerabilidades/"$host"_"$port"_invokerJboss.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_jbossVuln.txt" ] && egrep --color=never "VULNERABLE|EXPOSED|INCONCLUSIVE" logs/vulnerabilidades/"$host"_"$port"_jbossVuln.txt > .vulnerabilidades/"$host"_"$port"_jbossVuln.txt 2>/dev/null
-
-			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap-CVE~2024~27130.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt >> .vulnerabilidades/"$host"_"$port"_qnap-CVE~2024~27130.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap-CVE~2024~27130.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt >> .vulnerabilidades/"$host"_"$port"_qnap-CVE~2024~27130.txt 2>/dev/null
-
-			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap-CVE~2024~27130.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap-CVE~2024~27130.txt >> .vulnerabilidades/"$host"_"$port"_qnap-CVE~2024~27130.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_crushFTP-CVE~2024~4040.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"crushFTP-CVE~2024~4040.txt >> .vulnerabilidades/"$host"_"$port"_crushFTP-CVE~2024~4040.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_dLinkNAS-CVE~2024~3273.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-CVE~2024~3273.txt >> .vulnerabilidades/"$host"_"$port"_dLinkNAS-CVE~2024~3273.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpress~CVE~2024~1071.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~CVE~2024~1071.txt >> .vulnerabilidades/"$host"_"$port"_wordpress~CVE~2024~1071.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt" ] && grep -i 'uid' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt 2>/dev/null
+			
+			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap~cve~2024~27130.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~cve~2024~27130.txt >> .vulnerabilidades/"$host"_"$port"_qnap~cve~2024~27130.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap~CVE~2023~47218.txt" ] && egrep -i 'uid|admin' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~CVE~2023~47218.txt >> .vulnerabilidades/"$host"_"$port"_qnap~CVE~2023~47218.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_crushFTP-cve~2024~4040.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"crushFTP-cve~2024~4040.txt >> .vulnerabilidades/"$host"_"$port"_crushFTP-cve~2024~4040.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_dLinkNAS-cve~2024~3273.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~3273.txt >> .vulnerabilidades/"$host"_"$port"_dLinkNAS-cve~2024~3273.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpress~cve~2024~1071.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~cve~2024~1071.txt >> .vulnerabilidades/"$host"_"$port"_wordpress~cve~2024~1071.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_owncloud-CVE~2023~49103.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"owncloud-CVE~2023~49103.txt >> .vulnerabilidades/"$host"_"$port"_owncloud-CVE~2023~49103.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_paloAlto-CVE~2024~3400.txt" ] && grep -i uid logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"paloAlto-CVE~2024~3400.txt >> .vulnerabilidades/"$host"_"$port"_paloAlto-CVE~2024~3400.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/${host}_${port}_paloAlto-cve~2024~3400.txt" ] && grep -i uid logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"paloAlto-cve~2024~3400.txt >> .vulnerabilidades/"$host"_"$port"_paloAlto-cve~2024~3400.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_zimbra~CVE~2022~27925.txt" ] && grep '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"zimbra~CVE~2022~27925.txt >> .vulnerabilidades/"$host"_"$port"_zimbra~CVE~2022~27925.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_zimbra-cve~2019~9670.txt" ] && grep -i "credenciales" logs/vulnerabilidades/"$host"_"$port"_zimbra-cve~2019~9670.txt >> .vulnerabilidades/"$host"_"$port"_zimbra-cve~2019~9670.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_laravel-rce-CVE~2021~3129.txt" ] && grep root logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravel-rce-CVE~2021~3129.txt >> .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE~2021~3129.txt 2>/dev/null
@@ -2379,8 +2413,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE-2023~23752.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE-2023~23752.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE-2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2015~7297.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE~2015~7297.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2015~7297.txt 2>/dev/null
 			
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_CVE~2024~28995.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~28995.txt >> .vulnerabilidades/"$host"_"$port"_CVE~2024~28995.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_CVE~2024~31982.txt" ] && grep 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~31982.txt >> .vulnerabilidades/"$host"_"$port"_CVE~2024~31982.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_cve~2024~28995.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~28995.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~28995.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_cve~2024~31982.txt" ] && grep 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~31982.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~31982.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_drupal-CVE~2018~7600.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupal-CVE~2018~7600.txt >> .vulnerabilidades/"$host"_"$port"_drupal-CVE~2018~7600.txt 2>/dev/null
 			
 			[ ! -e ".enumeracion2/"$host"_"$port"_company.txt" ] && cat logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"cert.txt 2>/dev/null | domain2company.py | egrep -iv 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice|:|self-signed|Certificate|localhost|fortigate|Error' > .enumeracion/"$host"_"$port"_company.txt 2>/dev/null
@@ -2409,7 +2443,8 @@ if [[ $webScaneado -eq 1 ]]; then
 					if [ "$VERBOSE" == '1' ]; then echo "probando si $username es valido"; fi
 					respuesta=``
 					validate-wordpress-user -url $proto_http://$host:$port/ -username "$username" > logs/enumeracion/"$username"_valid.txt
-					sleep 2
+					sleep 2					
+
 					egrep -qi "no existe" logs/enumeracion/"$username"_valid.txt 2>/dev/null
 					greprc=$? # $greprc -eq 0 --> no existe el usuario
 
@@ -2534,6 +2569,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	###########3paneles de admin de desarollo propio (custom) + CMS
 	egrep -ira "$customPanel" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort | uniq -i > servicios/web-admin-temp.txt
 	if [ ! -f "servicios_archived/admin-web-custom-inserted.txt" ]; then
+		mkir servicios_archived 2>/dev/null
 		touch "servicios_archived/admin-web-custom-inserted.txt"
 	fi
 	sort servicios_archived/admin-web-custom-inserted.txt > servicios_archived/admin-web-custom-inserted-sorted.txt
