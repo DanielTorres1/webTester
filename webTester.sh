@@ -1117,6 +1117,8 @@ function enumeracionCMS () {
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt &
 			#peticiones get especificas para yii
 			checkerWeb.py --tipo yii --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt
+			curl "${proto_http}://${host}:${port}${path_web}index.php/tPersona/createUsuario" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt			 
+
 		fi
 
 		#######  laravel  ######
@@ -2312,7 +2314,6 @@ if [[ $webScaneado -eq 1 ]]; then
 
 			[ ! -e ".enumeracion2/${host}_${port}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_zabbix-version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix-version.txt .enumeracion/"$host"_"$port"_zabbix-version.txt 2>/dev/null
-
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt > .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_archivosSAP.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null
@@ -2332,13 +2333,10 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
-			
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt" ] && egrep 'framework|home' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt 2>/dev/null
-
 			[ ! -e ".vulnerabilidades2/"$host"_zabbix_passwordDefecto.txt" ] && grep -i 'Password encontrado' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null
-
-			
+			[ ! -e ".vulnerabilidades2/${host}_${port}_passwordDefecto.txt" ] && grep -i 'valid credentials' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt 2>/dev/null | sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" >> .vulnerabilidades/"$host"_"$port"_passwordDefecto.txt 2>/dev/null	
 			[ ! -e ".vulnerabilidades2/${host}_${port}_configuracionInseguraYii.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt >> .vulnerabilidades/"$host"_"$port"_configuracionInseguraYii.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_backupweb.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"backupweb.txt >> .vulnerabilidades/"$host"_"$port"_backupweb.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_archivosDefecto.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosDefecto.txt >> .vulnerabilidades/"$host"_"$port"_archivosDefecto.txt 2>/dev/null
