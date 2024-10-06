@@ -1194,12 +1194,10 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Wordpress ($host)"
 			checkerWeb.py --tipo registro --url "$wordpress_url" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt
-			wordpress-scan -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressPlugins.txt &
 			xml-rpc-test -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xmlRpcHabilitado.txt &
-			xml-rpc-login -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xml~rpc~login.txt &
 
-			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
-			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressNuclei.txt 2>&1 &
+			xml-rpc-login -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"xml~rpc~login.txt &
+			wordpress-scan -url $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressPlugins.txt &
 
 			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
 			$proxychains wpscan --disable-tls-checks  --random-user-agent  --enumerate u  --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wpUsers.json &
@@ -1217,6 +1215,10 @@ function enumeracionCMS () {
 
 			#Bricks Builder
 			wordpress-plugin-cve-2024-25600.py -u $wordpress_url  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt 2>/dev/null &
+
+			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
+			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressNuclei.txt 2>&1 &
+
 
 			# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
 			if [[ "$FORCE" != "internet" ]]; then #ejecutar solo cuando se escanea por dominio y no masivamente por IP
