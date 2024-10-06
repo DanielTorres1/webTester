@@ -2051,7 +2051,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ######
-					egrep -i 'apache|nginx|kong' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong|LiteSpeed' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
