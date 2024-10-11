@@ -1138,7 +1138,8 @@ function enumeracionCMS () {
 			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt &
 			#peticiones get especificas para yii
 			checkerWeb.py --tipo yii --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt
-			curl "${proto_http}://${host}:${port}${path_web}index.php/tPersona/createUsuario" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt			 
+			echo "curl \"${proto_http}://${host}:${port}${path_web}index.php/tPersona/createUsuario\"" > "logs/vulnerabilidades/${host}_${port}_${path_web_sin_slash}_debugHabilitado.txt"
+			curl "${proto_http}://${host}:${port}${path_web}index.php/tPersona/createUsuario" >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt
 
 		fi
 
