@@ -8,6 +8,7 @@ OKORANGE='\033[93m'
 RESET='\e[0m'
 LC_TIME=C
 
+#TODO 	[+] Navegacion forzada en host: http://192.168.56.123:8080/ si es phpmyadmin ya no escanear pero llevar a admins
 
 # usamos un bucle while para recorrer todos los argumentos
 
@@ -358,18 +359,6 @@ function checkRAM (){
 	done
 }
 
-function insert_data_admin () {
-	insert-data-admin.py 2>/dev/null
-
-	#URL usadas para identificar si es panel administrativo propio o generico
-	# cat servicios/admin-web-url.txt >> servicios/admin-web-url-inserted.txt 2>/dev/null
-	# rm servicios/admin-web-url.txt 2>/dev/null
-
-	#paneles administrativos propios + CMS
-	cat servicios/admin-web-custom.txt >> servicios_archived/admin-web-custom-inserted.txt 2>/dev/null
-	# Paneles de administracion genericos (sophos, ))
-	cat servicios/admin-web-generic.txt >> servicios_archived/admin-web-generic-inserted.txt 2>/dev/null
-	}
 
 function formato_ip {
     local ip=$1
@@ -2598,7 +2587,7 @@ if [[ $webScaneado -eq 1 ]]; then
 	echo " ##### Identificar paneles administrativos ##### "
 	touch .enumeracion/canary_webData.txt # para que grep no falle cuando solo hay un archivo
 
-	###########3paneles de admin de desarollo propio (custom) + CMS
+	###########paneles de admin de desarollo propio (custom) + CMS
 	egrep -ira "$customPanel" logs/enumeracion/*_webDataInfo.txt 2>/dev/null| egrep -vi "$defaultAdminURL" | cut -d '~' -f5 | delete-duplicate-urls.py | sort | uniq -i > servicios/web-admin-temp.txt
 	if [ ! -f "servicios_archived/admin-web-custom-inserted.txt" ]; then
 		mkir servicios_archived 2>/dev/null
@@ -3003,4 +2992,4 @@ insert_data
 # delete empty files
 find servicios -size  0 -print0 |xargs -0 rm 2>/dev/null
 #Insertar paneles administrativos servicios/web-admin-fingerprint.txt
-insert_data_admin 2>/dev/null
+
