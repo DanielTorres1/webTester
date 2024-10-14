@@ -262,10 +262,11 @@ if [ ! -d "servicios" ]; then #si no existe la carpeta servicios es un nuevo esc
 	mkdir .vulnerabilidades2 2>/dev/null
 	mkdir reportes
 	mkdir -p webClone/ 2>/dev/null
-	mkdir -p logs/enumeracion
-	mkdir -p logs/vulnerabilidades
-    mkdir responder
-	mkdir servicios
+	mkdir -p logs/enumeracion 2>/dev/null
+	mkdir -p logs/vulnerabilidades 2>/dev/null
+    mkdir responder 2>/dev/null
+	mkdir servicios 2>/dev/null
+	mkdir servicios_archived 2>/dev/null
 	cp /usr/share/lanscanner/.resultados.db .
 else
 	echo "no crear carpetas"
