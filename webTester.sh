@@ -1870,8 +1870,10 @@ for line in $(cat $TARGETS); do
 			done
 			##################################
 
+			egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+			cms=$?
 
-			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  ]];then
+			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  || $cms -eq 0 ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
