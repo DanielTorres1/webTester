@@ -687,7 +687,7 @@ function enumeracionApache() {
         echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port [$param_msg_error])"
         waitWeb 0.3
         echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"
-        command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/apache.txt -no-color -include-rr -debug"
+        command="nuclei -u '$proto_http://$host:$port' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -id /root/.local/nuclei-templates/cves/apache.txt -no-color -include-rr -debug -rate-limit 1 "
         echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheNuclei.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheNuclei.txt 2>&1 &
 
@@ -910,7 +910,7 @@ function enumeracionTomcat() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
-        command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/tomcat_'$MODE'.txt -no-color -include-rr -debug"
+        command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/tomcat_'$MODE'.txt -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color -include-rr -debug"
         echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"tomcatNuclei.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"tomcatNuclei.txt 2>&1 &
 
@@ -1080,7 +1080,7 @@ function enumeracionSAP () {
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Nuclei SAP $proto_http $host:$port"
-		nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt &
+		nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt &
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando archivos comunes de SAP ($host - SAP)"
@@ -1108,7 +1108,7 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 
 			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
-			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt &
+			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt &
 
 			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupal-CVE~2018~7600.txt 2>/dev/null
 			# http://www.mipc.com.bo/node/9/devel/token
@@ -1125,7 +1125,7 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 
 			echo -e "\t\t[+] nuclei yii ("$proto_http"://"$host":"$port")"
-			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt &
+			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/yii_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt &
 			#peticiones get especificas para yii
 			checkerWeb.py --tipo yii --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt
 			echo "curl \"${proto_http}://${host}:${port}${path_web}index.php/tPersona/createUsuario\"" > "logs/vulnerabilidades/${host}_${port}_${path_web_sin_slash}_debugHabilitado.txt"
@@ -1139,7 +1139,7 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 
 			echo -e "\t\t[+] nuclei laravel ("$proto_http"://"$host":"$port")"
-			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/laravel_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt &
+			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/laravel_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt &
 			laravel-rce-CVE-2021-3129.sh "$proto_http"://"$host":"$port""$path_web" 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravel-rce-CVE~2021~3129.txt  2>/dev/null
 		fi
 
@@ -1149,7 +1149,7 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 
 			echo -e "\t\t[+] nuclei magento ("$proto_http"://"$host":"$port")"
-			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/magento_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt &
+			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/magento_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt &
 			laravel-rce-CVE-2021-3129.sh "$proto_http"://"$host":"$port""$path_web" 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravel-rce-CVE~2021~3129.txt  2>/dev/null
 		fi
 
@@ -1208,7 +1208,7 @@ function enumeracionCMS () {
 			wordpress-plugin-cve-2024-25600.py -u $wordpress_url  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt 2>/dev/null &
 
 			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
-			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressNuclei.txt 2>&1 &
+			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressNuclei.txt 2>&1 &
 
 
 			# si tiene el valor "internet" (se esta escaneando redes de internet) si no tiene valor se escanea un dominio
@@ -1265,7 +1265,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de Hadoop YARN ResourceManager ($host)"
-			nuclei -u $host -t /root/.local/nuclei-templates/misconfiguration/hadoop-unauth-rce.yaml  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"hadoopRCE.txt
+			nuclei -u $host -t /root/.local/nuclei-templates/misconfiguration/hadoop-unauth-rce.yaml  -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"hadoopRCE.txt
 		fi
 		###################################
 
@@ -1327,7 +1327,7 @@ function enumeracionCMS () {
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-joomla-CVE~2023~23752.txt &
 			echo -e "\t\t[+] Nuclei Joomla ($host)"
-			nuclei -u "$proto_http"://"$host":"$port""$path_web"  -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt &
+			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color -rate-limit 1  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt &
 
 			echo -e "\t\t[+] Revisando si el registro esta habilitado"
 			checkerWeb.py --tipo registro --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cms~registroHabilitado.txt
@@ -1870,7 +1870,7 @@ for line in $(cat $TARGETS); do
 			done
 			##################################
 
-			egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+			egrep -iv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 			cms=$?
 
 			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  || $cms -eq 0 ]];then
