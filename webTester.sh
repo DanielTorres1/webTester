@@ -1718,7 +1718,7 @@ for line in $(cat $TARGETS); do
 
 			if [[ $free_ram -gt $MIN_RAM && $script_instancias -lt $MAX_SCRIPTS  ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo "SUBNET $SUBNET IP_LIST_FILE=$IP_LIST_FILE"; fi
-					lista_hosts=`grep --color=never $host $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2`
+					lista_hosts=`grep --color=never $host $IP_LIST_FILE  | egrep 'DOMINIO|subdomain|vhost'| cut -d "," -f2|sort|uniq`
 
 				if [ "$VERBOSE" == '1' ]; then  echo "lista_hosts1 $lista_hosts"; fi #lista de todos los dominios
 				for host in $lista_hosts; do
@@ -2922,7 +2922,7 @@ if [[ -f servicios/admin-web-url.txt ]] ; then # si existe paneles administrativ
 fi
 
 sort servicios/admin-web-asorted.txt 2>/dev/null | uniq > servicios/admin-web-custom.txt
-rm servicios/admin-web-asorted.txt rm servicios/admin-web-url.txt 2>/dev/null
+#rm servicios/admin-web-asorted.txt  servicios/admin-web-url.txt 2>/dev/null
 
 if [[ "$ESPECIFIC" == "1" ]];then
 	### OWASP Verification Standard Part 2###
