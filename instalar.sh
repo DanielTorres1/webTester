@@ -61,8 +61,8 @@ cp GO/getExtract/getExtract /usr/bin/pentest
 
 
 echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
-pip install sri-check  fake_useragent rich_click alive_progress faker hexdump --break-system-package
-pip install droopescan  --break-system-package
+pip3 install sri-check  fake_useragent rich_click alive_progress faker hexdump --break-system-package
+pip3 install droopescan  --break-system-package
 
 
 echo -e "${RED}[+]${BLUE} katana ${RESET}"
