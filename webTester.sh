@@ -2444,7 +2444,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port"_company.txt" ] && cat logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"cert.txt 2>/dev/null | domain2company.py | egrep -iv 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice|:|self-signed|Certificate|localhost|fortigate|Error' > .enumeracion/"$host"_"$port"_company.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}_${path_web_sin_slash}wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wpUsers.txt 2>/dev/null
 
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_wordpress~cve~2017~5487.txt" ] && grep -i User logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~cve~2017~5487.txt | grep -v '401' >> .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_wordpress~cve~2017~5487.txt" ] && grep -i User logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~cve~2017~5487.txt 2>/dev/null | grep -v '401' >> .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null
 			cat .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null | cut -d ':' -f2 >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wpUsers.txt
 
 			
