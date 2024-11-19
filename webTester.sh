@@ -1095,6 +1095,7 @@ function enumeracionCMS () {
    proto_http=$1
    host=$2
    port=$3
+   msg_error_404=$4 #cadena en comillas simples
 
 	if [[ "$MODE" == "total" ]]; then
 		echo -e "\t\t[+] Revisando vulnerabilidades HTTP mixtas"
@@ -1108,6 +1109,8 @@ function enumeracionCMS () {
 		grep -qi drupal logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
+
+			enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
 
 			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt &
@@ -1170,6 +1173,8 @@ function enumeracionCMS () {
 		grep -qi wordpress logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
+
+			enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
 
 			grep -qi "\^" "logs/enumeracion/${host}_${port}_${path_web_sin_slash}webDataInfo.txt"
 			greprc=$?
@@ -1335,6 +1340,9 @@ function enumeracionCMS () {
 		grep -qi joomla logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
+
+			enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
+			
 			echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
 
 			joomla_version.pl -host $host -port $port -path "$path_web" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla-version.txt &
@@ -2055,7 +2063,7 @@ for line in $(cat $TARGETS); do
 						echo "httpfileserver Vulnerable: https://github.com/Muhammd/ProFTPD-1.3.3a " >> .vulnerabilidades/"$host"_"$port"_ProFTPD-RCE.txt
 					fi
 
-					enumeracionCMS "$proto_http" $host $port
+					enumeracionCMS "$proto_http" $host $port "$msg_error_404"
 
 
 					if [ $proto_http == "https" ]; then
@@ -2064,15 +2072,7 @@ for line in $(cat $TARGETS); do
 
 
 					
-					###  CMS admin ######
-					egrep -qiv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "302 Found|Always200-OK|swfobject|BladeSystem|botpress|Plesk|FortiMail|StreamHub|404 not found|broadband device|Check Point|cisco|Chamilo|Cloudflare|controlpanel|Diagnostic Interface|cpanel|erpnext|Fortinet|Dahua|MailCleaner|GitLab|Liferay|GoAhead-Webs|Grafana|hikvision|Huawei|Juniper|keycloak|Mini web server|networkMonitoring|Nextcloud|NTLM|Office|oviyam|openresty|Open Source Routing Machine|oracle|ownCloud|Payara|pfsense|printer|processmaker|Roundcube|Router|RouterOS|SoftEther|SonicWALL|FortiGate|airOS|Strapi|Slim|Sophos|Taiga|TOTVS|tp-link|TrueConf Server Guest Page|Tyco|User Portal|Viridian|webmail|whm|xxxxxx|Zentyal|OLT Web Management Interface|Zimbra|Outlook|owa"
-					greprc=$?
-					if [[ $greprc -eq 0  ]];then 
-						checkRAM
-						enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
-					fi
-					####################################
-
+			
 					##check banner ##
 					egrep -i 'Apache/2.4.49|Apache/2.4.50' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt 
 					greprc=$?
