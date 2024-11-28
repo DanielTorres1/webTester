@@ -127,6 +127,7 @@ wordpress
 joomla
 drupal
 302 Found
+ManageEngine
 Always200-OK
 swfobject
 BladeSystem
@@ -1203,7 +1204,7 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressGhost.txt 2>/dev/null &
 			wordpress-version.py $wordpress_url > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt 2>/dev/null
-			grep -vi 'Error' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt > .enumeracion/"$host"_"$port"_wordpressVersion.txt
+			
 			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~CVE~2022~21661.txt 2>/dev/null &
 			#Ultimate Member 
 			wordpress-plugin-cve-2024-1071.py $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~cve~2024~1071.txt 2>/dev/null &
@@ -1345,7 +1346,7 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de joomla ($host)"
 
-			joomla_version.pl -host $host -port $port -path "$path_web" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla-version.txt &
+			joomla_version.pl -host $host -port $port -path "$path_web" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla~version.txt &
 
 			echo "juumla.sh -u "$proto_http"://"$host":"$port""$path_web" " > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CMSDesactualizado.txt
 			juumla.sh -u "$proto_http"://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CMSDesactualizado.txt 2>/dev/null &
@@ -1427,7 +1428,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de zabbix  ($host)"
-			curl -X POST -H 'Content-Type: application/json' -d '{"jsonrpc": "2.0","method": "apiinfo.version","params":[],"id":1,"auth":null}' "${proto_http}://${host}:${port}${path_web}"api_jsonrpc.php | jq -r '.result' > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix-version.txt & 
+			curl -X POST -H 'Content-Type: application/json' -d '{"jsonrpc": "2.0","method": "apiinfo.version","params":[],"id":1,"auth":null}' "${proto_http}://${host}:${port}${path_web}"api_jsonrpc.php | jq -r '.result' > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix~version.txt & 
 			passWeb -proto $proto_http -target $host -port $port -module zabbix -path "$path_web" -user Admin -password zabbix > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"passwordDefecto.txt & 
 		fi
 		###################################
@@ -2050,7 +2051,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed|mikrotik|zimbra' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed|mikrotik|zimbra|zabbix' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -2401,13 +2402,14 @@ if [[ $webScaneado -eq 1 ]]; then
 			fi
 			######
 
-			[ ! -e ".enumeracion2/${host}_${port}_joomla-version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla-version.txt .enumeracion/"$host"_"$port"_joomla-version.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_zabbix-version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix-version.txt .enumeracion/"$host"_"$port"_zabbix-version.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_joomla~version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla~version.txt .enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla~version.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_wordpressVersion.txt" ] && grep -vi 'Error' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt > .enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt 2>/dev/null
+
+			[ ! -e ".enumeracion2/${host}_${port}_zabbix~version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix~version.txt .enumeracion/"$host"_"$port"_zabbix~version.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt > .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_archivosSAP.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webarchivos.txt >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null		
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webserver.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"api.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
@@ -2434,7 +2436,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_webshell.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configApache.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configApache.txt >> .vulnerabilidades/"$host"_"$port"_configApache.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configIIS.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configIIS.txt >> .vulnerabilidades/"$host"_"$port"_configIIS.txt 2>/dev/null
-			
+			[ ! -e ".vulnerabilidades2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webarchivos.txt >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_vCenter~cve~2021~21972.txt" ] && egrep --color=never -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"vCenter~cve~2021~21972.txt >> .vulnerabilidades/"$host"_"$port"_vCenter~cve~2021~21972.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_jboss~cve~2017~12149.txt" ] && egrep --color=never "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jboss~cve~2017~12149.txt >> .vulnerabilidades/"$host"_"$port"_jboss~cve~2017~12149.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_pulse~cve~2019~11510.txt" ] && grep -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"pulse~cve~2019~11510.txt >> .vulnerabilidades/"$host"_"$port"_pulse~cve~2019~11510.txt 2>/dev/null
