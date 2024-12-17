@@ -142,6 +142,7 @@ SolarWinds
 404 not found
 broadband device
 Check Point
+Applications Manager Login Screen
 cisco
 Chamilo
 Metabase
@@ -457,7 +458,7 @@ function enumeracionDefecto() {
             eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
         fi
 
-        if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+        if [[ "$MODE" == "oscp" ||  "$MODE" == "total" || ! -z "$URL" ]]; then
             egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
             greprc=$?
 
@@ -580,7 +581,7 @@ function enumeracionIIS() {
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
-            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+            if [[  "$MODE" == "oscp" || "$MODE" == "total" || ! -z "$URL" ]]; then
 
                 waitWeb 0.3
                 echo -e "\t\t[+] Revisando directorios comunes - completo ($host - IIS)"
@@ -750,7 +751,7 @@ function enumeracionApache() {
 		greprc=$?
 		if [[ $greprc -eq 1 ]]; then
 
-			if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+			if [[ "$MODE" == "oscp" || "$MODE" == "total" || ! -z "$URL" ]]; then
 
 				waitWeb 0.3
 				echo -e "\t\t[+] Revisando directorios comunes - completo  ($host - Apache/nginx)"
@@ -795,7 +796,7 @@ function enumeracionApache() {
 		fi #NO CMS
 	fi #hosting domains
 
-	if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
+	if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando vulnerabilidad slowloris ($host)"
 		command="$proxychains nmap --script http-slowloris-check -p $port $host"
@@ -948,7 +949,7 @@ function enumeracionTomcat() {
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
-            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+            if [[  "$MODE" == "oscp" || "$MODE" == "total" || ! -z "$URL" ]]; then
 
                 waitWeb 0.3
                 echo -e "\t\t[+] Revisando directorios comunes - completo ($host - Tomcat)"
@@ -1034,7 +1035,7 @@ function enumeracionJava() {
         greprc=$?
         if [[ $greprc -eq 1 ]]; then
 
-            if [[ "$MODE" == "total" || ! -z "$URL" ]]; then
+            if [[  "$MODE" == "oscp" || "$MODE" == "total" || ! -z "$URL" ]]; then
 
                 waitWeb 0.3
                 echo -e "\t\t[+] Revisando directorios comunes - completo  ($host - JAVA)"
@@ -1098,7 +1099,7 @@ function enumeracionCMS () {
    port=$3
    msg_error_404=$4 #cadena en comillas simples
 
-	if [[ "$MODE" == "total" ]]; then
+	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 		echo -e "\t\t[+] Revisando vulnerabilidades HTTP mixtas"
 		$proxychains nmap -n -Pn -p $port --script=http-vuln* $host >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"softwareDesactualizado.txt &
 	fi
@@ -1118,7 +1119,7 @@ function enumeracionCMS () {
 
 			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupal-CVE~2018~7600.txt 2>/dev/null
 			# http://www.mipc.com.bo/node/9/devel/token
-			if [[  "$MODE" == "total" ]]; then
+			if [[  "$MODE" == "oscp" ||  "$MODE" == "total" ]]; then
 				echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
 				$proxychains droopescan scan drupal -u  "$proto_http"://$host --output json > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt 2>/dev/null &
 			fi
@@ -1553,7 +1554,7 @@ function testSSL ()
 
 
     #######  Configuracion TLS/SSL (dominio) ######
-	if [[ "$MODE" == "total" ]]; then
+	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 		echo -e "\t\t[+] Revisando configuracion TLS/SSL"
 		testssl.sh --color 0  "https://$host:$port" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"testSSL.txt 2>/dev/null &
 	fi
@@ -1914,10 +1915,10 @@ for line in $(cat $TARGETS); do
 			done
 			##################################
 
-			egrep -iv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
-			cms=$?
+			# egrep -iv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+			# cms=$?
 
-			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  || $cms -eq 0 ]];then
+			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"* ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -1929,7 +1930,7 @@ for line in $(cat $TARGETS); do
 				mkdir -p webTrack/$host 2>/dev/null
 				touch webTrack/checksumsEscaneados.txt
 
-				if [[ "$MODE" == "total" &&  ! -z "$URL" ]];then
+				if [[  "$MODE" == "oscp" || "$MODE" == "total" &&  ! -z "$URL" ]];then
 					echo -e "\t[+] Clonando: $URL"
 
 					if [[ "$ESPECIFIC" == "1" ]];then
@@ -2053,7 +2054,7 @@ for line in $(cat $TARGETS); do
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt
 					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed|mikrotik|zimbra|zabbix' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
-					if [[ "$INTERNET" == "s" ]] && [[ "$MODE" == "total" ]]; then
+					if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
 						wafw00f $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wafw00f.txt &
 					fi
@@ -2223,7 +2224,7 @@ for line in $(cat $TARGETS); do
 					# fi
 					####################################
 
-					if [[ "$MODE" == "total" ]]; then
+					if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 						#source resource integrity
 						#echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
 						#sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sri.txt 2>/dev/null
@@ -2600,7 +2601,9 @@ if [[ $webScaneado -eq 1 ]]; then
 	done # for web.txt
 	########
 
-	if [ "$MODE" == "total" ] && [ ! -z $DOMINIO ]; then
+	if [[ "$MODE" == "oscp" || "$MODE" == "total" ]] && [[ -n "$DOMINIO" ]]; then
+	
+	
 		echo -e "[+] Extraer metadatos de sitios clonados (DOMINIO= $DOMINIO)"
 		exiftool archivos/$DOMINIO/ > logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null
 		egrep -i "Author|creator|modified" logs/enumeracion/"$DOMINIO"_metadata_exiftool.txt | cut -d ":" -f2 | egrep -iv "tool|adobe|microsoft|PaperStream|Acrobat|JasperReports|Mozilla" |sort |uniq  > .enumeracion/"$DOMINIO"_metadata_exiftool.txt 2>/dev/null
@@ -2801,7 +2804,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
 		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/170.239.123.50_80_webData.txt
-		if [[ ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"SharePoint.txt"* || ${archivo_origen} == *"archivosCGI.txt"* ]]; then
+		if [[ ${archivo_origen} == *"webdata.txt"* || ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"SharePoint.txt"* || ${archivo_origen} == *"archivosCGI.txt"* ]]; then
 			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'` # extraer url
 		else
 			# Vulnerabilidad detectada en la raiz
@@ -3053,7 +3056,7 @@ if [[ "$ESPECIFIC" == "1" ]];then
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xmlRpcHabilitado|_wordpressPlugins|_wordpress~CVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-69.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-69.txt 2>/dev/null
 
-	if [[ "$MODE" == "total" ]]; then
+	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 		# CS-62 HTTP header injection
 		echo -e "\t[+]HTTP header injection"
 		headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-62.txt

@@ -32,7 +32,7 @@ func main() {
 	// Realiza la petición GET a la URL
 	resp, err := client.Get(*url)
 	if err != nil {
-		//fmt.Println("Error al hacer la petición:", err)
+		fmt.Println("Error al hacer la petición:", err)
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
@@ -44,13 +44,12 @@ func main() {
 	}
 
 	htmlContent := string(body)
+	htmlContent = strings.ReplaceAll(htmlContent, "<br>", "\n")
 	results := parseDirectoryListing(htmlContent)
 	for _, result := range results {
 		fmt.Println(result)
 	}
 }
-
-
 
 func parseDirectoryListing(htmlContent string) []string {
 	doc, err := html.Parse(strings.NewReader(htmlContent))
@@ -59,9 +58,9 @@ func parseDirectoryListing(htmlContent string) []string {
 	}
 
 	var results []string
-	var walkFunc func(*html.Node)
 
-	walkFunc = func(n *html.Node) {
+	// Procesa los tags <tr>
+	processTableRows := func(n *html.Node) {
 		if n.Type == html.ElementNode && n.Data == "tr" {
 			var cells []string
 			for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -72,7 +71,6 @@ func parseDirectoryListing(htmlContent string) []string {
 			}
 
 			if len(cells) >= 5 {
-				//fileType := cells[0]
 				fileName := cells[1]
 				modifiedDate := cells[2]
 				fileSize := cells[3]
@@ -86,7 +84,40 @@ func parseDirectoryListing(htmlContent string) []string {
 				results = append(results, result)
 			}
 		}
+	}
 
+	// Procesa los tags <pre>
+	processPreTags := func(n *html.Node) {
+		if n.Type == html.ElementNode && n.Data == "pre" {
+			lines := strings.Split(extractText(n), "\n")
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if line == "" || strings.HasPrefix(line, "[To Parent Directory]") {
+					continue
+				}
+
+				fields := strings.Fields(line)
+				if len(fields) >= 4 {
+					modifiedDate := fields[0] + " " + fields[1]
+					fileSize := fields[2]
+					fileName := strings.Join(fields[3:], " ")
+
+					entryType := "[FILE]"
+					if fileSize == "-" {
+						entryType = "[DIR]"
+					}
+
+					result := fmt.Sprintf("%s| %s | %s| %s", entryType, fileName, modifiedDate, fileSize)
+					results = append(results, result)
+				}
+			}
+		}
+	}
+
+	var walkFunc func(*html.Node)
+	walkFunc = func(n *html.Node) {
+		processTableRows(n)
+		processPreTags(n)
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			walkFunc(c)
 		}
@@ -104,7 +135,6 @@ func extractText(n *html.Node) string {
 		if n.Type == html.TextNode {
 			text.WriteString(n.Data)
 		}
-
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
 			extractTextHelper(c)
 		}
