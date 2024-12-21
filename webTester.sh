@@ -8,10 +8,6 @@ OKORANGE='\033[93m'
 RESET='\e[0m'
 LC_TIME=C
 
-#TODO 	[+] Navegacion forzada en host: http://192.168.56.123:8080/ si es phpmyadmin ya no escanear pero llevar a admins
-
-# usamos un bucle while para recorrer todos los argumentos
-
 while (( "$#" )); do
   case "$1" in
     --url)
@@ -230,7 +226,7 @@ cat << "EOF"
 WebTester.sh 
 Options:
 --mode: hacking/total
---proxychains: s/n
+--proxychains: 1/0
 --hosting: s/n
 --specific: 1 = esperar guardar sitio del navegador usar blackwidow/sqlmap/dalfox
 --extratest: oscp
@@ -389,7 +385,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|grep -E|grep --color' | wc -l` ))
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|meterpreter|reverse_tcp|grep -E|grep --color' | wc -l` ))
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then
 			echo -e "\t[-] Aun hay scripts en segundo plano activos"
@@ -1868,7 +1864,7 @@ for line in $(cat $TARGETS); do
 			
 		fi
 
-		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"s"*  && ${escanearConURL} != 1  ]];then
+		if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"*  && ${host} != *"autodiscover"*  && ${host} != *"cpcalendar"* && ${PROXYCHAINS} != *"1"*  && ${escanearConURL} != 1  ]];then
 
 			############# Verificar que no siempre devuelve 200 OK
 			msg_error_404=''
@@ -2052,7 +2048,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -uO -s > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|failed|mikrotik|zimbra|zabbix' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|bitnami|failed|mikrotik|zimbra|zabbix' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -2344,10 +2340,7 @@ for line in $(cat $TARGETS); do
 			else
 				if [ "$VERBOSE" == '1' ]; then  echo -e "NO escanear $proto_http://$host:$port $path_web"; fi
 			fi #hosting
-#######3
 		fi
-
-
 	done # subdominios
 done #for navegacino forzada
 
