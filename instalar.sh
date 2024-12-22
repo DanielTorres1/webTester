@@ -27,7 +27,7 @@ cp vhost-non-exist.txt /usr/share/lanscanner/vhost-non-exist.txt
 
 
 echo -e "${RED}[+]${BLUE} Instalando librerias ${RESET}"
-apt install -y httrack webhttrack
+apt install -y httrack webhttrack wpscan
 
 echo -e "${RED}[+]${BLUE} Instalando dalfox ${RESET}"
 go install github.com/hahwul/dalfox/v2@latest
