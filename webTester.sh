@@ -51,7 +51,7 @@ while (( "$#" )); do
       shift 2
       ;;
 	--specific)
-      ESPECIFIC=$2 # 1 = esperar guardar sitio del navegador usar blackwidow/sqlmap/dalfox
+      ESPECIFIC=$2 # 1 = esperar guardar sitio del navegador usar blackwidow/dalfox
       shift 2
       ;;
     --verbose)
@@ -228,7 +228,7 @@ Options:
 --mode: hacking/total
 --proxychains: 1/0
 --hosting: s/n
---specific: 1 = esperar guardar sitio del navegador usar blackwidow/sqlmap/dalfox
+--specific: 1 = esperar guardar sitio del navegador usar blackwidow/dalfox
 --extratest: oscp
 	*aspx/php file bruteforce
 	*web crawling
@@ -300,7 +300,7 @@ if [ ! -z $URL ] ; then #
 	path_web=${path_web//\/\//\/}
 	echo "path_web extraido $path_web"
 
-	if [[ "$URL" == *"localhost"* ]] || [[ "$URL" == *"127.0.0.1"* ]]; then
+	if ([[ "$URL" == *"localhost"* ]] || [[ "$URL" == *"127.0.0.1"* ]]) && [[ "$MODE" != "oscp" ]]; then
 		echo "La URL contiene 'localhost'. Saliendo del programa."
 		exit 1
 	fi
@@ -774,11 +774,11 @@ function enumeracionApache() {
 				echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt
 				eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt &
 
-				echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)"
-				command="multiviews -url=$proto_http://$host:$port/"
-				echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
-				eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
-				grep vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt >> .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt
+				# echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)"
+				# command="multiviews -url=$proto_http://$host:$port/"
+				# echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
+				# eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
+				# grep vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt >> .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt
 			fi #total
 
 			if [ "$EXTRATEST" == "oscp" ]; then
@@ -2213,124 +2213,6 @@ for line in $(cat $TARGETS); do
 					#######  if the server is IoT ######
 					enumeracionIOT	$proto_http $host $port
 
-					#echo -e "\t\t[+] cloneSite ($proto_http $host $port) PROXYCHAINS $PROXYCHAINS MODE $MODE"
-					######### clone #####
-					# if [[ "$PROXYCHAINS" == "n" ]] && [[ "$MODE" == "total" ]]; then
-					# 	cloneSite $proto_http $host $port
-					# fi
-					####################################
-
-					if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
-						#source resource integrity
-						#echo -e "\t[+] source resource integrity check ($proto_http://$host:$port) "
-						#sri-check $proto_http://$host:$port  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sri.txt 2>/dev/null
-						#grep -i '<script' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sri.txt >> .vulnerabilidades/"$host"_"$port"_sri.txt 2>/dev/null
-
-						# _blank targets with no "rel nofollow no referrer"
-						#echo -e "\t[+] _blank targets check ($proto_http://$host:$port)  "
-						#check_blank_target $proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"check-blank-target.txt
-						#grep -iv error logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"check-blank-target.txt >> .vulnerabilidades/"$host"_"$port"_check-blank-target.txt
-						checkRAM
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
-						greprc=$?
-						if [[  "$EXTRATEST" == "oscp" && $greprc -eq 1 && "$ESPECIFIC" == "1" ]]; then
-							##########################################
-							checkRAM
-							echo -e "\t[+] Crawling ($proto_http://$host:$port )"
-							echo -e "\t\t[+] katana"
-							katana -u $proto_http://$host:$port -no-scope -no-color -silent -output logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledKatana.txt >/dev/null 2>/dev/null
-							echo -e "\t\t[+] blackwidow"
-
-							blackwidow -u $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt
-							head -30 logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-01.txt
-							grep 'Telephone' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt | sort | uniq > .enumeracion/"$host"_"$port"_telephones.txt
-							grep -i 'sub-domain' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt | sort | uniq | awk {'print $4'} | httprobe.py > .enumeracion/"$host"_web_app2.txt
-							cat .enumeracion/"$host"_web_app2.txt servicios/webApp.txt 2>/dev/null | delete-duplicate-urls.py  > servicios/webApp2.txt
-							mv servicios/webApp2.txt servicios/webApp.txt 2>/dev/null
-
-							sort logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledKatana.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g"  | uniq > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawled.txt
-							grep Dynamic logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | awk {'print $5'} | uniq > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawled.txt
-							grep -v Dynamic logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawledBlackwidow.txt |  sed -r "s/\x1B\[(([0-9]+)(;[0-9]+)*)?[m,K,H,f,J]//g" | uniq >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawled.txt
-
-							grep $DOMINIO logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawled.txt | egrep -v 'google|youtube' | sort | uniq > .enumeracion/"$host"_"$port"_webCrawled.txt
-							grep -iv $DOMINIO logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webCrawled.txt | egrep -v 'google|youtube' | sort | uniq  > .enumeracion/"$host"_"$port"_websRelated.txt
-							echo ""
-
-							grep --color=never "\?" .enumeracion/*_webCrawled.txt | sort | uniq >> logs/enumeracion/parametrosGET2.txt
-							grep "$host" logs/enumeracion/parametrosGET2.txt | egrep -iv '\.css|\.js|\.eot|\.svg|\.ttf|\.woff2' |sort | uniq | sed -r "s/\x1B\[([0-9]{1,3}(;[0-9]{1,2})?)?[mGK]//g"  >> logs/enumeracion/"$host"_parametrosGET_uniq.txt
-
-
-							##### Eliminar URL repetidas que solo varian en los parametros
-							current_uri=""
-							while IFS= read -r url
-							do
-								uri=`echo $url | cut -f1 -d"?"`
-								param=`echo $line | cut -f2 -d"?"`
-
-								if [ "$current_uri" != "$uri" ];
-								then
-									echo  "$url" >> logs/enumeracion/"$host"_parametrosGET_uniq_final.txt
-									current_uri=$uri
-								fi
-							done < logs/enumeracion/"$host"_parametrosGET_uniq.txt
-
-							########### XSS / SQLi ####
-							i=1
-							for url in `cat logs/enumeracion/"$host"_parametrosGET_uniq_final.txt 2>/dev/null`; do
-								echo -e "$OKBLUE+ -- --=############ Revisando $url (SQLi/XSS) #########$RESET"
-
-								echo -e "$OKBLUE+ -- --=############ Probando SQL inyection. #########$RESET"
-								echo  "$url" | tee -a logs/vulnerabilidades/"$host"_"web$i"_sqlmap.txt
-								sqlmap -u "$url" --batch --tamper=space2comment --threads 5 | tee -a logs/vulnerabilidades/"$host"_"web$i"_sqlmap.txt
-								sqlmap -u "$url" --batch  --technique=B --risk=3  --threads 5 | tee -a logs/vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt
-
-								#  Buscar SQLi
-								egrep -iq "is vulnerable" logs/vulnerabilidades/"$host"_"web$i"_sqlmap.txt
-								greprc=$?
-								if [[ $greprc -eq 0 ]] ; then
-									echo -e "\t$OKRED[!] Inyeccion SQL detectada \n $RESET"
-									echo "sqlmap -u \"$url\" --batch " >> .vulnerabilidades/"$host"_"web$i"_sqlmap.txt
-
-									# CS-58 Inyecciones SQL
-									cat .vulnerabilidades/"$host"_"web$i"_sqlmap.txt >> .vulnerabilidades/"$host"_"$port"_CS-58.txt
-									cat .vulnerabilidades/"$host"_"$port"_CS-58.txt >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-58.txt
-								fi
-
-								#  Buscar SQLi blind
-								egrep -iq "is vulnerable" logs/vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt
-								greprc=$?
-								if [[ $greprc -eq 0 ]] ; then
-									echo -e "\t$OKRED[!] Inyeccion SQL detectada \n $RESET"
-									echo "sqlmap -u \"$url\" --batch  --technique=B --risk=3" >> .vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt
-
-									# CS-58 Inyecciones SQL
-									cat .vulnerabilidades/"$host"_"web$i"_sqlmapBlind.txt >> .vulnerabilidades/"$host"_"$port"_CS-58.txt
-									cat .vulnerabilidades/"$host"_"$port"_CS-58.txt >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-58.txt
-								fi
-
-								#  Buscar XSS
-								dalfox -b hahwul.xss.ht url $url | tee -a logs/vulnerabilidades/"$host"_"web$i"_xss.txt
-								#https://z0id.xss.ht/
-
-
-								egrep -iq "Triggered XSS Payload" logs/vulnerabilidades/"$host"_"web$i"_xss.txt
-								greprc=$?
-								if [[ $greprc -eq 0 ]] ; then
-									echo -e "\t$OKRED[!] XSS detectada \n $RESET"
-									echo "url $url" >  .vulnerabilidades/"$host"_"web$i"_xss.txt
-									egrep -ia "Triggered XSS Payload" logs/vulnerabilidades/"$host"_"web$i"_xss.txt >> .vulnerabilidades/"$host"_"web$i"_xss.txt
-									# CS-59 XSS
-									cat .vulnerabilidades/"$host"_"web$i"_xss.txt >> .vulnerabilidades/"$host"_"$port"_CS-59.txt
-									cat .vulnerabilidades/"$host"_"$port"_CS-59.txt > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-59.txt
-								fi
-
-								i=$(( i + 1 ))
-
-							done # xss
-							#####################
-						fi #oscp
-					fi #total
-
 					echo -e "\n"
 					######
 				else
@@ -2889,7 +2771,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			#.vulnerabilidades2/170.239.123.50_80_webData.txt
 			# archivo_origen .vulnerabilidades2/200.87.130.42_443-_phpinfo.txt
 			archivo_phpinfo=`echo "$archivo_origen" | sed 's/.enumeracion2\///'|sed 's/.vulnerabilidades2\///'`
-			#archivo_phpinfo = 127.0.0.1_80_phpinfo.txt.
+			#archivo_phpinfo = 192.0.0.1_80_phpinfo.txt.
 			#echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
 			get-info-php "$url_vulnerabilidad" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
 			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
