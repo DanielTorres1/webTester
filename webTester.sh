@@ -118,6 +118,7 @@ log in
 EOL
 )
 
+#si esta en esta lista no hacer mas escaneos
 defaultAdminURL=$(cat << 'EOL'
 wordpress
 joomla
@@ -136,6 +137,7 @@ StreamHub
 QNAP
 SolarWinds
 404 not found
+CloudKey
 broadband device
 Check Point
 Applications Manager Login Screen
@@ -196,13 +198,15 @@ xxxxxx
 Zentyal
 OLT Web Management Interface
 Zimbra
+JavascriptFramework
+phpMyAdmin
 Outlook
 owa
 EOL
 )
 
 TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
-echo "Version: 1.0 29092024"
+echo "Version: 1.0 06012025"
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
