@@ -6,27 +6,26 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"strings"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
 func main() {
-	// Define la URL como un parámetro de línea de comandos
-	url := flag.String("url", "", "URL para hacer la petición")
+	urlFlag := flag.String("url", "", "URL para hacer la petición")
 	flag.Parse()
 
-	// Verifica que la URL no esté vacía
-	if *url == "" {
+	if *urlFlag == "" {
 		fmt.Println("Uso: script -url https://ejemplo.com")
 		os.Exit(1)
 	}
 
-	// Crea un cliente HTTP que no verifica los certificados TLS, tiene un timeout de 10 segundos y no sigue redirecciones
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
 	}
@@ -38,14 +37,12 @@ func main() {
 		},
 	}
 
-	// Crea una nueva petición GET
-	req, err := http.NewRequest("GET", *url, nil)
+	req, err := http.NewRequest("GET", *urlFlag, nil)
 	if err != nil {
 		fmt.Println("Error al crear la petición")
 		os.Exit(1)
 	}
 
-	// Configura las cabeceras de la petición
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36")
 	req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
 	req.Header.Set("Accept-Language", "en-US,en;q=0.5")
@@ -54,7 +51,6 @@ func main() {
 	req.Header.Set("Sec-Fetch-Mode", "navigate")
 	req.Header.Set("Sec-Fetch-Site", "none")
 
-	// Realiza la petición GET
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println("Network error")
@@ -62,7 +58,37 @@ func main() {
 	}
 	defer resp.Body.Close()
 
-	// Comprueba si el código de estado tiene más de 3 caracteres
+	originalURL, err := url.Parse(*urlFlag)
+	if err != nil {
+		fmt.Println("Error al parsear la URL original")
+		os.Exit(1)
+	}
+
+	var isRedirectToDifferentDomain bool
+	if resp.StatusCode >= 300 && resp.StatusCode < 400 {
+		locationHeader := resp.Header.Get("Location")
+		if locationHeader != "" {
+			locationURL, err := url.Parse(locationHeader)
+			if err == nil {
+				if locationURL.Host == "" {
+					locationURL = originalURL.ResolveReference(locationURL)
+				}
+
+				originalHost := originalURL.Hostname()
+				locationHost := locationURL.Hostname()
+
+				if net.ParseIP(locationHost) == nil && locationHost != originalHost {
+					isRedirectToDifferentDomain = true
+				}
+			}
+		}
+	}
+
+	if isRedirectToDifferentDomain {
+		fmt.Println("404")
+		os.Exit(0)
+	}
+
 	statusCode := strconv.Itoa(resp.StatusCode)
 	if len(statusCode) > 3 {
 		fmt.Println("Network error")
@@ -80,17 +106,14 @@ func main() {
 			bodyReader = resp.Body
 		}
 
-		// Lee el cuerpo de la respuesta
 		bodyBytes, err := ioutil.ReadAll(bodyReader)
 		if err != nil {
 			fmt.Println("Error al leer el cuerpo de la respuesta")
 			os.Exit(1)
 		}
 		bodyString := string(bodyBytes)
-		//fmt.Printf("%s \n", bodyString)
 
-		/////////////////// buscar Full Path Disclosure /////
-		FPD:= ""
+		FPD := ""
 		FPDStrings := []string{
 			"/var/www/html",
 			"/usr/local/apache2/htdocs/",
@@ -100,16 +123,13 @@ func main() {
 			"/usr/share/nginx/html",
 		}
 
-		// Search for each string in the bodyString
 		for _, searchString := range FPDStrings {
 			if strings.Contains(bodyString, searchString) {
 				FPD = searchString
+				break
 			}
 		}
-		///////////////////////////////////////
 
-		/////////// busca de errores 404 cuando devuelve 200 OK///////
-		// Define las expresiones regulares
 		errorRegexps := []*regexp.Regexp{
 			regexp.MustCompile(`(?i)404\s+not\s+found`),
 			regexp.MustCompile(`(?i)404\s+no\s+encontrado`),
@@ -124,7 +144,7 @@ func main() {
 			regexp.MustCompile(`(?i)page.not_found`),
 			regexp.MustCompile(`(?i)<div id="root">`),
 			regexp.MustCompile(`(?i)<body class="mat-typography">`),
-			regexp.MustCompile(`ENTEL S.A.`), 
+			regexp.MustCompile(`ENTEL S.A.`),
 			regexp.MustCompile(`No existe el archivo`),
 			regexp.MustCompile(`Request Rejected`),
 			regexp.MustCompile(`Error de servidor`),
@@ -156,12 +176,8 @@ func main() {
 			regexp.MustCompile(`<div class="login-box">`),
 			regexp.MustCompile(`name="generator"`),
 			regexp.MustCompile(`error-404`),
-			
-			
-			
 		}
 
-		//fmt.Println(bodyString)
 		errorMsg := ""
 		for _, re := range errorRegexps {
 			matches := re.FindStringSubmatch(bodyString)
@@ -178,11 +194,9 @@ func main() {
 		}
 
 		if FPD != "" {
-			returnString += ";" +  FPD
+			returnString += ";" + FPD
 		}
 
 		fmt.Println(returnString)
-
-		
 	}
 }

