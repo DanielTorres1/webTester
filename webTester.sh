@@ -241,7 +241,7 @@ EOL
 )
 
 TOKEN_WPSCAN=${API_WPSCAN[$RANDOM % ${#API_WPSCAN[@]}]}
-echo "Version: 1.0 06012025"
+echo "Version: 1.0 19022025"
 echo "TOKEN_WPSCAN: $TOKEN_WPSCAN"
 
 if [[  ${SPEED} == "1" ]]; then
