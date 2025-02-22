@@ -419,7 +419,7 @@ function formato_ip {
 function waitFinish (){
 	################# Comprobar que no haya scripts ejecutandose ########
 	while true; do
-		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods|msfconsole|nmap|droopescan|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|meterpreter|reverse_tcp|grep -E|grep --color' | wc -l` ))
+		script_instancias=$((`ps aux | egrep 'webData|get_ssl_cert|buster|httpmethods|msfconsole|nmap|CVE-2019-19781.sh|nuclei|owa.pl|curl|firepower.pl|wampServer|medusa|JoomlaJCKeditor.py|joomla-|testssl.sh|wpscan|joomscan' | egrep -v 'discover.sh|lanscanner.sh|autohack.sh|heka.sh|meterpreter|reverse_tcp|grep -E|grep --color' | wc -l` ))
 		echo -e "\tscript_instancias ($script_instancias)"
 		if [[ $script_instancias -gt 0  ]];then
 			echo -e "\t[-] Aun hay scripts en segundo plano activos"
@@ -1196,10 +1196,6 @@ function enumeracionCMS () {
 
 			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupal-CVE~2018~7600.txt 2>/dev/null
 			# http://www.mipc.com.bo/node/9/devel/token
-			if [[  "$MODE" == "oscp" ||  "$MODE" == "total" ]]; then
-				echo -e "\t\t[+] Revisando vulnerabilidades de drupal ($host)"
-				$proxychains droopescan scan drupal -u  "$proto_http"://$host --output json > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt 2>/dev/null &
-			fi
 		fi
 
 		
@@ -2447,8 +2443,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_archivosCGI.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"archivosCGI.txt > .enumeracion/"$host"_"$port"_archivosCGI.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt
-			[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null
-			[ ! -e ".enumeracion2/${host}_${port}_droopescan.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"droopescan.txt > .enumeracion/"$host"_"$port"_droopescan.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt" ] && egrep 'framework|home' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt 2>/dev/null
@@ -3088,7 +3083,7 @@ if [[ "$SPECIFIC" == "1" ]];then
 	cp .vulnerabilidades/"$host"_"$port"_CS-56.txt logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-56.txt 2>/dev/null
 
 	# CS-69 Vulnerabilidades conocidas
-	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_droopescan|_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xmlRpcHabilitado|_wordpressPlugins|_wordpress~CVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-69.txt
+	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xmlRpcHabilitado|_wordpressPlugins|_wordpress~CVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-69.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-69.txt 2>/dev/null
 
 	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
