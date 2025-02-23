@@ -743,7 +743,6 @@ function enumeracionWebServer() {
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 
- 
     fi
 
 }
@@ -2596,15 +2595,17 @@ if [[ $webScaneado -eq 1 ]]; then
 			fi
 
 
-			if [ ! -e ".vulnerabilidades2/"$host"_"$port"_heartbleedRAM.txt" ]; then
-				#heartbleed
-				egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"heartbleed.txt 2>/dev/null
-				greprc=$?
-				if [[ $greprc -eq 0 ]] ; then
-					echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
-					grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_heartbleed.txt
-					$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' >> .vulnerabilidades/"$host"_"$port"_heartbleedRAM.txt
-					$proxychains heartbleed.sh $host $port &
+			if [[ "$FORCE" != "internet" ]]; then
+				if [ ! -e ".vulnerabilidades2/"$host"_"$port"_heartbleedRAM.txt" ]; then
+					#heartbleed
+					egrep -qi "VULNERABLE" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"heartbleed.txt 2>/dev/null
+					greprc=$?
+					if [[ $greprc -eq 0 ]] ; then
+						echo -e "\t\t$OKRED[!] Vulnerable a heartbleed \n $RESET"
+						grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"heartbleed.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_heartbleed.txt
+						$proxychains heartbleed.py $host -p $port 2>/dev/null | head -100 | sed -e's/%\([0-9A-F][0-9A-F]\)/\\\\\x\1/g' >> .vulnerabilidades/"$host"_"$port"_heartbleedRAM.txt
+						$proxychains heartbleed.sh $host $port &
+					fi
 				fi
 			fi
 
