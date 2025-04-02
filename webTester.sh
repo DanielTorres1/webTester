@@ -1810,13 +1810,14 @@ for line in $(cat $TARGETS); do
 			echo -e "\t[+] Fuzzing DOMINIO: $DOMINIO en busca de vhost ($proto_http://$host )"
 			echo -e "\t[+] baseline"
 		
+			### get error
 			docker run -v /usr/share/lanscanner:/wordlist/ -it ghcr.io/xmendez/wfuzz wfuzz -c -w /wordlist/vhost-non-exist.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$host -t 100 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"vhosts~baseline.txt	2>/dev/null
 			
 			words=`cat logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"vhosts~baseline.txt | grep Ch | grep -v Payload | awk '{print $10}'`
 			echo "words $words"
 
 			echo -e "\t[+] Fuzz"
-			#/usr/share/wordlists/seclists/Discovery/DNS/namelist.txt
+			#test
 			docker run -v /usr/share/seclists/Discovery/DNS/:/wordlist/ -it ghcr.io/xmendez/wfuzz wfuzz -c -w /wordlist/subdomains-top1million-5000.txt -H "Host: FUZZ.$DOMINIO" -u $proto_http://$host -t 100 --hh $words --hc 401,400 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"vhosts.txt	2>/dev/null
 			
 			grep 'Ch' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"vhosts.txt | grep Ch | grep -v Payload | awk '{print $13}' | tr -d '"' > .enumeracion/"$host"_"$port"_vhosts.txt
