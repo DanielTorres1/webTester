@@ -483,7 +483,7 @@ function enumeracionDefecto() {
 
             waitWeb 0.3
             echo -e "\t\t[+] Revisando archivos peligrosos ($host - default)"
-            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+            command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 1 -show404 $param_msg_error"
             echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
             eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
         fi
@@ -583,7 +583,7 @@ function enumeracionIIS() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - IIS)"
-        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+        command="web-buster -target $host -port $port  -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 1 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 
@@ -739,7 +739,7 @@ function enumeracionWebServer() {
 
 		waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - web server )"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 1 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 
@@ -799,7 +799,7 @@ function enumeracionApache() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - Apache/nginx)"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 1 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 
@@ -1026,7 +1026,7 @@ function enumeracionTomcat() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando archivos peligrosos ($host - Tomcat)"
-        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module archivosPeligrosos -threads $hilos_web -redirects 1 -show404 $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosPeligrosos.txt &
 		# gitdumper.sh http://131.161.253.46/.git/ paraguay
