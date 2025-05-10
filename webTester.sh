@@ -453,6 +453,8 @@ function enumeracionDefecto() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionDefecto"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -520,6 +522,8 @@ function enumeracionSharePoint() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionSharePoint"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -552,6 +556,9 @@ function enumeracionIIS() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+
+	echo ""
+	echo "[+] enumeracionIIS"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -654,13 +661,13 @@ function enumeracionIIS() {
 
 			fi #total
 
-			if [ "$MODE" == "oscp" ]; then
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando archivos aspx ($host - IIS)"
-				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module aspx -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-				echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt
-				eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt &
-			fi #oscp
+			# if [ "$MODE" == "oscp" ]; then
+			# 	waitWeb 0.3
+			# 	echo -e "\t\t[+] Revisando archivos aspx ($host - IIS)"
+			# 	command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module aspx -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+			# 	echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt
+			# 	eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"aspx-files.txt &
+			# fi #oscp
 		fi	#NO CMS
 	fi	#hosting domains
 }
@@ -670,6 +677,8 @@ function enumeracionApi() {
     host=$2
     port=$3
 	msg_error_404=$4
+	echo ""
+	echo "[+] enumeracionApi"
   	waitWeb 0.3
 	
 	if [ ! -z "$msg_error_404" ];then
@@ -692,6 +701,8 @@ function enumeracionAdminCMS() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionAdminCMS"
 
 	waitWeb 0.3
 	echo -e "\t\t[+] Revisando paneles administrativos CMS ($host - Apache/nginx)"
@@ -706,6 +717,8 @@ function enumeracionWebServer() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionWebServer"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -752,6 +765,8 @@ function enumeracionApache() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionApache"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -770,7 +785,7 @@ function enumeracionApache() {
     if [[ ! -e "logs/vulnerabilidades/${host}_${port}_${path_web_sin_slash}apacheNuclei.txt" ]]; then
         echo -e "\t\t[+] Enumerar Apache ($proto_http : $host : $port [$param_msg_error])"
         waitWeb 0.3
-        echo -e "\t\t[+] Nuclei apache $proto_http $host:$port"
+        echo -e "\t\t[+] Ncl apache $proto_http $host:$port"
         command="nuclei -u '$proto_http://$host:$port' -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -id /root/.local/nuclei-templates/cves/apache.txt -no-color -include-rr -debug -rate-limit 1 "
         echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheNuclei.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apacheNuclei.txt 2>&1 &
@@ -859,33 +874,28 @@ function enumeracionApache() {
 				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module backdoorApache -threads $hilos_web -redirects 2 -show404 $param_msg_error"
 				echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt
 				eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"webshell.txt &
-
-				# echo -e "\t\t[+] multiviews check ($proto_http://$host:$port)"
-				# command="multiviews -url=$proto_http://$host:$port/"
-				# echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
-				# eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt
-				# grep vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"apache-multiviews.txt >> .vulnerabilidades/"$host"_"$port"_apache-multiviews.txt
+				
 			fi #total
 
-			if [ "$MODE" == "oscp" ]; then
-				waitWeb 0.3
-				echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
-				command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 2 -show404 $param_msg_error"
-				echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt
-				eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt &
+			# if [ "$MODE" == "oscp" ]; then
+			# 	waitWeb 0.3
+			# 	echo -e "\t\t[+] Revisando archivos php ($host - Apache/nginx)"
+			# 	command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module php -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+			# 	echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt
+			# 	eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt &
 
-			fi #oscp
+			# fi #oscp
 		fi #NO CMS
 	fi #hosting domains
 
-	if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
-		waitWeb 0.3
-		echo -e "\t\t[+] Revisando vulnerabilidad slowloris ($host)"
-		command="$proxychains nmap --script http-slowloris-check -p $port $host"
-		echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt
-		eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt 2>/dev/null
-		grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_slowloris.txt
-	fi
+	# if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
+	# 	waitWeb 0.3
+	# 	echo -e "\t\t[+] Revisando vulnerabilidad slowloris ($host)"
+	# 	command="$proxychains nmap --script http-slowloris-check -p $port $host"
+	# 	echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt
+	# 	eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt 2>/dev/null
+	# 	grep --color=never "|" logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"slowloris.txt | egrep -iv "ACCESS_DENIED|false|Could|ERROR|NOT_FOUND|DISABLED|filtered|Failed|TIMEOUT|NT_STATUS_INVALID_NETWORK_RESPONSE|NT_STATUS_UNKNOWN|http-server-header|did not respond with any data|http-server-header" >> .vulnerabilidades/"$host"_"$port"_slowloris.txt
+	# fi
 
 	if [ "$INTERNET" == "n" ]; then
 		waitWeb 0.3
@@ -917,6 +927,8 @@ function enumeracionJboss() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionJboss"
 
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -944,6 +956,9 @@ function enumeracionMikrotik() {
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
 
+	echo ""
+	echo "[+] enumeracionMikrotik"
+
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
 	else
@@ -962,6 +977,9 @@ function enumeracionTomcat() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+
+	echo ""
+	echo "[+] enumeracionTomcat"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -1001,7 +1019,7 @@ function enumeracionTomcat() {
 
 
         waitWeb 0.3
-        echo -e "\t\t[+] Nuclei tomcat $proto_http $host:$port"
+        echo -e "\t\t[+] Ncl tomcat $proto_http $host:$port"
         command="nuclei -u '$proto_http://$host:$port' -id /root/.local/nuclei-templates/cves/tomcat_'$MODE'.txt -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color -include-rr -debug"
         echo $command > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"tomcatNuclei.txt
         eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"tomcatNuclei.txt 2>&1 &
@@ -1078,6 +1096,9 @@ function enumeracionJava() {
     host=$2
     port=$3
 	msg_error_404=$4 #cadena en comillas simples
+
+	echo ""
+	echo "[+] enumeracionJava"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -1156,6 +1177,9 @@ function enumeracionSAP () {
    host=$2
    port=$3
    msg_error_404=$4 #cadena en comillas simples
+
+   	echo ""
+	echo "[+] enumeracionSAP"
   	
 	if [ ! -z "$msg_error_404" ];then
 		param_msg_error="-error404 $msg_error_404" 
@@ -1171,7 +1195,7 @@ function enumeracionSAP () {
 		SAP-scan -url=$proto_http://$host:$port > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sap~scan.txt &
 
 		waitWeb 0.3
-		echo -e "\t\t[+] Nuclei SAP $proto_http $host:$port"
+		echo -e "\t\t[+] Ncl SAP $proto_http $host:$port"
 		nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/sap.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"sapNuclei.txt &
 
 		waitWeb 0.3
@@ -1186,11 +1210,19 @@ function enumeracionCMS () {
    host=$2
    port=$3
    msg_error_404=$4 #cadena en comillas simples
+	echo ""
+	echo "[+] enumeracionCMS"
 
-	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
-		echo -e "\t\t[+] Revisando vulnerabilidades HTTP mixtas"
-		$proxychains nmap -n -Pn -p $port --script=http-vuln* $host >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"softwareDesactualizado.txt &
-	fi
+	echo -e "\t\t[+] Revisando archivos por defecto ($host - default)"
+	command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module default -threads $hilos_web -redirects 2 -show404 $param_msg_error"
+	echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosDefecto.txt
+	eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"archivosDefecto.txt &
+
+
+	# if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
+	# 	echo -e "\t\t[+] Revisando vulnerabilidades HTTP mixtas"
+	# 	$proxychains nmap -n -Pn -p $port --script=http-vuln* $host >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"softwareDesactualizado.txt &
+	# fi
 
 	#1: si no existe log
    	if [[ ! -e "logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"CMScheck.txt"  ]]; then
@@ -1202,7 +1234,7 @@ function enumeracionCMS () {
 
 			enumeracionAdminCMS "$proto_http" "$host" "$port" "$msg_error_404"
 
-			echo -e "\t\t[+] nuclei Drupal ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl Drupal ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/drupal_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupalNuclei.txt &
 
 			drupal7-CVE-2018-7600.py "$proto_http"://"$host":"$port""$path_web" -c 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"drupal-CVE~2018~7600.txt 2>/dev/null
@@ -1215,7 +1247,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 
-			echo -e "\t\t[+] nuclei yii ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl yii ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/yii.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiNuclei.txt &
 			#peticiones get SPECIFICas para yii
 			checkerWeb.py --tipo yii --url "$proto_http"://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"yiiTest.txt
@@ -1247,7 +1279,7 @@ function enumeracionCMS () {
 		grep -qi laravel logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
-			echo -e "\t\t[+] nuclei laravel ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl laravel ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/laravel_"$MODE".txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravelNuclei.txt &
 			laravel-rce-CVE-2021-3129.sh "$proto_http"://"$host":"$port""$path_web" 'cat /etc/passwd' > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"laravel-rce-CVE~2021~3129.txt  2>/dev/null
 		fi
@@ -1257,7 +1289,7 @@ function enumeracionCMS () {
 		grep -qi Grafana logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
-			echo -e "\t\t[+] nuclei Grafana ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl Grafana ("$proto_http"://"$host":"$port")"
 
 			# 	if [[ ${port} == *"443"* || ${port} == *"9091"*  ]]; then
 			# 	proto_http="https"
@@ -1265,7 +1297,7 @@ function enumeracionCMS () {
 			# 	proto_http="http"
 			# fi
 
-			echo -e "[+] Nuclei $proto_http $host:$port"	
+			echo -e "[+] Ncl $proto_http $host:$port"	
 			$proxychains nuclei -u "$proto_http://$host:$port"  -id /root/.local/nuclei-templates/http/cves/grafana.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"grafanaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"grafanaNuclei.txt
 
 			echo -e "\t\t[+] Revisando vulnerabilidades de Grafana CVE-2021-43798 ($host)"        
@@ -1278,7 +1310,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 
-			echo -e "\t\t[+] nuclei Jenkins ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl Jenkins ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/Jenkins.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"JenkinsNuclei.txt &			
 
 			jenkins-cve-2024-23897.sh -s "${proto_http}://${host}:${port}${path_web}" connect-node "@/etc/passwd" >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"jenkins~cve~2024~23897.txt &
@@ -1294,7 +1326,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 
-			echo -e "\t\t[+] nuclei hikvision ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl hikvision ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1 -id /root/.local/nuclei-templates/cves/hikvision.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"hikvisionNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"hikvisionNuclei.txt &
 
 			echo -e "\t\t[+] Escaneando backdoor $host $port ($proto_http)"					
@@ -1316,7 +1348,7 @@ function enumeracionCMS () {
 		greprc=$?
 		if [[ $greprc -eq 0 ]];then
 
-			echo -e "\t\t[+] nuclei magento ("$proto_http"://"$host":"$port")"
+			echo -e "\t\t[+] Ncl magento ("$proto_http"://"$host":"$port")"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -id /root/.local/nuclei-templates/cves/magento.txt  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"magentoNuclei.txt &			
 		fi
 		########################
@@ -1377,7 +1409,7 @@ function enumeracionCMS () {
 			#Bricks Builder
 			wordpress-plugin-cve-2024-25600.py -u $wordpress_url  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpress~plugin~cve~2024~25600.txt 2>/dev/null &
 
-			echo -e "\t\t[+] nuclei Wordpress ($wordpress_url)"
+			echo -e "\t\t[+] Ncl Wordpress ($wordpress_url)"
 			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"wordpressNuclei.txt 2>&1 &
 
 
@@ -1510,7 +1542,7 @@ function enumeracionCMS () {
 			
 
 			#joomla-cd.rb "$proto_http://$host" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-joomla-CVE~2023~23752.txt &
-			echo -e "\t\t[+] Nuclei Joomla ($host)"
+			echo -e "\t\t[+] Ncl Joomla ($host)"
 			nuclei -u "$proto_http"://"$host":"$port""$path_web" -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -id /root/.local/nuclei-templates/cves/joomla_"$MODE".txt  -no-color -rate-limit 1  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt 2> logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomlaNuclei.txt &
 
 			echo -e "\t\t[+] Revisando si el registro esta habilitado"
@@ -1697,10 +1729,10 @@ function testSSL ()
 
 
     #######  Configuracion TLS/SSL (dominio) ######
-	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
-		echo -e "\t\t[+] Revisando configuracion TLS/SSL"
-		testssl.sh --color 0  "https://$host:$port" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"testSSL.txt 2>/dev/null &
-	fi
+	# if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
+	# 	echo -e "\t\t[+] Revisando configuracion TLS/SSL"
+	# 	testssl.sh --color 0  "https://$host:$port" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"testSSL.txt 2>/dev/null &
+	# fi
 
     ##########################
 
@@ -1752,27 +1784,26 @@ for line in $(cat $TARGETS); do
 	host=`echo $line | cut -f1 -d":"`
 	port=`echo $line | cut -f2 -d":"`
 	proto_http=`echo $line | cut -f3 -d":"` #http/https
-
+	echo "Enumerando $host : $port"
 	#Si no existe log (primera corrida por IP)
-	if [[ ! -e "logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt"  ]]; then
-		egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
-		greprc=$?
-		if [[ $greprc -eq 0 && -z "$URL" ]];then
-			echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado1 \n"
-		else
+	#if [[ ! -e "logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt"  ]]; then
+		#egrep -iq "//$host" servicios/webApp.txt 2>/dev/null
+		#greprc=$?
+		#if [[ $greprc -eq 0 && -z "$URL" ]];then
+			#echo -e "\t[+] host $host esta en la lista webApp.txt escaner por separado1 \n"
+		#else
 			waitWeb 0.1
 			echo -e "[+]Escaneando $host $port ($proto_http)"
-			if [[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ]]; then
-				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"
-				echo "webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/webData.txt -maxRedirect 2 > logs/enumeracion/webDataInfo.txt 2>/dev/null "
-				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt 2>/dev/null &
+			#if [[ ! -e ".enumeracion2/"$host"_"$port"_webData.txt" ]]; then
+				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"				
+				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 				if [[ "$proto_http" == "https" && "$HOSTING" == "n" ]] ;then
 					echo -e "\t[+] Obteniendo dominios del certificado SSL"
 					$proxychains get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"cert.txt  2>/dev/null &
 				fi  ##### extract domains certificate
-			fi
-		fi
-	fi #check
+			#fi
+		#fi
+	#fi #check
 done
 
 waitFinish
@@ -2076,30 +2107,30 @@ for line in $(cat $TARGETS); do
 				mkdir -p webTrack/$host 2>/dev/null
 				touch webTrack/checksumsEscaneados.txt
 
-				if [[  "$MODE" == "oscp" || "$MODE" == "total" &&  ! -z "$URL" ]];then
-					echo -e "\t[+] Clonando: $URL"
+				# if [[  "$MODE" == "oscp" || "$MODE" == "total" &&  ! -z "$URL" ]];then
+				# 	echo -e "\t[+] Clonando: $URL"
 
-					if [[ "$SPECIFIC" == "1" ]];then
-						echo "Descargar manualmente el sitio y guardar en webTrack $host"
-						read resp
-					else
-						# si no es CMS descargar con httrack
-						egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
-						greprc=$?
-						if [[ $greprc -eq 1 ]]; then
-							echo -e "\t\t[+] httrack ($host )"
-							rm resultado-httrack.txt 2>/dev/null
-							####### httrack ####
-							#script --command "httrack $URL  --depth 1  --ext-depth 0 -O webClone/$host" -O resultado-httrack.txt
-							script --command "httrack --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' --mirror --depth=3 --max-rate=0 --sockets=unlimited --robots=0 --stay-on-same-domain '+*.html' '+*.js' '+*.json' '+*.php' '+mime:application/json' '-*.css' '-*.png' '-*.gif' '-*.jpg' '-*.jpeg' '-*.webp' '-*.tmp' '${URL}' -O 'webClone/${host}'" -O resultado-httrack.txt
-							find webClone/$host | egrep '\.html|\.js' | while read line
-							do
-								extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
-							done
-							####################
-						fi
-					fi
-				fi	#total && URL
+				# 	if [[ "$SPECIFIC" == "1" ]];then
+				# 		echo "Descargar manualmente el sitio y guardar en webTrack $host"
+				# 		read resp
+				# 	else
+				# 		# si no es CMS descargar con httrack
+				# 		egrep -i "drupal|wordpress|joomla|moodle" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt | egrep -qiv "$defaultAdminURL"
+				# 		greprc=$?
+				# 		if [[ $greprc -eq 1 ]]; then
+				# 			echo -e "\t\t[+] httrack ($host )"
+				# 			rm resultado-httrack.txt 2>/dev/null
+				# 			####### httrack ####
+				# 			#script --command "httrack $URL  --depth 1  --ext-depth 0 -O webClone/$host" -O resultado-httrack.txt
+				# 			script --command "httrack --user-agent 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36' --mirror --depth=3 --max-rate=0 --sockets=unlimited --robots=0 --stay-on-same-domain '+*.html' '+*.js' '+*.json' '+*.php' '+mime:application/json' '-*.css' '-*.png' '-*.gif' '-*.jpg' '-*.jpeg' '-*.webp' '-*.tmp' '${URL}' -O 'webClone/${host}'" -O resultado-httrack.txt
+				# 			find webClone/$host | egrep '\.html|\.js' | while read line
+				# 			do
+				# 				extractLinks.py "$line" 2>/dev/null| grep "$host" | awk -F"$host/" '{print $2}' >> directorios-personalizado2.txt
+				# 			done
+				# 			####################
+				# 		fi
+				# 	fi
+				# fi	#total && URL
 
 				echo -e "\t[+] Navegacion forzada en host: $proto_http://${host}:${port}${path_web}"
 				checkRAM
@@ -2685,23 +2716,23 @@ if [[ $webScaneado -eq 1 ]]; then
 
 		egrep -ira --color=never "aws_access_key_id|aws_secret_access_key" webTrack/$DOMINIO/* >> .vulnerabilidades/"$DOMINIO"_aws_secrets.txt
 
-		echo -e "[+] Buscar datos sensible en archivos clonados"
-		#echo "cd webTrack/$DOMINIO"
-		cd webClone/$DOMINIO
-			### replace "space" for "-"
-			for dir in *; do
-				new_name=$(echo "$dir" | sed 's/ /-/g' | sed 'y/óÓ/oO/' | sed 'y/éÉ/eE/' | sed 'y/áÁ/aA/')
-				mv "$dir" "$new_name" 2>/dev/null
-			done
-			##############
+		# echo -e "[+] Buscar datos sensible en archivos clonados"
+		# #echo "cd webTrack/$DOMINIO"
+		# cd webClone/$DOMINIO
+		# 	### replace "space" for "-"
+		# 	for dir in *; do
+		# 		new_name=$(echo "$dir" | sed 's/ /-/g' | sed 'y/óÓ/oO/' | sed 'y/éÉ/eE/' | sed 'y/áÁ/aA/')
+		# 		mv "$dir" "$new_name" 2>/dev/null
+		# 	done
+		# 	##############
 
-			grep -ir "password' =>" * . 2>/dev/null| egrep -vi "NULL|false|md5" > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog1.txt # 'password' => '12344321'
-			# trufflehog filesystem --config=/usr/share/lanscanner/generic-password.yml --exclude-detectors=polygon . > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
+		# 	grep -ir "password' =>" * . 2>/dev/null| egrep -vi "NULL|false|md5" > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog1.txt # 'password' => '12344321'
+		# 	# trufflehog filesystem --config=/usr/share/lanscanner/generic-password.yml --exclude-detectors=polygon . > ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt
 
-			# cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog1.txt >>../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
-			# cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt >>../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+		# 	# cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog1.txt >>../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
+		# 	# cat ../../logs/vulnerabilidades/"$DOMINIO"_web_trufflehog2.txt >>../../.vulnerabilidades/"$DOMINIO"_web_apiKey.txt
 
-		cd ../../
+		# cd ../../
 		#grep "found" logs/vulnerabilidades/"$DOMINIO"_dumpster_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt
 		#grep "found" logs/vulnerabilidades/"$DOMINIO"_trufflehog_secrets.txt >> .vulnerabilidades/"$DOMINIO"_web_secrets.txt
 		###################
@@ -3104,12 +3135,12 @@ if [[ "$SPECIFIC" == "1" ]];then
 	for file in $(ls .enumeracion2 .vulnerabilidades2 | egrep '_joomlaNuclei|_wordpressNuclei|_drupalNuclei|_redirectContent|_xmlRpcHabilitado|_wordpressPlugins|_wordpress~CVE~2022~21661|_wordpressGhost|_proxynoshell|_proxyshell|_registroHabilitado|_sap-scan' ); do cat .vulnerabilidades2/$file .enumeracion2/$file 2>/dev/null ; done | perl -ne '$_ =~ s/\n//g; print "Vulnerabilidad app:$_\n"' >> .vulnerabilidades/"$host"_"$port"_CS-69.txt
 	cp .vulnerabilidades/"$host"_"$port"_CS-69.txt logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-69.txt 2>/dev/null
 
-	if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
-		# CS-62 HTTP header injection
-		echo -e "\t[+]HTTP header injection"
-		headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-62.txt
-		grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-62.txt >> .vulnerabilidades/"$host"_"$port"_CS-62.txt
-	fi
+	# if [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
+	# 	# CS-62 HTTP header injection
+	# 	echo -e "\t[+]HTTP header injection"
+	# 	headi -u $URL > logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-62.txt
+	# 	grep 'Vul' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"CS-62.txt >> .vulnerabilidades/"$host"_"$port"_CS-62.txt
+	# fi
 fi
 
 insert_data
