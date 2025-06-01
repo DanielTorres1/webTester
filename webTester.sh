@@ -830,6 +830,14 @@ function enumeracionApache() {
         echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webserver.txt
         eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webserver.txt &
 
+        waitWeb 0.3
+        echo -e "\t\t[+] Revisando archivos comunes con extension ($host - Apache/nginx)"
+        command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module files-intranet -threads $hilos_web -redirects 2 -show404 -filter $param_msg_error"
+        echo $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt
+        eval $command >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"php-files.txt &
+
+		
+
         # CVE~2021~4177
         echo -e "\t\t[+] Revisando apache traversal)"
         command="$proxychains apache-cve-2021-41773.py --target $host --port $port"
