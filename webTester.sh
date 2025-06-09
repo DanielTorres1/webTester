@@ -1527,7 +1527,17 @@ function enumeracionCMS () {
 		fi
 		###################################
 
+		######## moodle ###########
 
+		grep -qi moodle logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
+		greprc=$?
+		if [[ $greprc -eq 0 ]];then
+			echo -e "\t\t[+] Revisando vulnerabilidades de moodle ($host)"
+			echo " getMoodleVersion.py --url $proto_http://$host:$port" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt 
+			getMoodleVersion.py --url "$proto_http://$host:$port"  >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt &
+		fi
+
+		###########################
 
 		#######  joomla  ######
 		grep -qi joomla logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
@@ -2103,7 +2113,7 @@ for line in $(cat $TARGETS); do
 			# egrep -iv 'drupal|joomla|wordpress' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"webDataInfo.txt
 			# cms=$?
 
-			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"* ]];then
+			if [[ "$only_status_code" == "401"  || "$only_status_code" == "403"  || "$only_status_code" == "404"  ||  "$only_status_code" == *"303"* ||  "$only_status_code" == *"301"* ||  "$only_status_code" == *"302"*  ||  "$only_status_code" == *"400"* ]];then
 				if [ "$VERBOSE" == '1' ]; then  echo -e "\t[+] Escaneando $proto_http://$host:$port/"; fi
 				webScaneado=1
 
@@ -2474,6 +2484,8 @@ if [[ $webScaneado -eq 1 ]]; then
 			######
 
 			[ ! -e ".enumeracion2/${host}_${port}_joomla~version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla~version.txt .enumeracion/"$host"_"$port"_"$path_web_sin_slash"joomla~version.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_moodle~version.txt" ] && grep "detected" logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt > .enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt 2>/dev/null			
+
 			[ ! -e ".enumeracion2/${host}_${port}_wordpressVersion.txt" ] && grep -vi 'Error' logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt > .enumeracion/"$host"_"$port"_"$path_web_sin_slash"wordpressVersion.txt 2>/dev/null
 
 			[ ! -e ".enumeracion2/${host}_${port}_zabbix~version.txt" ] && cp logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"zabbix~version.txt .enumeracion/"$host"_"$port"_zabbix~version.txt 2>/dev/null
@@ -2596,7 +2608,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE~2017~8917.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2017~8917.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2018~17254.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE~2018~17254.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2018~17254.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE-2023~23752.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE-2023~23752.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE-2023~23752.txt 2>/dev/null
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2015~7297.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE~2015~7297.txt | egrep -v 'HTTPConnectionPool|PATH' >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2015~7297.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2015~7297.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"joomla-CVE~2015~7297.txt 2>/dev/null | egrep -v 'HTTPSConnectionPool|HTTPConnectionPool|PATH' >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2015~7297.txt 
 			
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_cve~2024~28995.txt" ] && egrep -i '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~28995.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~28995.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_cve~2024~31982.txt" ] && grep 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_sin_slash"cve~2024~31982.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~31982.txt 2>/dev/null
@@ -2810,6 +2822,7 @@ cd .enumeracion/
 	#responde con 200 OK
 	cat *_webadmin.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i  >> ../servicios/admin-web-url.txt
 	cat *_webdirectorios.txt 2>/dev/null | grep 200 | awk '{print $3}' | sort | uniq -i  >> ../servicios/admin-web-url.txt
+	sed -i '/^$/d' ../servicios/admin-web-url.txt
 
 	#tomcat
 	grep --color=never -i "/manager/html" * 2>/dev/null | egrep -v "302|301|subdominios.txt|comentario|wgetURLs|HTTPSredirect|metadata|google|3389|deep|users|crawler|crawled|wayback|whois|google|ajp13Info" | awk '{print $3}' | sort | uniq -i | uniq | delete-duplicate-urls.py >> ../servicios/admin-web-generic.txt
@@ -2889,10 +2902,11 @@ if [[ $webScaneado -eq 1 ]]; then
 	find .enumeracion2 .vulnerabilidades2 -type f 2>/dev/null | xargs egrep "vulnerabilidad=" 2>/dev/null | while read -r line ; do 
 
 		echo -e  "$OKRED[!] Vulnerabilidad detectada $RESET"
-		#line=".enumeracion2/170.239.123.50_80_webData.txt:Control de Usuarios ~ Apache/2.4.12 (Win32) OpenSSL/1.0.1l PHP/5.6.8~200 OK~~http://170.239.123.50/login/~|301 Moved~ PHP/5.6.8~vulnerabilidad=MensajeError~^"
+		#line=".enumeracion2/170.239.123.50_80_webData.txt:DisallowedHost at /~ nginx/1.27.3~~http://161.132.98.146/acsfsefes.php~~| H3=USER|Django~~vulnerabilidad=debugHabilitado~sameHOST"
 		archivo_origen=`echo $line | cut -d ':' -f1` #.enumeracion2/170.239.123.50_80_webData.txt
-		if [[ ${archivo_origen} == *"webdata.txt"* || ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"SharePoint.txt"* || ${archivo_origen} == *"archivosCGI.txt"* ]]; then
-			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'` # extraer url
+		echo "archivo_origen $archivo_origen"
+		if [[ ${archivo_origen} == *"webData.txt"* || ${archivo_origen} == *"webdirectorios.txt"* || ${archivo_origen} == *"custom.txt"* || ${archivo_origen} == *"webadmin.txt"* || ${archivo_origen} == *"divulgacionInformacion.txt"* || ${archivo_origen} == *"archivosPeligrosos.txt"* || ${archivo_origen} == *"webarchivos.txt"* || ${archivo_origen} == *"webserver.txt"* || ${archivo_origen} == *"archivosDefecto.txt"* || ${archivo_origen} == *"api.txt"* || ${archivo_origen} == *"backupweb.txt"* || ${archivo_origen} == *"webshell.txt"*  || ${archivo_origen} == *"phpinfo.txt"*  || ${archivo_origen} == *"SharePoint.txt"* || ${archivo_origen} == *"archivosCGI.txt"* || ${archivo_origen} == *"files.txt"*  ]]; then
+			url_vulnerabilidad=`echo "$line" | grep -o 'http[s]\?://[^ ]*'|tr -d '|~'` # extraer url
 		else
 			# Vulnerabilidad detectada en la raiz
 			url_vulnerabilidad=`echo $archivo_origen | cut -d "/" -f 2 | cut -d "_" -f1-2 | tr "_" ":" | tr -d '-'`  #192.168.0.36:8080
@@ -2915,6 +2929,7 @@ if [[ $webScaneado -eq 1 ]]; then
 		archivo_destino=${archivo_destino/webadmin/$vulnerabilidad}
 		archivo_destino=${archivo_destino/webData/$vulnerabilidad}
 		archivo_destino=${archivo_destino/custom/$vulnerabilidad}
+		archivo_destino=${archivo_destino/files/$vulnerabilidad}
 		archivo_destino=${archivo_destino/archivosCGI/$vulnerabilidad}
 
 

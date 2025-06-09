@@ -26,9 +26,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	//proxyURL, _ := url.Parse("http://127.0.0.1:8081") //burpsuite
+
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		//Proxy:           http.ProxyURL(proxyURL), //burpsuite
 	}
+	
 	client := &http.Client{
 		Transport: tr,
 		Timeout:   3 * time.Second,

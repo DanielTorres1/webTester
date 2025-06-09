@@ -35,11 +35,11 @@ mv ~/go/bin/dalfox /usr/bin
 
 echo -e "${RED}[+]${BLUE} Copiando ejecutables GO ${RESET}"
 
-cp GO/checkHeadersServer/checkHeadersServer /usr/bin/pentest
-cp GO/headi/headi /usr/bin/pentest
-cp GO/checkCookie/checkCookie /usr/bin/pentest
-cp GO/getStatus/getStatus /usr/bin/pentest
-cp GO/phpinfo/get-info-php /usr/bin/pentest
+cp GO/checkHeadersServer/checkHeadersServer /usr/bin/pentest/
+cp GO/headi/headi /usr/bin/pentest/
+cp GO/checkCookie/checkCookie /usr/bin/pentest/
+cp GO/getStatus/getStatus /usr/bin/pentest/
+cp GO/phpinfo/get-info-php /usr/bin/pentest/
 
 cd GO/listDir
 go mod download golang.org/x/net
