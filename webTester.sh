@@ -1534,7 +1534,7 @@ function enumeracionCMS () {
 		if [[ $greprc -eq 0 ]];then
 			echo -e "\t\t[+] Revisando vulnerabilidades de moodle ($host)"
 			echo " getMoodleVersion.py --url $proto_http://$host:$port" > logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt 
-			getMoodleVersion.py --url "$proto_http://$host:$port"  >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt &
+			getMoodleVersion.py --url "$proto_http://$host:$port"  >> logs/enumeracion/"$host"_"$port"_"$path_web_sin_slash"moodle~version.txt 2>/dev/null &
 		fi
 
 		###########################
