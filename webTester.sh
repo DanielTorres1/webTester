@@ -479,7 +479,7 @@ function enumeracionDefecto() {
 
             waitWeb 0.3
             echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - default)"
-            checkerWeb.py --tipo phpinfo --url $proto_http://"$host":"$port""$path_web" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt &
+            checkerWeb.py --tipo phpinfo --url $proto_http://"$host":"$port""$path_web" > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt &
             command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 2 -show404 -filter $param_msg_error"
             echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"divulgacionInformacion.txt
             eval $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"divulgacionInformacion.txt &
@@ -812,8 +812,8 @@ function enumeracionApache() {
 
         waitWeb 0.3
         echo -e "\t\t[+] Revisando la presencia de archivos phpinfo, logs, errors ($host - Apache/nginx)"
-		echo "checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt
-        checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt &
+		echo "checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/" > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt
+        checkerWeb.py --tipo phpinfo --url $proto_http://$host:$port/ >> logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt &
         
 		command="web-buster -target $host -port $port -proto $proto_http -path $path_web -module information -threads $hilos_web -redirects 2 -show404 -filter $param_msg_error"
         echo $command >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"divulgacionInformacion.txt
@@ -1847,45 +1847,46 @@ for line in $(cat $TARGETS); do
 	########### obtener subdominios con google #######
 	if [ -f "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" ]; then
 		domain=$(cat "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" | extract_domain.py)
-		echo "conectar a servidor"
-		sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
-		if ! grep -q "$domain" /srv/heka/domains.txt 2>/dev/null; then
-			echo $domain >> /srv/heka/domains.txt
-			googlesearch-client -t "site:$domain" -l /dev/null -o "logs/enumeracion/${domain}_google.txt"
-			cat "logs/enumeracion/${domain}_google.txt" | cut -d '/' -f1-3 | sort -u | grep -v 'www.gob.pe' > "logs/enumeracion/${domain}_subdomains.txt"
 
-			while IFS= read -r url; do
-				proto=$(echo "$url" | cut -d':' -f1)
-				host=$(echo "$url" | awk -F[/:] '{print $4}')
+		if [[ "$FORCE" == "internet" ]]; then
+			echo "conectar a servidor NFS"
+			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
+			if ! grep -q "$domain" /srv/heka/domains.txt 2>/dev/null; then
+				echo $domain >> /srv/heka/domains.txt
+				googlesearch-client -t "site:$domain" -l /dev/null -o "logs/enumeracion/${domain}_google.txt"
+				cat "logs/enumeracion/${domain}_google.txt" | cut -d '/' -f1-3 | sort -u | grep -v 'www.gob.pe' > "logs/enumeracion/${domain}_subdomains.txt"
 
-				if [ "$proto" = "https" ]; then
-					port=443
-				else
-					port=80
-				fi
-				echo "$host:$port:$proto" >> "servicios/web-domain2.txt"
-			done < "logs/enumeracion/${domain}_subdomains.txt"
-			sort -t: -k2,2nr servicios/web-domain2.txt > servicios/web-domain.txt #primero puertos 443
+				while IFS= read -r url; do
+					proto=$(echo "$url" | cut -d':' -f1)
+					host=$(echo "$url" | awk -F[/:] '{print $4}')
 
-			cat servicios/web-domain.txt >> $TARGETS 2>/dev/null
+					if [ "$proto" = "https" ]; then
+						port=443
+					else
+						port=80
+					fi
+					echo "$host:$port:$proto" >> "servicios/web-domain2.txt"
+				done < "logs/enumeracion/${domain}_subdomains.txt"
+				sort -t: -k2,2nr servicios/web-domain2.txt > servicios/web-domain.txt #primero puertos 443
 
-			for line in $(cat servicios/web-domain.txt); do
-				host=`echo $line | cut -f1 -d":"`
-				port=`echo $line | cut -f2 -d":"`
-				proto_http=`echo $line | cut -f3 -d":"` #http/https
-				echo "Enumerando $host : $port"
-				waitWeb 0.1
-				echo -e "[+]Escaneando $host $port ($proto_http)"
-					echo -e "\t[i] Identificacion de técnologia usada en los servidores web"				
-					webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
-					get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"cert.txt  2>/dev/null &
-			done
-		
-		else
-			echo "$domain ya fue escaneado por este u otro servidor"
-		fi
+				cat servicios/web-domain.txt >> $TARGETS 2>/dev/null
 
-		
+				for line in $(cat servicios/web-domain.txt); do
+					host=`echo $line | cut -f1 -d":"`
+					port=`echo $line | cut -f2 -d":"`
+					proto_http=`echo $line | cut -f3 -d":"` #http/https
+					echo "Enumerando $host : $port"
+					waitWeb 0.1
+					echo -e "[+]Escaneando $host $port ($proto_http)"
+						echo -e "\t[i] Identificacion de técnologia usada en los servidores web"				
+						webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
+						get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"cert.txt  2>/dev/null &
+				done
+			
+			else
+				echo "$domain ya fue escaneado por este u otro servidor"
+			fi
+		fi # escaneo masivo		
 	fi
 	#########################################
 
@@ -2563,6 +2564,9 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"aspx-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
 			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"php-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
 			[ ! -e ".enumeracion2/"$host"_"$port"_files.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"jsp-files.txt >> .enumeracion/"$host"_"$port"_files.txt 2>/dev/null
+
+
+
 			
 			[ ! -e ".vulnerabilidades2/${host}_${port}_divulgacionInformacion.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"divulgacionInformacion.txt >> .vulnerabilidades/"$host"_"$port"_divulgacionInformacion.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_nombre_archivo"debugHabilitado.txt" ] && egrep 'framework|home' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"debugHabilitado.txt > .vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"debugHabilitado.txt 2>/dev/null
@@ -2590,7 +2594,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			egrep --color=never '\[medium\]|\[high\]|\[critical\]' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"SQLServer~CVE~2020~0618.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"SQLServer~CVE~2020~0618.txt 2>/dev/null
 
 
-			[ ! -e ".vulnerabilidades2/${host}_${port}_phpinfo.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt > .vulnerabilidades/"$host"_"$port"_phpinfo.txt 2>/dev/null
+			[ ! -e ".enumeracion2/${host}_${port}_phpinfo.txt" ] && egrep --color=never "^200" logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"phpinfo.txt > .enumeracion/"$host"_"$port"_phpinfo.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_cms~registroHabilitado.txt" ] && egrep --color=never "^200" logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"cms~registroHabilitado.txt >> .vulnerabilidades/"$host"_"$port"_cms~registroHabilitado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_cve~2024~24919.txt" ] && grep -i "vulnerable" logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"cve~2024~24919.txt >> .vulnerabilidades/"$host"_"$port"_cve~2024~24919.txt 2>/dev/null
 
@@ -2671,7 +2675,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".enumeracion2/"$host"_"$port"_company.txt" ] && cat logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"cert.txt 2>/dev/null | domain2company.py | egrep -iv 'Error en la entrada|linksys|wifi|akamai|asus|dynamic-m|whatsapp|test|ruckuswireless|realtek|fbcdn|googlevideo|nflxvideo|winandoffice|:|self-signed|Certificate|localhost|fortigate|Error' > .enumeracion/"$host"_"$port"_company.txt 2>/dev/null
 			[ ! -e "logs/vulnerabilidades/${host}_${port}_${path_web_nombre_archivo}wpUsers.txt" ] && cat logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wpUsers.json 2>/dev/null | wpscan-parser.py 2>/dev/null | awk {'print $2'} > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wpUsers.txt 2>/dev/null
 
-			[ ! -e ".vulnerabilidades2/"$host"_"$port"_wordpress~cve~2017~5487.txt" ] && grep -i User logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~cve~2017~5487.txt 2>/dev/null | egrep -v 'url|id|401' | sort | uniq >> .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_wordpress~cve~2017~5487.txt" ] && grep -i User logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~cve~2017~5487.txt 2>/dev/null | egrep -v 'url|id|401|moved|was not found' | sort | uniq >> .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null
 			cat .vulnerabilidades/"$host"_"$port"_wordpress~cve~2017~5487.txt 2>/dev/null | cut -d ':' -f2 >> logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wpUsers.txt
 
 			
@@ -3055,23 +3059,27 @@ if [[ $webScaneado -eq 1 ]]; then
 			#archivo_phpinfo = 192.0.0.1_80_phpinfo.txt.
 			#echo "archivo_phpinfo: logs/vulnerabilidades/$archivo_phpinfo"
 			get-info-php "$url_vulnerabilidad" >> logs/vulnerabilidades/$archivo_phpinfo 2>/dev/null
-			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST" logs/vulnerabilidades/$archivo_phpinfo
+			egrep -iq "USERNAME|COMPUTERNAME|ADDR|HOST|Server API" logs/vulnerabilidades/$archivo_phpinfo
 			greprc=$?
 			if [[ $greprc -eq 0 ]] ; then
-				#echo -e  "$OKRED[!] Es un archivo phpinfo valido ! $RESET"
-				contenido="\n\n"
+				echo -e  "\t $OKRED[!] Es un archivo phpinfo valido ! $RESET"
+				contenido=$'\n\n'
 				# Añadir URL a la variable contenido
-				contenido+="URL $url_vulnerabilidad\n\n"
-				# Añadir el resultado del grep a la variable contenido
-				contenido+=$(grep ':' logs/vulnerabilidades/$archivo_phpinfo)
-				contenido+="\n\n"
+				contenido+="URL $url_vulnerabilidad\n\n"			
+				#contenido+="$(grep ':' logs/vulnerabilidades/$archivo_phpinfo)"
+				contenido="$(grep ':' logs/vulnerabilidades/$archivo_phpinfo | while IFS= read -r line; do
+					printf "%s\n" "$line"
+				done
+				)"
+				contenido+=$'\n\n'
 			else
 				echo -e "[i] No es un archivo phpinfo valido"
 			fi	#archivo phpinfo
 		fi
 
-		echo "archivo_destino $archivo_destino"
-		echo -e $contenido >> $archivo_destino
+		echo "archivo_destino $archivo_destino"		
+		echo -e "$contenido" >>$archivo_destino
+
 	done
 	# insertar datos
 	insert_data

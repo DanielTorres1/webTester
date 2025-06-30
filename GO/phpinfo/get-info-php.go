@@ -64,6 +64,7 @@ func main() {
 	printValue(content, "HTTP_X_FORWARDED_HOST", `SERVER\["HTTP_X_FORWARDED_HOST"\]<\/td><td class="v">(.*?)<\/td>`)
 	printValue(content, "HTTP_HOST", `SERVER\["HTTP_HOST"\]<\/td><td class="v">(.*?)<\/td>`)
 	printValue(content, "SERVER_ADMIN", `SERVER\["SERVER_ADMIN"\]<\/td><td class="v">(.*?)<\/td>`)
+	printValue(content, "Server API", `Server API </td><td class="v">(.*?)<\/td>`)
 }
 
 func printValue(content, label, pattern string, extraPatterns ...string) {

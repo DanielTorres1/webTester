@@ -9,7 +9,7 @@ from urllib3.exceptions import InsecureRequestWarning
 # Deshabilitar las advertencias de solicitudes HTTPS no verificadas
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-token='883ab15d-3678-4b74-9df1-04a0b863c0e7:EAoAm4RgYTESAAAA:DcfA6QNwlIa/sAiKtpZa+9O8xbLQ7i4BkQSkQBaRCZlmkxHTINoD5GI0QV6YX5A7/3uHVwKuggFqHFhQqO1oh3l6+VvAoey9VBd++XDLJAkCOOqM2FAnhqodp3DtZoenbPf4RngJrI0Vw7dvMtqO0BjtcGRlvoTH9IgeKSzVIjK5egaibJB3u8fyHLFH3Qm/+T8='
+cookie='wordfence_cookie_consent=%7B%22analytical%22%3Atrue%2C%22targeting%22%3Atrue%7D; _gcl_au=1.1.1186997439.1751106189; _ga_6THBZHGE0J=GS2.1.s1751129721$o4$g1$t1751129730$j51$l0$h0; _ga=GA1.1.2137489218.1751106190; __hstc=151178726.3ce2cfaeaa6fa239a7a194d45f3b0801.1751106200601.1751126453573.1751129733265.4; hubspotutk=3ce2cfaeaa6fa239a7a194d45f3b0801; __hssrc=1; aws-waf-token=f3573b9a-48e7-4d16-aea9-b32bc747b0b3:EAoAtiJsw0pRAgAA:AiJn7XHgxq1MCLVb4YmTDHObZkNFyZ7BPqG2hSyl3yE2z9MoRNYhqe0w11edWTxnq9BBrN6JZuhPsXGP7mkGxV41+E4AWSLOSbd6yGA4p5AZKtonYEjknQlw9vl/CQtu1DcNfKmBc/ErFy1j1GAvRK9A+zdY8iSpZnEGNXj2dhO1olsOnpoH4PCmHowMmItCKMMpifgXmsKsjgEE2pS1nM/d/aC72r1CSF7y0kNf54GjykAKpHAKecaP7EIrTX1NmrlIeHI='
 # Configuración del proxy
 proxies = {
     'http': 'http://127.0.0.1:8081',
@@ -39,6 +39,7 @@ def fetch_url(url, verify_ssl=False, custom_headers=None):
     try:
         # Usa los encabezados personalizados si se proporcionan
         response = requests.get(url, proxies=proxies, verify=verify_ssl, headers=custom_headers or headers)
+        #response = requests.get(url, verify=verify_ssl, headers=custom_headers or headers)
         response.raise_for_status()  # Lanza una excepción si la respuesta no es 200
         return response
     except requests.exceptions.RequestException as e:
@@ -55,7 +56,7 @@ for vulnerability in vulnerabilities:
         
         # Encabezados personalizados
         headers = {
-            "Cookie": f"aws-waf-token={token}",
+            "Cookie": f"{cookie}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/124.0",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
@@ -72,9 +73,9 @@ for vulnerability in vulnerabilities:
         status_code = response.status_code
         print(f'status_code {status_code}')
         if status_code == 202:
-            token = input('token?')
+            cookie = input('token?')
             headers = {
-            "Cookie": f"aws-waf-token={token}",
+            "Cookie": f"{cookie}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/124.0",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
@@ -115,7 +116,7 @@ for vulnerability in vulnerabilities:
             item_data = {"link-wordfence": link}
                         
             headers = {
-            "Cookie": f"aws-waf-token={token}",
+            "Cookie": f"{cookie}",
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/124.0",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
             "Accept-Language": "en-US,en;q=0.5",
@@ -140,9 +141,9 @@ for vulnerability in vulnerabilities:
             status_code = response.status_code
             print(f'new status_code {status_code}')
             if status_code == 202:
-                token = input('token?')
+                cookie = input('token?')
                 headers = {
-                "Cookie": f"aws-waf-token={token}",
+                "Cookie": f"{cookie}",
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/124.0",
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                 "Accept-Language": "en-US,en;q=0.5",

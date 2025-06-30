@@ -63,7 +63,7 @@ cp GO/getExtract/getExtract /usr/bin/pentest
 echo -e "${GREEN} [+] Instalar dependencias ${RESET}"
 pip3 install sri-check  fake_useragent rich_click alive_progress faker hexdump prompt_toolkit --break-system-package
 pip3 install droopescan  --break-system-package
-
+npm install -g wscat
 
 echo -e "${RED}[+]${BLUE} katana ${RESET}"
 go install github.com/projectdiscovery/katana/cmd/katana@latest
