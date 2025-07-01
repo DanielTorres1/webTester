@@ -1424,11 +1424,13 @@ function enumeracionCMS () {
 			echo -e "\t\t[+] Wordpress user enumeration ($wordpress_url)"
 			$proxychains wpscan --disable-tls-checks  --random-user-agent  --enumerate u  --url "$wordpress_url/" --format json > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wpUsers.json &
 			wordpress-cve-2017-5487.py --url $wordpress_url >  logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~cve~2017~5487.txt &
+			
 			echo -e "\t\t[+] wordpress_ghost_scanner ("$wordpress_url")"
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressGhost.txt 2>/dev/null &
 			wordpress-version.py $wordpress_url > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"wordpressVersion.txt 2>/dev/null
 			
 			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~CVE~2022~21661.txt 2>/dev/null &
+			
 			#Ultimate Member 
 			wordpress-plugin-cve-2024-1071.py $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~cve~2024~1071.txt 2>/dev/null &
 
@@ -1438,7 +1440,9 @@ function enumeracionCMS () {
 			#Bricks Builder
 			wordpress-plugin-cve-2024-25600.py -u $wordpress_url  > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~plugin~cve~2024~25600.txt 2>/dev/null &
 
-			echo -e "\t\t[+] Ncl Wordpress ($wordpress_url)"
+			#https://github.com/AiGptCode/WordPress-Auto-Admin-Account-and-Reverse-Shell-cve-2024-27956
+
+			echo -e "\t\t[+] Nuclei Wordpress ($wordpress_url)"
 			nuclei -u "$wordpress_url"  -id /root/.local/nuclei-templates/cves/wordpress_"$MODE".txt -H 'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36' -rate-limit 1  -no-color  -include-rr -debug > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressNuclei.txt 2>&1 &
 
 
