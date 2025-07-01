@@ -2538,14 +2538,14 @@ if [[ $webScaneado -eq 1 ]]; then
 				fi
 			fi
 
-			#wordpress plugins
-			[ ! -e ".vulnerabilidades2/${host}_${port}_wordpressPlugins.txt" ] && grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
-			line_count=$(wc -l < .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt)
-			# Check if the number of lines is greater than 25 // false positve
-			if [ "$line_count" -gt 25 ]; then
-				# Clear the content of the file
-				grep -i ' 200 ' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt
+			#wordpress plugins	
+
+			if [ "$(grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt | wc -l)" -gt 25 ]; then
+				echo "More than 25 lines found (honeypot)"
+			else
+				egrep -i '200|403' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt
 			fi
+
 			######
 
 			[ ! -e ".enumeracion2/${host}_${port}_joomla~version.txt" ] && grep 'Core' logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"joomla~version.txt > .enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"joomla~version.txt 2>/dev/null
