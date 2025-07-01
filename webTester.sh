@@ -1305,6 +1305,15 @@ function enumeracionCMS () {
 		fi
 		########################
 
+		#######  avanti  ######
+		grep -qi avanti logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
+		greprc=$?
+		if [[ $greprc -eq 0 ]];then
+			echo -e "\t\t[+] avanti  ("$proto_http"://"$host":"$port")"
+			avanti-cve-2025-0282.py --target $host --port $port --check > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"avanti-CVE~2025~30208.txt &			
+		fi
+		########################
+
 		#######  Grafana  ######
 		grep -qi Grafana logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
 		greprc=$?
@@ -2661,6 +2670,10 @@ if [[ $webScaneado -eq 1 ]]; then
 			[ ! -e ".vulnerabilidades2/${host}_${port}_zimbra~CVE~2022~27925.txt" ] && grep '\+' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"zimbra~CVE~2022~27925.txt >> .vulnerabilidades/"$host"_"$port"_zimbra~CVE~2022~27925.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_zimbra-cve~2019~9670.txt" ] && grep -i "credenciales" logs/vulnerabilidades/"$host"_"$port"_zimbra-cve~2019~9670.txt >> .vulnerabilidades/"$host"_"$port"_zimbra-cve~2019~9670.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/${host}_${port}_laravel-rce-CVE~2021~3129.txt" ] && grep root logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"laravel-rce-CVE~2021~3129.txt >> .vulnerabilidades/"$host"_"$port"_laravel-rce-CVE~2021~3129.txt 2>/dev/null
+
+			[ ! -e ".vulnerabilidades2/"$host"_"$port"_"$path_web_nombre_archivo"avanti-CVE~2025~30208.txt" ] && grep vulnerable logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"avanti-CVE~2025~30208.txt >> .vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"avanti-CVE~2025~30208.txt 2>/dev/null
+			
+
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_CMSDesactualizado.txt" ] && egrep -v 'Couldnt|Running|juumla.sh|returned' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"CMSDesactualizado.txt >> .vulnerabilidades/"$host"_"$port"_CMSDesactualizado.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2023~23752.txt" ] && egrep 'DB|Site' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"joomla-CVE~2023~23752.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2023~23752.txt 2>/dev/null
 			[ ! -e ".vulnerabilidades2/"$host"_"$port"_joomla-CVE~2017~8917.txt" ] && egrep -i 'found' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"joomla-CVE~2017~8917.txt >> .vulnerabilidades/"$host"_"$port"_joomla-CVE~2017~8917.txt 2>/dev/null
