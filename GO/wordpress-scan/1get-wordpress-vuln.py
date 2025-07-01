@@ -9,7 +9,7 @@ from urllib3.exceptions import InsecureRequestWarning
 # Deshabilitar las advertencias de solicitudes HTTPS no verificadas
 warnings.simplefilter("ignore", InsecureRequestWarning)
 
-cookie='wordfence_cookie_consent=%7B%22analytical%22%3Atrue%2C%22targeting%22%3Atrue%7D; _gcl_au=1.1.1186997439.1751106189; _ga_6THBZHGE0J=GS2.1.s1751129721$o4$g1$t1751129730$j51$l0$h0; _ga=GA1.1.2137489218.1751106190; __hstc=151178726.3ce2cfaeaa6fa239a7a194d45f3b0801.1751106200601.1751126453573.1751129733265.4; hubspotutk=3ce2cfaeaa6fa239a7a194d45f3b0801; __hssrc=1; aws-waf-token=f3573b9a-48e7-4d16-aea9-b32bc747b0b3:EAoAtiJsw0pRAgAA:AiJn7XHgxq1MCLVb4YmTDHObZkNFyZ7BPqG2hSyl3yE2z9MoRNYhqe0w11edWTxnq9BBrN6JZuhPsXGP7mkGxV41+E4AWSLOSbd6yGA4p5AZKtonYEjknQlw9vl/CQtu1DcNfKmBc/ErFy1j1GAvRK9A+zdY8iSpZnEGNXj2dhO1olsOnpoH4PCmHowMmItCKMMpifgXmsKsjgEE2pS1nM/d/aC72r1CSF7y0kNf54GjykAKpHAKecaP7EIrTX1NmrlIeHI='
+cookie='wordfence_cookie_consent=%7B%22analytical%22%3Atrue%2C%22targeting%22%3Atrue%7D; _gcl_au=1.1.1186997439.1751106189; _ga_6THBZHGE0J=GS2.1.s1751333586$o7$g0$t1751333586$j60$l0$h0; _ga=GA1.1.2137489218.1751106190; __hstc=151178726.3ce2cfaeaa6fa239a7a194d45f3b0801.1751106200601.1751303389097.1751333586769.7; hubspotutk=3ce2cfaeaa6fa239a7a194d45f3b0801; aws-waf-token=f842f9d3-cc18-4757-b6f6-11f6c431e618:EAoAgUt4ngcXAQAA:BlGmsW50ZB+nPyWI2s2j4vtTJIDpyl8VLbuhRrE3tARUfgDlF4Q3o+xeXIV0QtflswFvlGalele5Xx859sxlh2i1SMa/78iWtproTeWB+ZD1rwmTs7V+f1TPKUZ5a1lCp2LQTiPv/ISASROR05R+1G7HNBwMQvY6UK7eQd0K58EK+w+7vqCJHu1I8qaEOEwzQn5Q6BXR3vT9c8sxJppVqtlFPPmAD2hja3OPfZwGVKEtYgutFdzjQx2TCUewXDxKM+7J27k=; __hssc=151178726.1.1751333586769'
 # Configuración del proxy
 proxies = {
     'http': 'http://127.0.0.1:8081',
