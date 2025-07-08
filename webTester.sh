@@ -2546,7 +2546,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			if [ "$(grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt | wc -l)" -gt 25 ]; then
 				echo "More than 25 lines found (honeypot)"
 			else
-				egrep -i '200 \||403 \|' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt
+				egrep -i '200 \||403 \|' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
 			fi
 			######
 
