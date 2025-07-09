@@ -1863,6 +1863,7 @@ for line in $(cat $TARGETS); do
 		
 		if [[ "$FORCE" == "internet" && ( "$domain" == *"gob.pe"* || "$domain" == *"edu.pe"* ) ]]; then
 			echo "conectar a servidor NFS"
+			fusermount -uz /srv/heka
 			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
 			if ! grep -q "$domain" /srv/heka/domains.txt 2>/dev/null; then
 				echo $domain >> /srv/heka/domains.txt
