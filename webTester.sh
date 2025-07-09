@@ -1860,8 +1860,8 @@ for line in $(cat $TARGETS); do
 	########### obtener subdominios con google #######
 	if [ -f "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" ]; then
 		domain=$(cat "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" | extract_domain.py)
-
-		if [[ "$FORCE" == "internet" ]]; then
+		
+		if [[ "$FORCE" == "internet" && ( "$domain" == *"gob.pe"* || "$domain" == *"edu.pe"* ) ]]; then
 			echo "conectar a servidor NFS"
 			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
 			if ! grep -q "$domain" /srv/heka/domains.txt 2>/dev/null; then
