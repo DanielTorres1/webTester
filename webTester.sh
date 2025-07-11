@@ -1861,7 +1861,7 @@ for line in $(cat $TARGETS); do
 	if [ -f "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" ]; then
 		domain=$(cat "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" | extract_domain.py)
 		
-		if [[ "$FORCE" == "internet" && ( "$domain" == *"gob.pe"* || "$domain" == *"edu.pe"* ) ]]; then
+		if [[ "$FORCE" == "internet" && ( "$domain" == *"gob"* || "$domain" == *"edu"* ) ]]; then
 			echo "conectar a servidor NFS"
 			fusermount -uz /srv/heka
 			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
@@ -2544,7 +2544,7 @@ if [[ $webScaneado -eq 1 ]]; then
 			fi
 
 			#wordpress plugins	
-			if [ "$(grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt | wc -l)" -gt 25 ]; then
+			if [ "$(grep -i 'vulnerable' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt 2> /dev/null | wc -l)" -gt 25 ]; then
 				echo "More than 25 lines found (honeypot)"
 			else
 				egrep -i '200 \||403 \|' logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressPlugins.txt >> .vulnerabilidades/"$host"_"$port"_wordpressPlugins.txt 2>/dev/null
