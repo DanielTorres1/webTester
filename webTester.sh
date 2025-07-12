@@ -86,6 +86,7 @@ source /usr/share/lanscanner/api_keys.conf
 
 
 
+
 move_web_files() {
 	#move only web files from .enumeracion2 to .enumeracion2_archived2 to avoid duplicates entries
     # Define source and destination directories
@@ -1429,8 +1430,10 @@ function enumeracionCMS () {
 			msfconsole -x "use scanner/http/wordpress_ghost_scanner;set RHOSTS $host; set RPORT $port ;run;exit" > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpressGhost.txt 2>/dev/null &
 			wordpress-version.py $wordpress_url > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"wordpressVersion.txt 2>/dev/null
 			
+			#SQLi <5.8.3 
 			wordpress-CVE-2022-21661.py --url "$wordpress_url"wp-admin/admin-ajax.php --payload 1 > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~CVE~2022~21661.txt 2>/dev/null &
-			
+			# wordpress-CVE-2022-21661.py --url https://uncp.edu.pe/wp-admin/admin-ajax.php --payload 2 
+
 			#Ultimate Member 
 			wordpress-plugin-cve-2024-1071.py $wordpress_url > logs/vulnerabilidades/"$host"_"$port"_"$path_web_nombre_archivo"wordpress~cve~2024~1071.txt 2>/dev/null &
 
@@ -1857,6 +1860,12 @@ for line in $(cat $TARGETS); do
 	fi
 	#################
 
+	###### buscar otros dominios en los enlaces ###
+	gourlex -t $proto_http://$host:$port -s > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"gourlex.txt
+	egrep -v 'nettix|symfony|cgi-bin|no route to host|winbox64|license|localhost|\.gif|\.svg|bundles|\.pdf|examples|docs|\.exe|\.ico|\.png|\.jpg|\.js|css|javascript|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|data:image|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|bitnami|failed|mikrotik|zimbra|zabbix|\#' logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
+	cat .enumeracion/"$host"_"$port"_webLinks.txt | egrep 'http'  | cut -d '/' -f1-3 | egrep 'edu|gob' | sort -u > "logs/enumeracion/${domain}_urls.txt"
+	#############
+
 	########### obtener subdominios con google #######
 	if [ -f "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" ]; then
 		domain=$(cat "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" | extract_domain.py)
@@ -1865,44 +1874,52 @@ for line in $(cat $TARGETS); do
 			echo "conectar a servidor NFS"
 			fusermount -uz /srv/heka
 			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
+
+			######## google ##########
 			if ! grep -q "$domain" /srv/heka/domains.txt 2>/dev/null; then
 				echo $domain >> /srv/heka/domains.txt
-				googlesearch-client -t "site:$domain" -l /dev/null -o "logs/enumeracion/${domain}_google.txt"
-				cat "logs/enumeracion/${domain}_google.txt" | cut -d '/' -f1-3 | sort -u | grep -v 'www.gob.pe' > "logs/enumeracion/${domain}_subdomains.txt"
-
-				while IFS= read -r url; do
-					proto=$(echo "$url" | cut -d':' -f1)
-					host=$(echo "$url" | awk -F[/:] '{print $4}')
-
-					if [ "$proto" = "https" ]; then
-						port=443
-					else
-						port=80
-					fi
-					echo "$host:$port:$proto" >> "servicios/web-domain2.txt"
-				done < "logs/enumeracion/${domain}_subdomains.txt"
-				sort -t: -k2,2nr servicios/web-domain2.txt > servicios/web-domain.txt #primero puertos 443
-
-				cat servicios/web-domain.txt >> $TARGETS 2>/dev/null
-
-				for line in $(cat servicios/web-domain.txt); do
-					host=`echo $line | cut -f1 -d":"`
-					port=`echo $line | cut -f2 -d":"`
-					proto_http=`echo $line | cut -f3 -d":"` #http/https
-					echo "Enumerando $host : $port"
-					waitWeb 0.1
-					echo -e "[+]Escaneando $host $port ($proto_http)"
-						echo -e "\t[i] Identificacion de técnologia usada en los servidores web"				
-						webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
-						get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"cert.txt  2>/dev/null &
-				done
-			
+				googlesearch-client -t "site:$domain" -l google.html -o "logs/enumeracion/${domain}_google.txt"
+				cat "logs/enumeracion/${domain}_google.txt" | cut -d '/' -f1-3 | sort -u | grep -v 'www.gob.pe' >> "logs/enumeracion/${domain}_urls.txt"							
 			else
 				echo "$domain ya fue escaneado por este u otro servidor"
 			fi
+		else
+			echo "$domain  NO es gob ni edu || FORCE = $FORCE"
 		fi # escaneo masivo		
 	fi
 	#########################################
+
+	######## url --> domain ######
+	if [ -f "logs/enumeracion/${domain}_urls.txt" ]; then
+		while IFS= read -r url; do
+			proto=$(echo "$url" | cut -d':' -f1)
+			host=$(echo "$url" | awk -F[/:] '{print $4}')
+
+			if [ "$proto" = "https" ]; then
+				port=443
+			else
+				port=80
+			fi
+			echo "$host:$port:$proto" >> "servicios/web-domain2.txt"
+		done < "logs/enumeracion/${domain}_urls.txt"
+		
+		sort -t: -k2,2nr servicios/web-domain2.txt > servicios/web-domain.txt #primero puertos 443
+
+		cat servicios/web-domain.txt >> $TARGETS 2>/dev/null
+
+		for line in $(cat servicios/web-domain.txt); do
+			host=`echo $line | cut -f1 -d":"`
+			port=`echo $line | cut -f2 -d":"`
+			proto_http=`echo $line | cut -f3 -d":"` #http/https
+			echo "Enumerando $host : $port"
+			waitWeb 0.1
+			echo -e "[+]Escaneando $host $port ($proto_http)"
+				echo -e "\t[i] Identificacion de técnologia usada en los servidores web"				
+				webData -proto $proto_http -target $host -port $port -path $path_web -logFile logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webData.txt -maxRedirect 2 > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"webDataInfo.txt
+				get_ssl_cert $host $port | grep -v 'failed' > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"cert.txt  2>/dev/null &
+		done
+	fi
+	###############################
 
 	#Verificar que no se obtuvo ese dato
 	if [ -e logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"vhosts.txt ]; then
@@ -2315,8 +2332,6 @@ for line in $(cat $TARGETS); do
 					echo -e "\t\t[+] HTTP methods ($proto_http://$host:$port) "
 					httpmethods.py -k -L -t 5 $proto_http://$host:$port > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"httpmethods.txt  2>/dev/null &
 
-					gourlex -t $proto_http://$host:$port -s > logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"gourlex.txt
-					egrep -v '\.png|\.jpg|\.js|css|javascript|facebook|nginx|failure|microsoft|github|laravel.com|laravel-news|laracasts.com|linkedin|youtube|instagram|not yet valid|cannot validate certificate|connection reset by peer|EOF|gstatic|twitter|debian|apache|ubuntu|nextcloud|sourceforge|AppServNetwork|mysql|placehold|AppServHosting|phpmyadmin|php.net|oracle.com|java.net|yiiframework|enterprisedb|googletagmanager|envoyer|bunny.net|rockylinux|no such host|gave HTTP|dcm4che|apple|google|amazon.com|turnkeylinux|.org|fb.watch|timeout|unsupported protocol|zimbra|internic|redhat|fastly|juniper|SolarWinds|hp.com|bitnami|failed|mikrotik|zimbra|zabbix|\#' logs/enumeracion/"$host"_"$port"_"$path_web_nombre_archivo"gourlex.txt | sort | uniq > .enumeracion/"$host"_"$port"_webLinks.txt
 
 					if [[ "$INTERNET" == "s" ]] && [[  "$MODE" == "oscp" || "$MODE" == "total" ]]; then
 						echo -e "\t\t[+] identificar si el host esta protegido por un WAF "
