@@ -1871,8 +1871,10 @@ for line in $(cat $TARGETS); do
 		domain=$(cat "logs/enumeracion/${host}_${port}_${path_web_nombre_archivo}cert.txt" | extract_domain.py)
 		
 		if [[ "$FORCE" == "internet" && ( "$domain" == *"gob"* || "$domain" == *"edu"* ) ]]; then
-			echo "conectar a servidor NFS"
+			echo "Desmontar NFS"
 			fusermount -uz /srv/heka
+			
+			echo "conectar a servidor NFS"
 			sshfs -v shareuser@173.249.26.59:/mnt/heka /srv/heka -o allow_other,default_permissions,IdentityFile=~/.ssh/shareuser.id_rsa,port=62222
 
 			######## google ##########
@@ -1900,7 +1902,12 @@ for line in $(cat $TARGETS); do
 			else
 				port=80
 			fi
-			echo "$host:$port:$proto" >> "servicios/web-domain2.txt"
+
+			if ! grep -q "^$host:$port:$proto$" /srv/heka/apps.txt; then
+				echo "$host:$port:$proto" >> /srv/heka/apps.txt
+				echo "$host:$port:$proto" >> servicios/web-domain2.txt
+			fi
+
 		done < "logs/enumeracion/${domain}_urls.txt"
 		
 		sort -t: -k2,2nr servicios/web-domain2.txt > servicios/web-domain.txt #primero puertos 443
